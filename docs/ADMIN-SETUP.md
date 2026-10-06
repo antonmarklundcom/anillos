@@ -14,6 +14,8 @@ Después de una respuesta que confirme que el dueño fue creado o actualizado, e
 
 Los pasos de migración y el preflight técnico quedan en un desplegable para diagnóstico. Es un informe del entorno, no una confirmación de que el checkout está listo ni una lectura de toda la configuración guardada en el panel. La bienvenida distingue el acceso creado de los requisitos comerciales pendientes.
 
+La confirmación o el error aparece antes del formulario y recibe foco. Al crear la cuenta, los campos desaparecen y queda el botón **Ir al login de administración** si no se completa el ingreso automático. La página separa los requisitos para abrir ventas de las integraciones opcionales. `SetupForm` mantiene una opción explícita `allowDemoCatalogue` para otras tiendas del template: sólo si se habilita muestra el checkbox, aclara que son productos ficticios y que importar productos reales no los elimina. Anillos deja esa opción apagada.
+
 Una respuesta de tienda ya inicializada (409) no confirma por sí sola que haya un dueño: pudo haberse inicializado sólo el schema. Antes de repetir con `force`, verificá el acceso existente o consultá privadamente la tabla `users`. La repetición con un email existente reemplaza su contraseña, lo activa como dueño y revoca sus sesiones anteriores. No sirve para recuperar ni mostrar la contraseña anterior.
 
 Después de crear y probar el acceso del dueño, eliminá `SETUP_SECRET` de las variables del hPanel y hacé Redeploy. `/setup` deja de existir y la API queda cerrada. No hacen falta `OWNER_EMAIL` ni `OWNER_PASSWORD` en el entorno de producción para usar el panel.

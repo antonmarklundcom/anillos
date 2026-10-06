@@ -25,7 +25,7 @@ type Params = Promise<{ id: string }>;
  * (`requireAdmin` en `layout.tsx`), así que no hace falta repetir el guard
  * acá — sólo leer el rol para decidir si se ven los precios. El nav del
  * panel se oculta en el papel con el CSS de `@media print` de
- * `globals.css` (`header { display: none }`), no con un layout aparte: así
+ * `globals.css` (`.s9-no-print`), no con un layout aparte: así
  * el guard sigue siendo uno solo.
  *
  * Sin precios para `vendedor` (ARCH.md §1: arma el paquete, no audita la

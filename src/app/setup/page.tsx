@@ -29,12 +29,28 @@ export default function SetupPage() {
 
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("setup.titulo")}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        {t("setup.titulo")}
+      </h1>
       <p className="text-muted-foreground mt-2 text-sm">{t("setup.bajada")}</p>
       <div className="mt-6">
         <SetupForm />
       </div>
       <p className="text-muted-foreground mt-6 text-xs">{t("setup.despues")}</p>
+      <section className="mt-6 grid gap-4 rounded-xl border p-4 text-sm">
+        <div>
+          <h2 className="font-medium">{t("setup.launchRequiredTitle")}</h2>
+          <p className="text-muted-foreground mt-1">
+            {t("setup.launchRequired")}
+          </p>
+        </div>
+        <div>
+          <h2 className="font-medium">{t("setup.launchOptionalTitle")}</h2>
+          <p className="text-muted-foreground mt-1">
+            {t("setup.launchOptional")}
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

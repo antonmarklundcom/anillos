@@ -23,5 +23,17 @@ export default defineConfig({
       name: "mobile",
       use: { ...devices["Pixel 7"], defaultBrowserType: "chromium" },
     },
+    ...(process.env.STORE_CHROME_E2E === "1"
+      ? [
+          {
+            name: "chrome",
+            use: {
+              ...devices["Desktop Chrome"],
+              channel: "chrome" as const,
+              viewport: { width: 1440, height: 1000 },
+            },
+          },
+        ]
+      : []),
   ],
 });

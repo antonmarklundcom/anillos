@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { loginAdminAfterSetup } from "@/app/actions/admin-auth";
@@ -34,14 +34,19 @@ type Respuesta = {
 export const SETUP_WELCOME_PATH = "/admin/bienvenida";
 export const SETUP_LOGIN_PATH = "/admin/login?next=%2Fadmin%2Fbienvenida";
 
-/** The browser creates an owner only; demo fixtures are never offered here. */
-export function SetupForm() {
+/** Other template stores may opt in; Anillos keeps fictional fixtures disabled. */
+export function SetupForm({
+  allowDemoCatalogue = false,
+}: {
+  allowDemoCatalogue?: boolean;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [respuesta, setRespuesta] = useState<Respuesta | null>(null);
 
   return (
     <div className="grid gap-6">
+      {respuesta ? <Resultado respuesta={respuesta} /> : null}
       {!respuesta?.ok ? (
         <form
           className="border-border grid gap-5 rounded-xl border p-4 sm:p-6"
@@ -62,7 +67,7 @@ export function SetupForm() {
               return;
             }
             const cuerpo = {
-              seed: false,
+              seed: allowDemoCatalogue && data.get("seed") !== null,
               force: data.get("force") !== null,
               owner: { email, password, ...(nombre ? { name: nombre } : {}) },
             };
@@ -172,9 +177,26 @@ export function SetupForm() {
               {t("setup.duenioAyuda")}
             </p>
           </fieldset>
-          <p className="text-muted-foreground text-sm">
-            {t("setup.catalogoAyuda")}
-          </p>
+          {allowDemoCatalogue ? (
+            <div className="grid gap-2">
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  name="seed"
+                  className="mt-1"
+                  aria-describedby="setup-demo-help"
+                />
+                <span>{t("setup.demoCatalogo")}</span>
+              </label>
+              <p id="setup-demo-help" className="text-muted-foreground text-sm">
+                {t("setup.demoCatalogoAyuda")}
+              </p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              {t("setup.catalogoAyuda")}
+            </p>
+          )}
           <details className="border-border rounded-lg border p-3 text-sm">
             <summary className="cursor-pointer font-medium">
               {t("setup.avanzado")}
@@ -195,7 +217,6 @@ export function SetupForm() {
           </Link>
         </form>
       ) : null}
-      {respuesta ? <Resultado respuesta={respuesta} /> : null}
     </div>
   );
 }
@@ -227,13 +248,21 @@ function mensajeDeError(respuesta: Respuesta): string {
 }
 
 function Resultado({ respuesta }: { respuesta: Respuesta }) {
+  const resultRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    resultRef.current?.focus();
+  }, [respuesta]);
   return (
     <section
+      ref={resultRef}
+      tabIndex={-1}
       role="status"
       aria-live="polite"
-      className="border-border grid gap-4 rounded-xl border p-5 text-sm"
+      aria-labelledby="setup-result-heading"
+      className="border-border focus-visible:ring-ring grid scroll-mt-28 gap-4 rounded-xl border p-5 text-sm focus-visible:ring-2"
     >
       <h2
+        id="setup-result-heading"
         className={
           respuesta.ok
             ? "text-xl font-semibold"
@@ -254,7 +283,7 @@ function Resultado({ respuesta }: { respuesta: Respuesta }) {
             href={SETUP_LOGIN_PATH}
             className="bg-primary text-primary-foreground inline-flex min-h-10 items-center justify-center rounded-md px-4 font-medium"
           >
-            {t("setup.entrar")}
+            {t("setup.loginButton")}
           </Link>
         </>
       ) : null}

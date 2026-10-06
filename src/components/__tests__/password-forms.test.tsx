@@ -310,8 +310,9 @@ describe("setup", () => {
         screen.getByRole("heading", { name: "Tu acceso al panel está listo" })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("link", { name: "Entrar al panel" })
+        screen.getByRole("link", { name: "Ir al login de administración" })
       ).toHaveAttribute("href", SETUP_LOGIN_PATH);
+      expect(screen.getByRole("status")).toHaveFocus();
       expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
       expect(actions.replace).not.toHaveBeenCalled();
       const details = screen
@@ -322,6 +323,41 @@ describe("setup", () => {
       expect(SETUP_LOGIN_PATH).not.toContain(PASSWORD);
     }
   );
+
+  it("focuses errors above the form and keeps repeat initialization unchecked", () => {
+    mockSetup();
+    render(<SetupForm />);
+    const { form } = fillSetup(MISMATCH);
+    expect(screen.getByRole("checkbox")).not.toBeChecked();
+    expect(screen.getByText(/primera configuración/)).toBeInTheDocument();
+    fireEvent.submit(form);
+    const result = screen.getByRole("status");
+    expect(result).toHaveFocus();
+    expect(
+      result.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it("offers fictional catalogue fixtures only when another store explicitly opts in", async () => {
+    const fetch = mockSetup();
+    render(<SetupForm allowDemoCatalogue />);
+    expect(
+      screen.getByText(
+        /Importar productos reales después no elimina estos ejemplos/
+      )
+    ).toBeInTheDocument();
+    const demo = screen.getByRole("checkbox", {
+      name: "Cargar el catálogo de ejemplo para pruebas",
+    });
+    expect(demo).not.toBeChecked();
+    fireEvent.click(demo);
+    fireEvent.submit(fillSetup().form);
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(fetch.mock.calls[0]![1].body)).toMatchObject({
+      seed: true,
+      force: false,
+    });
+  });
 });
 
 describe("admin accounts", () => {
