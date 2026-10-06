@@ -76,7 +76,10 @@ export async function loginAsOwner(page: Page): Promise<void> {
 /**
  * Busca un pedido por número en `/admin/pedidos` y entra a su ficha.
  */
-export async function openOrderFicha(page: Page, orderNumber: string): Promise<void> {
+export async function openOrderFicha(
+  page: Page,
+  orderNumber: string
+): Promise<void> {
   await page.getByTestId(TESTIDS.adminOrdersSearchInput).fill(orderNumber);
   await page.getByTestId(TESTIDS.adminOrdersSearchSubmit).click();
   await adminOrderRow(page, orderNumber).click();
@@ -131,9 +134,18 @@ export async function realizarCompra(
  * cada tienda clonada — que es exactamente el bug que este contrato existe
  * para no repetir (NEW-STORE.md §5).
  */
+export async function openFirstHeaderCategory(page: Page): Promise<void> {
+  const menu = page.locator(".collection-menu summary");
+  if ((page.viewportSize()?.width ?? 1280) < 640) {
+    await expect(menu).toBeVisible();
+    await menu.click();
+  }
+  await page.getByTestId(TESTIDS.headerCategoryLink).first().click();
+}
+
 export async function completarCheckout(page: Page): Promise<void> {
   await page.goto("/");
-  await page.getByTestId(TESTIDS.headerCategoryLink).first().click();
+  await openFirstHeaderCategory(page);
   await expect(page).toHaveURL(/\/categoria\//);
 
   await page.getByTestId(TESTIDS.productCard).first().click();

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { COLLECTION_GUIDANCE } from "@/content/collection-guidance";
 import { collectionFor, priceUnit } from "@/config/ring-store";
 import Image from "next/image";
 import Link from "next/link";
@@ -181,6 +182,22 @@ export default async function CategoryPage({
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">
         {category.name}
       </h1>
+      {COLLECTION_GUIDANCE[slug] ? (
+        <details className="border-border mt-6 rounded-lg border p-5">
+          <summary className="cursor-pointer font-medium">
+            {COLLECTION_GUIDANCE[slug].heading}
+          </summary>
+          <ul className="text-muted-foreground mt-4 list-disc space-y-3 pl-5 text-sm leading-6">
+            {COLLECTION_GUIDANCE[slug].checks.map((check) => (
+              <li key={check}>{check}</li>
+            ))}
+          </ul>
+          <p className="text-muted-foreground mt-4 text-xs">
+            Estas preguntas ayudan a comparar una pieza real; no confirman
+            materiales ni servicios de los conceptos ilustrativos.
+          </p>
+        </details>
+      ) : null}
       {catalogAvailable ? (
         <p className="text-muted-foreground mt-1 text-sm">
           {tPlural("catalogo.productos", result.total)} · {priceUnit(slug)}

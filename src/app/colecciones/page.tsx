@@ -16,7 +16,7 @@ export default async function CollectionsPage() {
   return (
     <main className="store-section">
       <p className="eyebrow">Tu punto de partida</p>
-      <h1 className="article-heading mt-5">Cinco maneras de encontrarlo.</h1>
+      <h1 className="article-heading mt-5">Encontrá tu anillo.</h1>
       <p className="section-intro">
         Acero y plata para empezar; alianzas y compromiso para compartir una
         historia. Todas las imágenes actuales son ilustrativas y los conceptos

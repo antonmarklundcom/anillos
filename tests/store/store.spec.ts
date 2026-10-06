@@ -78,7 +78,7 @@ test("reduced motion keeps the static poster without sequence downloads", async 
   // The portrait has a separate poster; reduced motion downloads no sequence.
   expect(frames).toEqual([]);
   await expect(
-    page.getByRole("link", { name: "Explorá opciones accesibles" })
+    page.getByRole("link", { name: "Explorá las colecciones" })
   ).toBeVisible();
 });
 
@@ -176,7 +176,7 @@ test.describe("server-rendered storefront", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Explorá opciones accesibles" })
+      page.getByRole("link", { name: "Explorá las colecciones" })
     ).toBeVisible();
     await expect(page.locator(".cinematic-media img")).toBeVisible();
     await expect(

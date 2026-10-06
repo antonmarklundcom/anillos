@@ -1,15 +1,16 @@
-import { getPool } from '@/db';
-import { cronAtrasado, getJobRun } from '@/domain/job-runs';
+import { getPool } from "@/db";
+import { cronAtrasado, getJobRun } from "@/domain/job-runs";
 
 /**
  * Prueba de humo post-deploy (DEPLOY.md §6).
  *
- *   curl -fsS https://TU-DOMINIO/api/health   →   {"ok":true,"db":true,"cron":true}
+ *   curl -fsS https://TU-DOMINIO/api/health   →   {"ok":true,"db":true,"cron":true,"catalog":true}
  *
  * Separa las dos preguntas que el deploy confunde todo el tiempo: **¿levantó
  * la app?** (llegó una respuesta) y **¿llega a MySQL?** (`db`). `db:false` con
  * `ok:true` es exactamente el síntoma de la `DATABASE_URL` mal cargada en el
- * panel — de ahí se sigue con `pnpm db:check`.
+ * panel — de ahí se sigue con `pnpm db:check`. `db:true` con `catalog:false`
+ * indica que conectar no alcanza: falla una consulta real del catálogo.
  *
  * Va sin autenticar a propósito: tiene que poder llamarla el monitoreo de
  * Hostinger, un uptime checker o vos desde el celular, sin secretos dando
@@ -19,7 +20,7 @@ import { cronAtrasado, getJobRun } from '@/domain/job-runs';
  */
 
 // Chequea la base en cada llamada: nunca se prerenderiza ni se cachea.
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 /**
  * Corto a propósito. Un health check que tarda 30 segundos en decir que la
@@ -37,18 +38,32 @@ const DB_TIMEOUT_MS = 3_000;
 export async function GET(): Promise<Response> {
   const db = await dbResponde();
   const cron = db ? await cronAlDia() : false;
+  const catalog = db ? await catalogoResponde() : false;
 
-  return new Response(JSON.stringify({ ok: true, db, cron }), {
+  return new Response(JSON.stringify({ ok: true, db, cron, catalog }), {
     status: 200,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-store",
+    },
   });
+}
+
+async function catalogoResponde(): Promise<boolean> {
+  try {
+    const { getCatalog } = await import("@/db/queries");
+    await Promise.race([getCatalog({ limit: 1 }), rechazarAlVencer()]);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function dbResponde(): Promise<boolean> {
   try {
     // `getPool()` tira si falta DATABASE_URL: eso también es `db:false`, que es
     // justo lo que hay que reportar.
-    const query = getPool().query('SELECT 1');
+    const query = getPool().query("SELECT 1");
     await Promise.race([query, rechazarAlVencer()]);
     return true;
   } catch {
@@ -61,7 +76,7 @@ async function dbResponde(): Promise<boolean> {
 
 async function cronAlDia(): Promise<boolean> {
   try {
-    return !cronAtrasado(await getJobRun('vencer_pedidos'));
+    return !cronAtrasado(await getJobRun("vencer_pedidos"));
   } catch {
     return false;
   }
@@ -69,7 +84,7 @@ async function cronAlDia(): Promise<boolean> {
 
 function rechazarAlVencer(): Promise<never> {
   return new Promise((_resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('timeout')), DB_TIMEOUT_MS);
+    const timer = setTimeout(() => reject(new Error("timeout")), DB_TIMEOUT_MS);
     // El proceso no se queda vivo por este timer si la query ya volvió.
     timer.unref?.();
   });

@@ -12,7 +12,7 @@ Five collections prioritize steel and silver before gold. Pairs are identified a
 
 The home has an ivory editorial layout, a civil-wedding section, an adult fictional Paraguayan model and guide links. The current header uses a complete ring still with continuous scroll motion and three detail stages; the model appears in the lifestyle section. The earlier video sequence is superseded. Current changes and validation are in `RING-SCROLL-AUDIT.md`; `HOMEPAGE-REVIEW.md` records the previous review. GEMORA and Caretline informed the direction without importing unsupported heritage, atelier, certification or commission claims. No GSAP, AOS, preloader, tracking provider or production dependency was added. System sans and Georgia remove build-time Google Fonts requests.
 
-The optional canvas renders 48 video frames; desktop and mobile use separate optimized sizes. It starts after the initial poster, yields network slots in small batches, and supports pause, a direct skip link, reduced motion, data saving and missing-frame fallback. Text and links are server-rendered independently of motion. Media prompts, tool names and generation IDs are recorded in `MEDIA-PROVENANCE.json`; image dimensions, byte counts and SHA-256 hashes are in `public/media/assets.json`.
+The default hero now uses one responsive still of a complete ring with a small scroll-controlled camera move; no video sequence or canvas is requested. It supports pause, a direct skip link, reduced motion, data saving and missing-image fallback. Text and links are server-rendered independently of motion. Historical media prompts and generation IDs remain in `MEDIA-PROVENANCE.json`; asset metadata is in `public/media/assets.json`. The review is in `docs/RING-SCROLL-AUDIT.md`.
 
 ## Local and production data
 
@@ -26,4 +26,4 @@ Six substantial Spanish/voseo guides cover sizing, materials, limited budgets, c
 
 New public pages and favourites render per request to match the template's nonce-based CSP. The security policy is unchanged. Guides are crawlable server-rendered content; the initial static-parameter approach was removed after a fresh-visit screenshot exposed blocked hydration. Browser checks assert visible headings and articles, including on the small-phone guide capture.
 
-No merge, deployment, supplier contact or template registry change was made. Register distribution in the template's `tiendas.json` later, with hosting details confirmed, as a separate template change.
+The initial showcase was followed by merged [PR 6](https://github.com/antonmarklundcom/anillos/pull/6) for the complete-ring hero and catalog resilience. No supplier contact or template registry change was made. Register distribution in the template's `tiendas.json` later, with hosting details confirmed, as a separate template change. Current readiness and follow-up fixes are tracked in `docs/SITE-IMPROVEMENTS.md`.

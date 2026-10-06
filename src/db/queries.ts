@@ -450,7 +450,11 @@ export async function searchProducts(
         sql`MATCH(${products.name}, ${products.description}) AGAINST (${booleanTerm} IN BOOLEAN MODE)`
       )
     )
-    .limit(limit);
+    .limit(limit)
+    .catch((error: unknown) => {
+      if (missingFullTextIndex(error)) return [];
+      throw error;
+    });
 
   if (matched.length > 0) return hydrate(tx, matched);
 
@@ -520,7 +524,11 @@ export async function suggestProducts(
         sql`MATCH(${products.name}, ${products.description}) AGAINST (${booleanTerm} IN BOOLEAN MODE)`
       )
     )
-    .limit(limit);
+    .limit(limit)
+    .catch((error: unknown) => {
+      if (missingFullTextIndex(error)) return [];
+      throw error;
+    });
 
   if (matched.length > 0) return matched;
 
@@ -536,6 +544,22 @@ export async function suggestProducts(
       )
     )
     .limit(limit);
+}
+
+/** An absent FULLTEXT index can use LIKE; other schema/connection failures must surface. */
+function missingFullTextIndex(error: unknown): boolean {
+  let cause = error;
+  for (
+    let depth = 0;
+    depth < 5 && cause && typeof cause === "object";
+    depth++
+  ) {
+    const item = cause as { code?: string; errno?: number; cause?: unknown };
+    if (item.code === "ER_FT_MATCHING_KEY_NOT_FOUND" || item.errno === 1191)
+      return true;
+    cause = item.cause;
+  }
+  return false;
 }
 
 export async function getCategories(executor?: Executor) {

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { log } from "@/lib/log";
 
 import { CheckoutForm } from "@/components/checkout-form";
 import { CheckoutTrust } from "@/components/checkout-trust";
@@ -27,6 +29,33 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
+  try {
+    return await AvailableCheckout();
+  } catch (error) {
+    log.error("store.checkout.unavailable", { error });
+    return (
+      <main className="store-section">
+        <h1 className="article-heading">La compra no está disponible.</h1>
+        <div role="status" className="store-prose mt-6">
+          <p>
+            No pudimos verificar las condiciones de compra. No se aceptó ningún
+            pedido ni pago en esta página. Volvé a intentarlo más tarde.
+          </p>
+          <p>
+            Mientras tanto, podés{" "}
+            <Link href="/colecciones">explorar las colecciones</Link> o{" "}
+            <Link href="/contacto">
+              ver los canales de contacto disponibles
+            </Link>
+            .
+          </p>
+        </div>
+      </main>
+    );
+  }
+}
+
+async function AvailableCheckout() {
   const zones = await listShippingZones().catch(() => []);
   const cities = zones
     .flatMap((zone) => zone.cities)

@@ -179,9 +179,17 @@ export function CinematicHero({
             <em>Grandes historias.</em>
           </h1>
           <p>
-            De un anillo para todos los días a unas alianzas para los dos.
-            Encontrá tu estilo, empezá por tu presupuesto.
+            Acero, plata, alianzas y compromiso en Paraguay. Encontrá tu estilo
+            y aprendé a elegir tu medida.
           </p>
+          <div className="hero-actions">
+            <Link href="#colecciones" className="store-button">
+              Explorá las colecciones ↗
+            </Link>
+            <Link href="/guias/talles" className="text-link">
+              Medí tu talle →
+            </Link>
+          </div>
           {variant === "rings" ? (
             <div className="hero-detail" aria-label="Detalles del anillo">
               <ol className="hero-detail-steps">
@@ -197,14 +205,6 @@ export function CinematicHero({
               <p>{HERO_DETAILS[detail]?.text}</p>
             </div>
           ) : null}
-          <div className="hero-actions">
-            <Link href="/categoria/acero" className="store-button">
-              Explorá opciones accesibles ↗
-            </Link>
-            <Link href="#colecciones" className="text-link">
-              Ver colecciones →
-            </Link>
-          </div>
           <span className="hero-note">
             Catálogo conceptual · compras aún no habilitadas
           </span>

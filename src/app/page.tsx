@@ -76,9 +76,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           plata, y encontrá tu camino hacia una elección cómoda y accesible.
         </p>
         <div className="collection-grid">
-          {COLLECTIONS.filter((item) => available.has(item.slug))
-            .slice(0, 4)
-            .map((collection, index) => (
+          {COLLECTIONS.filter((item) => available.has(item.slug)).map(
+            (collection, index) => (
               <Link
                 key={collection.slug}
                 href={`/categoria/${collection.slug}`}
@@ -100,7 +99,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                   </p>
                 </div>
               </Link>
-            ))}
+            )
+          )}
         </div>
       </section>
       <section className="story-band">
@@ -123,9 +123,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <Link href="/guias/alianzas-boda-civil" className="store-button">
               Cómo elegir sus alianzas ↗
             </Link>
-            <Link href="/categoria/compromiso" className="text-link mt-5 block">
-              También: ideas de compromiso →
-            </Link>
+            {available.has("compromiso") ? (
+              <Link
+                href="/categoria/compromiso"
+                className="text-link mt-5 block"
+              >
+                También: ideas de compromiso →
+              </Link>
+            ) : null}
           </div>
         </div>
       </section>

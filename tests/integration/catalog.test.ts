@@ -11,8 +11,11 @@ import {
   getProductBySlug,
   getSitemapEntries,
   searchProducts,
+  suggestProducts,
 } from "@/db/queries";
 import { getDb } from "@/db";
+import { getPool } from "@/db";
+import { FULLTEXT_INDEX_NAME, applySchemaExtras } from "@/db/extras";
 import { products } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -43,6 +46,23 @@ describe.skipIf(!hasTestDb)("queries del catálogo", () => {
     );
   }, 120_000);
   afterAll(closeTestDb);
+
+  it("search and suggestions still find published products without the optional FULLTEXT index", async () => {
+    await getPool().query(
+      `ALTER TABLE products DROP INDEX ${FULLTEXT_INDEX_NAME}`
+    );
+    try {
+      expect(
+        (await searchProducts("auriculares")).map((item) => item.slug)
+      ).toContain("auriculares-bluetooth-tws");
+      expect(
+        (await suggestProducts("auriculares")).map((item) => item.slug)
+      ).toContain("auriculares-bluetooth-tws");
+      expect(await searchProducts("nonexistentzzzz")).toEqual([]);
+    } finally {
+      await applySchemaExtras(getPool());
+    }
+  });
 
   it("lista las categorías activas en orden", async () => {
     const categories = await getCategories();

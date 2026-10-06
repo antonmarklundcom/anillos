@@ -4,7 +4,8 @@ import { safeError } from "@/lib/safe-error";
 
 import { headers } from "next/headers";
 
-import { suggestProducts, type SearchSuggestion } from "@/db/queries";
+import { type SearchSuggestion } from "@/db/queries";
+import { suggestStoreProducts } from "@/store/search";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 /**
@@ -38,7 +39,7 @@ export async function sugerirProductos(
     return [];
 
   try {
-    return await suggestProducts(cleaned);
+    return await suggestStoreProducts(cleaned);
   } catch (error) {
     // La base caída no puede romper el header de toda la tienda.
     console.error("sugerirProductos falló", safeError(error).message);

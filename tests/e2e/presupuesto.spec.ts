@@ -4,6 +4,7 @@ import type { Page, Response } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import { TESTIDS } from "./testids";
+import { openFirstHeaderCategory } from "./helpers";
 
 /**
  * Presupuesto de JS por página (plan-operacion §6.4, ARCH.md §6). Es el
@@ -147,7 +148,7 @@ test.describe("presupuesto de JS por página", () => {
 
   test("producto", async ({ page, browser }) => {
     await page.goto("/");
-    await page.getByTestId(TESTIDS.headerCategoryLink).first().click();
+    await openFirstHeaderCategory(page);
     await expect(page).toHaveURL(/\/categoria\//);
 
     const productHref = await page

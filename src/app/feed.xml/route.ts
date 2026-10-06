@@ -5,6 +5,7 @@ import { markdownToText } from "@/lib/markdown";
 import { buildProductFeed } from "@/lib/product-feed";
 import { siteOrigin } from "@/lib/site-url";
 import { nombreTienda } from "@/lib/marca";
+import { log } from "@/lib/log";
 
 /**
  * `/feed.xml` — el catálogo para Google Merchant Center y Meta Commerce
@@ -23,16 +24,27 @@ export async function GET(): Promise<Response> {
   // Sin dominio no hay links absolutos que publicar, y un feed con
   // localhost adentro le enseña a Google páginas que no existen.
   if (!origin) {
-    return new Response("Falta NEXT_PUBLIC_SITE_URL: sin dominio no hay feed.", { status: 404 });
+    return new Response(
+      "Falta NEXT_PUBLIC_SITE_URL: sin dominio no hay feed.",
+      { status: 404 }
+    );
   }
 
   let products: Awaited<ReturnType<typeof getFeedProducts>>;
   try {
     products = await getFeedProducts();
-  } catch {
+  } catch (error) {
+    log.error("store.feed.unavailable", { error });
     // Base caída: 503 hace que Google y Meta reintenten más tarde en vez de
     // tomar un feed vacío como "la tienda no vende nada".
-    return new Response("Catálogo no disponible, probá de nuevo en un rato.", { status: 503 });
+    return new Response("Catálogo no disponible, probá de nuevo en un rato.", {
+      status: 503,
+      headers: {
+        "retry-after": "300",
+        "cache-control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+      },
+    });
   }
   const xml = buildProductFeed({
     origin,
