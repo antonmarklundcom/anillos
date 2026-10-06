@@ -1,9 +1,11 @@
-# Instalación explícita y congelada antes del build.
+# Hostinger instala con `pnpm install` antes de ejecutar el build.
+# Usar siempre el lockfile verificado, sin comandos especiales del panel.
+frozenLockfile: true
+
 # pnpm 11 intenta reinstalar automáticamente al correr scripts si el estado
-# de node_modules difiere. En Hostinger ese subprocess puede fallar antes de
-# llegar a Next.js; tampoco queremos instalaciones al arrancar producción.
-# El deploy corre `pnpm install --frozen-lockfile --prod=false` primero;
-# CI también instala con lockfile congelado antes de correr scripts.
+# de node_modules difiere. Bajo Corepack ese subprocess puede resolver otra
+# versión de pnpm desde el PATH y fallar antes de llegar a Next.js.
+# Instalar sólo en el paso Install; no reinstalar al compilar ni al arrancar.
 verifyDepsBeforeRun: false
 
 # Aprobación de los scripts de build.
