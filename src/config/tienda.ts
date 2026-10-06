@@ -106,6 +106,24 @@ export const TIENDA: Tienda = {
   hero: null,
 };
 
+/** A preview hostname is never the storefront wordmark. Custom names survive. */
+export function nombrePublicoDeMarca(nombre: string): string {
+  const limpio = nombre.trim();
+  if (
+    limpio === TIENDA.nombre ||
+    /^[a-z0-9-]+\.hostingersite\.com$/i.test(limpio)
+  ) {
+    return TIENDA.nombre.replace(/\.com\.py$/i, "");
+  }
+  return limpio;
+}
+
+export function logoPredeterminado(nombre: string): string | null {
+  return nombrePublicoDeMarca(nombre) === nombrePublicoDeMarca(TIENDA.nombre)
+    ? "/media/logo-wordmark.webp"
+    : null;
+}
+
 /**
  * **Legacy**: lo que dice este archivo, sin mirar el panel. La decisión real
  * la toma `cuentasClientesHabilitadas()` de `src/lib/cuentas.ts` (async), que

@@ -66,7 +66,7 @@ test("reduced motion keeps the static poster without sequence downloads", async 
   await page.emulateMedia({ reducedMotion: "reduce" });
   const frames: string[] = [];
   page.on("request", (request) => {
-    if (new URL(request.url()).pathname.startsWith("/media/frames/"))
+    if (/^\/media\/(?:portrait-)?frames\//.test(new URL(request.url()).pathname))
       frames.push(request.url());
   });
   await page.goto("/");
@@ -74,9 +74,8 @@ test("reduced motion keeps the static poster without sequence downloads", async 
   await expect(
     page.getByRole("button", { name: "Pausar movimiento" })
   ).toHaveCount(0);
-  // The static poster is frame 001; reduced motion must never load the sequence.
-  expect(frames.every((url) => url.endsWith("/001.webp"))).toBe(true);
-  expect(frames.length).toBeLessThanOrEqual(1);
+  // The portrait has a separate poster; reduced motion downloads no sequence.
+  expect(frames).toEqual([]);
   await expect(
     page.getByRole("link", { name: "Explorá opciones accesibles" })
   ).toBeVisible();
@@ -164,4 +163,27 @@ test("crawlable guides, search, sitemap and empty checkout gating", async ({
     await page.goto(route);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
+});
+
+test.describe("server-rendered storefront", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("home stays visible without JavaScript and missing catalogue routes return 404", async ({
+    page,
+    request,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Explorá opciones accesibles" })
+    ).toBeVisible();
+    await expect(page.locator(".cinematic-media img")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Pausar movimiento" })).toHaveCount(0);
+    for (const route of [
+      "/producto/does-not-exist-home-review",
+      "/categoria/does-not-exist-home-review",
+    ]) {
+      expect((await request.get(route)).status()).toBe(404);
+    }
+  });
 });

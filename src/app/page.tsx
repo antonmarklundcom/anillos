@@ -4,22 +4,33 @@ import { CinematicHero } from "@/components/cinematic-hero";
 import { EditorialImage } from "@/components/editorial-image";
 import { ProductCard } from "@/components/product-card";
 import { COLLECTIONS } from "@/config/ring-store";
+import { HOME_HERO_VARIANT } from "@/config/home-hero";
 import { getCatalog } from "@/db/queries";
 import { contactoPublico } from "@/lib/comercio";
-import { nombreTienda } from "@/lib/marca";
+import { storeName } from "@/store/identity";
 import { jsonLdScript, organizationJsonLd } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { GUIDES } from "@/content/guides";
 
 export const revalidate = 300;
-export function generateMetadata(): Metadata {
-  return { alternates: { canonical: "/" } };
+type HomePageProps = {
+  searchParams: Promise<{ hero?: string }>;
+};
+
+export async function generateMetadata({ searchParams }: HomePageProps): Promise<Metadata> {
+  const { hero } = await searchParams;
+  return {
+    alternates: { canonical: "/" },
+    ...(hero ? { robots: { index: false, follow: true } } : {}),
+  };
 }
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { hero } = await searchParams;
+  const heroVariant = hero === "rings" || hero === "portrait" ? hero : HOME_HERO_VARIANT;
   const [products, contact, name] = await Promise.all([
     getCatalog({ limit: 8 }).catch(() => []),
     contactoPublico(),
-    nombreTienda(),
+    storeName(),
   ]);
   const organization = organizationJsonLd({
     origin: siteOrigin(),
@@ -36,7 +47,7 @@ export default async function HomePage() {
           dangerouslySetInnerHTML={{ __html: jsonLdScript(organization) }}
         />
       ) : null}
-      <CinematicHero />
+      <CinematicHero variant={heroVariant} />
       <div className="store-values">
         <span>Acero y plata en primer plano</span>
         <span>Una unidad o un par, siempre claro</span>
@@ -149,8 +160,8 @@ export default async function HomePage() {
           </Link>
         </div>
         <EditorialImage
-          asset="portrait"
-          alt="Modelo adulta ficticia en un editorial de joyería, con un anillo sencillo"
+          asset="silver"
+          alt="Concepto de un anillo plateado de forma orgánica sobre piedra clara"
         />
       </section>
       <section className="store-section">

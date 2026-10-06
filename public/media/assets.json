@@ -71,5 +71,38 @@
     "height": 630,
     "bytes": 129292,
     "sha256": "4407173b3553c5a3f82f21e77d13a2d522d64525ade995c8fa6b6006fbc06f7c"
+  },
+  {
+    "asset": "portrait-hero",
+    "file": "public/media/portrait-hero.webp",
+    "width": 720,
+    "height": 960,
+    "bytes": 38332,
+    "sha256": "956bf489b190e360031d4655a9509df4c43b6c9a22de6549a083e1fa6c337f47"
+  },
+  {
+    "asset": "portrait-hero-video",
+    "file": "public/media/portrait-hero-720p.mp4",
+    "width": 834,
+    "height": 1112,
+    "bytes": 1375811,
+    "sha256": "75a202853affdeb94985d539f0783a2e897188b0a1df63167cb9ce0c14c31ae1",
+    "durationSeconds": 8.04
+  },
+  {
+    "asset": "logo-master",
+    "file": "public/media/logo-anillos.png",
+    "width": 1440,
+    "height": 806,
+    "bytes": 280608,
+    "sha256": "f5bc440dc2d09ed7b33aa45e003bece78efa0ca4ec0ae780c5b9f002327a7cbe"
+  },
+  {
+    "asset": "logo-wordmark",
+    "file": "public/media/logo-wordmark.webp",
+    "width": 680,
+    "height": 187,
+    "bytes": 30014,
+    "sha256": "43baf43f373263f89e9d9c25a1a5622e9f42d8eacda8067228d2fd4fadf436ac"
   }
 ]

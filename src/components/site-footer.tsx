@@ -3,7 +3,7 @@ import { TIENDA } from "@/config/tienda";
 import { COLLECTIONS } from "@/config/ring-store";
 import { getStoreSettings } from "@/domain/store-settings";
 import { contactoPublico } from "@/lib/comercio";
-import { marcaEfectiva } from "@/lib/marca";
+import { storeIdentity } from "@/store/identity";
 import { paginasActivas } from "@/lib/paginas";
 
 export async function SiteFooter() {
@@ -11,7 +11,7 @@ export async function SiteFooter() {
     getStoreSettings(),
     contactoPublico(),
     paginasActivas(),
-    marcaEfectiva(),
+    storeIdentity(),
   ]);
   return (
     <footer className="border-border border-t bg-[#eae8df]">
