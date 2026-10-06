@@ -29,7 +29,7 @@ test("admin login masks its password and has a working setup link while enabled"
   ).toBeVisible();
 });
 
-test("setup blocks missing and mismatched confirmation and clears credentials after a mocked success", async ({
+test("setup blocks missing and mismatched confirmation and preserves success when sign-in fails", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -43,10 +43,20 @@ test("setup blocks missing and mismatched confirmation and clears credentials af
     });
     await route.fulfill({ json: { ok: true, pasos: { duenio: "creado" } } });
   });
+  // The fake account does not exist. Exercise a transport failure without
+  // submitting invented credentials to an actual account/login endpoint.
+  await page.route("**/setup", async (route) => {
+    if (route.request().method() === "POST")
+      await route.abort("connectionfailed");
+    else await route.continue();
+  });
   await page.goto("/setup");
   const password = page.getByLabel("Contraseña", { exact: true });
   const confirmation = page.getByLabel("Repetí la contraseña", { exact: true });
-  const submit = page.getByRole("button", { name: "Inicializar", exact: true });
+  const submit = page.getByRole("button", {
+    name: "Crear mi cuenta y entrar al panel",
+    exact: true,
+  });
   await page
     .getByLabel("SETUP_SECRET", { exact: true })
     .fill("local-browser-test-secret-2026");
@@ -77,7 +87,10 @@ test("setup blocks missing and mismatched confirmation and clears credentials af
   await submit.click();
   await expect(
     page.getByRole("link", { name: "Entrar al panel" })
-  ).toHaveAttribute("href", "/admin/login");
+  ).toHaveAttribute("href", "/admin/login?next=%2Fadmin%2Fbienvenida");
+  await expect(page.getByRole("status")).toContainText(
+    "ingreso automático no se completó"
+  );
   expect(posted).toEqual([
     {
       body: {
@@ -91,16 +104,27 @@ test("setup blocks missing and mismatched confirmation and clears credentials af
       authorization: "Bearer local-browser-test-secret-2026",
     },
   ]);
-  await expect(password).toHaveValue("");
-  await expect(password).toHaveAttribute("type", "password");
-  await expect(confirmation).toHaveValue("");
-  await expect(page.getByLabel("SETUP_SECRET", { exact: true })).toHaveValue(
-    ""
-  );
+  await expect(password).toHaveCount(0);
+  await expect(confirmation).toHaveCount(0);
+  await expect(page.getByLabel("SETUP_SECRET", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText("Ver detalles técnicos").locator("..")
+  ).not.toHaveAttribute("open");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth
     )
   ).toBe(true);
   expect(errors).toEqual([]);
+});
+
+test("welcome and guide require an authenticated owner", async ({ page }) => {
+  for (const path of ["/admin/bienvenida", "/admin/guia"]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/admin\/login\?next=/);
+    await expect(page.getByLabel("Contraseña", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Ya tenés acceso al panel" })
+    ).toHaveCount(0);
+  }
 });
