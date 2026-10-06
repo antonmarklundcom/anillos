@@ -16,21 +16,35 @@ En el hPanel, dentro del sitio:
 1. **Websites → tu sitio → Advanced → GIT**: pegá la URL del repo y la rama
    (`main`). Si el repo es privado, copiá la clave pública que muestra
    Hostinger y cargala como *deploy key* en GitHub (Settings → Deploy keys).
-2. **Node.js**: versión **22** (la misma de `.nvmrc` y del CI), y los comandos:
+2. **Node.js**: versión **22** (la misma de `.nvmrc` y del CI). El formulario
+   actual de **Deploy Web App** funciona con estos valores:
 
    | Campo | Valor |
    |---|---|
-   | Install command | `pnpm install --frozen-lockfile` |
-   | Build command | `pnpm build` |
-   | Start command | `pnpm start` |
+   | Framework preset | `Next.js` |
+   | Branch | `main` |
+   | Root directory | `./` |
+   | Package manager | `pnpm` |
+   | Build command | `pnpm run build` |
+   | Output directory | `.next` |
 
-   **Los tres hay que escribirlos a mano.** Hostinger detecta el proyecto y
-   propone `npm install` / `npm run build` / `npm start`, y con eso el deploy
-   *parece* andar: npm ignora `pnpm-lock.yaml`, resuelve el árbol de nuevo por
-   su cuenta y te deja en producción versiones que nadie testeó — o directamente
-   se cae contra `pnpm-workspace.yaml`. Pisá los tres campos antes del primer
-   deploy y verificá que quedaron guardados: el panel a veces los vuelve a su
-   valor detectado si guardás la sección dos veces.
+   Hostinger ejecuta `pnpm install` en su paso Install. La configuración del
+   repo (`frozenLockfile: true`) exige el lockfile verificado. Si el panel
+   ofrece campos separados, también sirven `pnpm install --frozen-lockfile`,
+   `pnpm run build` y `pnpm start`. Conservá `pnpm` como package manager: npm
+   ignora `pnpm-lock.yaml` y resuelve versiones que no fueron verificadas.
+
+   **Compatibilidad con Corepack:** Hostinger puede instalar con el pnpm
+   fijado en `package.json`, pero resolver otra versión en un subprocess.
+   `verifyDepsBeforeRun: false` evita la reinstalación automática de pnpm 11
+   durante `build`/`start`. El `prebuild` ejecuta `tsx` directamente para
+   generar los mensajes públicos, sin invocar otro pnpm. El pin se conserva;
+   no se desactiva la comprobación de versiones ni se cambia el lockfile.
+
+   No hace falta un comando que instale otra vez antes del build ni la
+   variable `pnpm_config_verify_deps_before_run`. Si usaste ese workaround,
+   volvés a `pnpm run build` y podés quitar la variable después de desplegar
+   el commit que incluye esta corrección.
 
 3. **Environment variables**: Hostinger lee `.env.example` y precarga un campo
    por variable. Son **sólo las cinco imprescindibles** —`DATABASE_URL`,
