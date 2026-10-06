@@ -51,7 +51,8 @@ The live health check also reported `cron: false`; verify scheduled jobs and aut
 - The public crawler checks all collections and guides, search, favourites, order lookup, checkout, internal links, image loading, headings and overflow. Motion checks cover complete-ring bounds through forward/reverse scrolling, pause, live preferences, data saving, missing images, small screens and JavaScript disabled.
 - All existing compressed-script budgets passed: home 197.5 KB / 247 KB limit, product 203.1 KB / 252 KB, checkout 203.3 KB / 246 KB.
 - Four opening/detail screenshots were inspected. The ring is complete in desktop and mobile captures.
-- Real MySQL catalog and seed integration: 17 passed. The broader MySQL/MariaDB integration runs are in progress; final outcomes will be added before delivery.
+- Full integration suite: all 83 files passed on MySQL 8.4.11 and MariaDB 10.11.19. Each engine completed 866 passed tests and one existing skip (external payment sandbox prerequisites). The separate 17-case MySQL catalog/seed run also passed.
+- Checks ran manually on Node 22 rather than repeating them through Git hooks. Initial restricted Windows runs could not access user/process APIs; the final checks used the approved local execution path. No hook or test threshold was changed in the repository.
 - No production mutation or remote CI result is claimed. GitHub Actions is disabled for this repository.
 
 ## Review captures
