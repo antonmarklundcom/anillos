@@ -1,0 +1,382 @@
+[
+  {
+    "file": "public/media/portrait-frames/desktop/001.webp",
+    "bytes": 34008,
+    "sha256": "242c004803e07b9bdb718c613847f569bb46321499763fb06bb284c81642d0a8"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/002.webp",
+    "bytes": 33150,
+    "sha256": "06151ad06b00536f33ccb96ef9b278eaea74cdb168d4e4d1c6de44b5b9a2eaea"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/003.webp",
+    "bytes": 33166,
+    "sha256": "4dd4ca61fba1eed39adec669a0c1a5483db0528f4196e17cc13fb9de84b9ba9a"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/004.webp",
+    "bytes": 32616,
+    "sha256": "45b12819287e02954223cc0031d09748aa1447bec2be9aec52f368c939468b09"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/005.webp",
+    "bytes": 32624,
+    "sha256": "364da4ebfcb365652e5c33027f419184dcbb0442156475797e63396db21afe06"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/006.webp",
+    "bytes": 32392,
+    "sha256": "76528564d9617b9b2636d36dd258850bc0fe7092de978f3dd575827f35dc6970"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/007.webp",
+    "bytes": 32270,
+    "sha256": "9a459625910b4c67ef1a8cf4cfd3672c15afe2dc14724fdb51bf3d6ae25bc70a"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/008.webp",
+    "bytes": 32032,
+    "sha256": "08d5136a5e36f85d53af8e634b05f7763fc8468f14aab4aa2be14d1c66c65e2b"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/009.webp",
+    "bytes": 32088,
+    "sha256": "d6771c00654c0ce3cea02ad56b0e2c8989bd4cf7d69228fe5a931e54b398a04e"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/010.webp",
+    "bytes": 31614,
+    "sha256": "de0e50f477c72fe391a5b8db2712182f2bf1337a5e11e80e94f894d7a682a623"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/011.webp",
+    "bytes": 31700,
+    "sha256": "63181bb219263d22cbbd11d3d318995a72363de2198a0fb08fed72104dbe5a93"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/012.webp",
+    "bytes": 31528,
+    "sha256": "0b874264701ff5bf9367f12a507b5881be2e53d988466663dc05c7465369ffcf"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/013.webp",
+    "bytes": 31392,
+    "sha256": "900fe4d5e54364221c40f3f90ddb78b00481deb2c96960a4879759b7e7c8a00f"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/014.webp",
+    "bytes": 31502,
+    "sha256": "c955f005258e37a969cb90476f92d70b0c0e8525a8b519fd1e2e30f18d3a47df"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/015.webp",
+    "bytes": 31142,
+    "sha256": "192d4c6d94947d11e5caaadd136578ecf2f51a1c3009313e0ddef83f29d4dfa0"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/016.webp",
+    "bytes": 30512,
+    "sha256": "8a7a9588b23e814e28f2fa23bff277f97f47cb95a0cc74fdcd37041eb9573db7"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/017.webp",
+    "bytes": 30690,
+    "sha256": "7e02369ff1b6082a5970dc510c6df156bb10202acad66d7bd6f7afcb5ac0eeb5"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/018.webp",
+    "bytes": 30340,
+    "sha256": "c227d9952b2cdbe7c44dc6b4f20aac796ee6969e56d68e25c2f9d7ef3c873f31"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/019.webp",
+    "bytes": 29798,
+    "sha256": "db340aacd4c19e1051a783c78db7224222e8f9ea48a52a71bade5c59c18c01c6"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/020.webp",
+    "bytes": 29818,
+    "sha256": "353ad220d2774293a209d8399245dc56b0a679152901bf0eb68a43e78746c411"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/021.webp",
+    "bytes": 29534,
+    "sha256": "6a613a65f682899448c3f9b7ea330b650c6d565a705148a35dc70d518408f636"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/022.webp",
+    "bytes": 29734,
+    "sha256": "c6ba2a89faea2fe689ea1c6babc2206079164487de594ea82f1a161a7084d422"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/023.webp",
+    "bytes": 29346,
+    "sha256": "6acb53856373bb8fae895f1f9c7fce8e66c6a2f017bb0951f5e96363df5e8f54"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/024.webp",
+    "bytes": 29710,
+    "sha256": "b12b31a20c2804779085d34d7c5dd955eb7908ff7f196b20e0aa727f584d3d0b"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/025.webp",
+    "bytes": 29540,
+    "sha256": "8320ad02ac6e53c207c53d091d959ed993f685bc45a3e629fe333f83cd5790a8"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/026.webp",
+    "bytes": 29430,
+    "sha256": "8b80532bd485a4f06d4382830651be1ea1e77489947c9986bf542a854d3be810"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/027.webp",
+    "bytes": 28988,
+    "sha256": "1776eccd29b2234470901eb22e380e17faf94d1005074de07aec4b9e673924bb"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/028.webp",
+    "bytes": 28934,
+    "sha256": "5482539f4f53d1097439c31fde8bd9c8071d4a6bf201ecd1da7a92e11893d8c1"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/029.webp",
+    "bytes": 28552,
+    "sha256": "d08a91c165ddce49ac88c81aa1c093c35a06993721013802ea87a45dc908755c"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/030.webp",
+    "bytes": 28264,
+    "sha256": "30c5cab43bad0526578e8ab8028e9fe713401f2550459fa47ff6d7dc1b91871a"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/031.webp",
+    "bytes": 28198,
+    "sha256": "ebb9ce4deea78f393098f2ea481d5bca8fe1c39248134a527958a6efbbdf4a1d"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/032.webp",
+    "bytes": 27738,
+    "sha256": "95b1944f786a6dee6cc89e42f4459d2a9f3dceb8ca0d3492fe6ab1e55ec51567"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/033.webp",
+    "bytes": 27162,
+    "sha256": "3c66eed568c71b19f0f127b3da418d897eb03456b9de31a8b11bde18d8c0decc"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/034.webp",
+    "bytes": 26848,
+    "sha256": "4ec245b2f1c89b42e4ad4abd87ee26694b51fc34097ff4ea4d1a9ca2ea1dfe7d"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/035.webp",
+    "bytes": 26658,
+    "sha256": "aafad9aea76c8a8eb9e62c84bf0d8629babbeb802d49471d0be278335d68a2b0"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/036.webp",
+    "bytes": 26802,
+    "sha256": "294588898e8e97a6d4627799ef22da9fbc2579eed7dc21b1c39ea56bf4f9bff9"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/037.webp",
+    "bytes": 26304,
+    "sha256": "4b3dd30d6fde494c7b5acd766c2e2a51bb6c4a9ddc1c5a5a7fc81d513ad16dad"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/038.webp",
+    "bytes": 26174,
+    "sha256": "ad4c4db8285f69d0f5945abb9f9fc1d911b927ea575feb320b74c1764e12f3f9"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/039.webp",
+    "bytes": 25828,
+    "sha256": "3a580bc792bba43907cd26725ba4d41fa309e6740bb6d777e4170e7e4c011777"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/040.webp",
+    "bytes": 25682,
+    "sha256": "d66fee35355b3dabdf39e9bdd2ed709b92d4e112fcf8e749cf4942da50b697c2"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/041.webp",
+    "bytes": 25370,
+    "sha256": "14556b369efc018f85db2282317aef6f6fbcfdf49bc5bb0b71ef017e66cf05ba"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/042.webp",
+    "bytes": 24974,
+    "sha256": "3a7644ddf67cd7f357d545a56874ae454e784730abcd3cd0e838d4164194bfed"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/043.webp",
+    "bytes": 24700,
+    "sha256": "b3bcd89f21e80493d5d3543582e3b25c579631eb6f9892c69a33547a0123de48"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/044.webp",
+    "bytes": 24496,
+    "sha256": "431ab38b1e6cb595377e05856e7deb77bdea949712c70d90521ccb6853534bdf"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/045.webp",
+    "bytes": 24234,
+    "sha256": "2a6b45e657572ed8b0566813c0d5a0307adead56e5af01387e384705fe01d3cf"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/046.webp",
+    "bytes": 23768,
+    "sha256": "dcdf8285672c3b4e5fb660ee36cf4b581da9bade3c2af6c69c00fea7e9488190"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/047.webp",
+    "bytes": 23502,
+    "sha256": "17a04c51ab585ab87997f9cc8e0db589610e403621b7ba20f6b4935cd003b8e8"
+  },
+  {
+    "file": "public/media/portrait-frames/desktop/048.webp",
+    "bytes": 23026,
+    "sha256": "598d9f5cf87758a02ae7f24aa05f2efda092ac83c5f0e97b1241059a7b4a07da"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/001.webp",
+    "bytes": 19700,
+    "sha256": "e26a24a66d0bd3c2427db180f8f0d1df4335da8fa0093d959bfafa660ee56927"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/002.webp",
+    "bytes": 19372,
+    "sha256": "8556c23037428756e129b9e386a53f40e1ab8d3390a7f70ac5e133ed0afa4ad2"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/003.webp",
+    "bytes": 19304,
+    "sha256": "cfb97cf041d9cd94416a895973ecb59ff3b13eeb415994c44e1cd7bef38485e5"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/004.webp",
+    "bytes": 19256,
+    "sha256": "a590b8fb6af5d906e1cd57510463f3cbaf11b48f2eeb47c28bab351ff38add9e"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/005.webp",
+    "bytes": 19404,
+    "sha256": "82d5b06664200cdc9d2f4370989e895f34d7a9b205ddc5d3712e50246c522778"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/006.webp",
+    "bytes": 19052,
+    "sha256": "633c618d824c8b52dfe6194214c36b78816b7c73560f83b9e3f692fa94b3488a"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/007.webp",
+    "bytes": 18872,
+    "sha256": "9ea96640b83a293b5442fbfff5a9148df6788c2f57a4d263a74d312e3238182f"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/008.webp",
+    "bytes": 18700,
+    "sha256": "ae932d6d11da6aeef4d28bc5a297d062ee2d4fdc4b3f6e4f64f21df8672b241c"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/009.webp",
+    "bytes": 18770,
+    "sha256": "87af254ec91e0306f7ac4a301b89a85590997e10c8fbd67bd435a774afe0047c"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/010.webp",
+    "bytes": 18616,
+    "sha256": "4eec1714435c77bdeb0d14f5140aa9cd5299773abe30261754a4ef340c27e382"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/011.webp",
+    "bytes": 18392,
+    "sha256": "842bcdb11872be6d8ac57bf27dbf622e37c8c6915e680cfed99e23e752673b8d"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/012.webp",
+    "bytes": 18432,
+    "sha256": "ffb8cda0089dba2f561cdefea2a0cc4593cd6c880adb3d747d91e7d3ca71dddf"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/013.webp",
+    "bytes": 18460,
+    "sha256": "69eb9c94c99ec0efb774a52196f78bdcccda8eb946b7a18b169f28df9cc1d457"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/014.webp",
+    "bytes": 18524,
+    "sha256": "c39b86bdde1d3c74aa4dfed12cc901b35d86206fdd25c40d8b1cb552071ca411"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/015.webp",
+    "bytes": 18304,
+    "sha256": "c427d6fffbbd797d9c575d7763b761be680adc821646b2e78b77547078bce0b8"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/016.webp",
+    "bytes": 17934,
+    "sha256": "6f301f6089ee64c6fad978120be53584dfd1866fcbd7873ee91b9e52e2a4a551"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/017.webp",
+    "bytes": 17872,
+    "sha256": "6e78846fef0d0b71419d15d235485dfbead68aa49fb47b101b44b1e46d7932f1"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/018.webp",
+    "bytes": 17766,
+    "sha256": "5892ab290844ca2e967b119ac347e43daf3b2414775c2ddcaff8595adbbee215"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/019.webp",
+    "bytes": 17620,
+    "sha256": "6934b9fbd535fbc56e57874478d55ea9e44ac0c19514aa606310bdd9a20a40fd"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/020.webp",
+    "bytes": 17422,
+    "sha256": "f813498789f0a7db382f09af5c597b29436a194e1f289539023837012ddad10f"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/021.webp",
+    "bytes": 17330,
+    "sha256": "d773d2b5a93fd30f2726f32a22dabc9be69bdf8932107a87a53d3454ab7b2e2c"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/022.webp",
+    "bytes": 17276,
+    "sha256": "bcb08adff2807d26c335b86cb913392456ac1f8b1ff6ebf9ccecc4044b186969"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/023.webp",
+    "bytes": 16884,
+    "sha256": "8ccb3fe1584c4f07cf0a2f988d2f6043fa61e20710aa7d36c740953861ef65bc"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/024.webp",
+    "bytes": 17268,
+    "sha256": "7077e738476bfbc1bf9366a3df236358cfcf93d37f5156fa509641dee03e5cec"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/025.webp",
+    "bytes": 17020,
+    "sha256": "e797ebbd3cc972b9f6ab9837429deae634ae0b844f9c67657d264e634fc0b6fa"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/026.webp",
+    "bytes": 16900,
+    "sha256": "e737bb1bc35ea5d4f1d06c612112d138aa9566b29f96e25f68e59a3ab7ca0dbf"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/027.webp",
+    "bytes": 16774,
+    "sha256": "6f9904b057968c90d4d82e48eff7fbc935a2708ed47d960f3aa40fc893e3ae27"
+  },
+  {
+    "file": "public/media/portrait-frames/mobile/028.webp",
+    "bytes": 16510,
+    "sha256": "647d54ca5cd13cb4768c2d31afd22905265bcd9f415b4229ffd5b81779bfd577"
+  }
+]

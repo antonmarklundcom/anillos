@@ -68,7 +68,60 @@
   },
   "ogEditorial": {
     "derivedFrom": "public/media/hero.webp",
-    "operation": "center crop and resize to 1200x630 JPEG for the server-rendered editorial social card",
-    "label": "Editorial ilustrativo · IA"
-  }
+    "operation": "center crop and resize to 1200x630 JPEG for the server-rendered editorial social card"
+  },
+  "portraitHero": {
+    "tool": "Higgsfield",
+    "params": {
+      "model": "seedance_2_5",
+      "mode": "omni_reference",
+      "duration": 8,
+      "resolution": "720p",
+      "aspect_ratio": "3:4",
+      "generate_audio": false,
+      "bitrate_mode": "standard",
+      "count": 1,
+      "medias": [
+        {
+          "role": "start_image",
+          "value": "6ff129ad-1c23-4a9d-90c8-35d7f5db0487"
+        }
+      ],
+      "prompt": "Create one continuous understated cinematic jewellery editorial shot from the supplied portrait for Anillos, Paraguay. Preserve this exact fictional adult Paraguayan model, explicitly age 24: very beautiful slim woman, dark brown eyes, long dark hair, ivory linen dress, warm cream courtyard with subtle green foliage. Keep the composition framed from her face to her forearms, with the single thin silver ring clearly visible on the finger of the hand resting naturally near her collarbone. She remains quietly seated, breathes naturally and gives a subtle warm confident smile; tiny natural movement of hair and light only. A very slow smooth camera push in, minimal movement, no scene changes. Ring stays on the same finger, hand pose stays relaxed and nearly still. Keep accurate anatomy and stable intact ring geometry; never add fingers or jewellery or morph the face. Warm afternoon daylight in Asuncion, refined fine photographic detail, gentle natural skin texture and film grain, warm ivory and olive palette, editorial attainable elegance. No text, AI labels, watermark, logos, sound, dialogue, product promises or endorsements. Silent 8 second shot, concept editorial, not a verified product."
+    },
+    "jobId": "ab331ea7-5b1f-4662-8ef9-98d0dcf5d1a1",
+    "creditsQuoted": 56,
+    "sourceVideo": "public/media/portrait-hero-720p.mp4",
+    "poster": "public/media/portrait-hero.webp",
+    "frames": {
+      "desktop": 48,
+      "mobile": 28
+    },
+    "variants": [
+      "desktop 720x960",
+      "mobile 480x640"
+    ],
+    "inspection": "Eight sampled frames inspected for stable adult identity, hand anatomy, the single ring and continuous motion. Fictional adult editorial; not a product endorsement.",
+    "mobileEdit": "First 28 frames retain the hand and ring in the shorter mobile crop; the final face close-up is desktop-only."
+  },
+  "logo": {
+    "tool": "Higgsfield",
+    "params": {
+      "model": "gpt_image_2_5",
+      "quality": "high",
+      "resolution": "2k",
+      "background": "transparent",
+      "aspect_ratio": "3:2",
+      "count": 1,
+      "prompt": "Use case: logo-brand. Create one finished original flat logo for Anillos, a contemporary affordable ring specialist in Paraguay, for a warm ivory editorial storefront. A precise small symbol of two simple interlocking wedding-band circles in restrained muted champagne gold (#b39970), above the wordmark. Typography: elegant refined contemporary editorial serif, thin but legible strokes, considered letterspacing. Text verbatim: \"ANILLOS\" on one line, and \"PARAGUAY\" centered underneath in very small spaced uppercase. Wordmark in deep olive charcoal (#343b33). Harmonious compact composition with modest clear space, logo fills the middle 80 percent of frame, perfectly sharp vector-like solid lines, maximum two solid ink colors. Truly transparent background. No photography, hands, women, diamonds, crown, flourish, gradient, metallic rendering, shadows, mockup, texture, decorative frame, AI text, watermark or extra words. The overlapping circles must be crisp, intentional and readable even at small sizes. A beautiful accessible sophisticated identity, not an extravagant luxury maison."
+    },
+    "jobId": "8f335a82-cf6b-4ab5-b3ef-62f4f03b5cc9",
+    "budgetCredits": 5,
+    "creditsQuoted": 2.75,
+    "source": "public/media/logo-anillos.png",
+    "header": "public/media/logo-wordmark.webp",
+    "derivatives": "Transparent source cropped and resized for the master PNG, header wordmark WebP and ring-symbol favicon. Artwork and alpha preserved.",
+    "inspection": "ANILLOS / PARAGUAY spelling, ring symbol, transparent alpha and contrast on warm ivory inspected."
+  },
+  "overlayPolicy": "Image, hero and social-card AI captions removed at owner request on 2026-10-06. Concept status and image provenance remain in page copy, footer and this record."
 }

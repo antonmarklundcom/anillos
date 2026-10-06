@@ -88,6 +88,16 @@ em {
 .store-button:hover {
   background: #4b5346;
 }
+.brand-link {
+  max-width: min(52vw, 260px);
+  overflow-wrap: anywhere;
+}
+.store-logo {
+  display: block;
+  width: 170px;
+  height: 46px;
+  object-fit: contain;
+}
 .cinematic-track {
   position: relative;
   height: 180svh;
@@ -103,6 +113,45 @@ body:has(.cinematic-track) .store-header {
   height: 100svh;
   min-height: 550px;
   overflow: hidden;
+}
+.cinematic-media {
+  position: absolute;
+  inset: 0;
+}
+.cinematic-portrait .cinematic-media {
+  left: 48%;
+}
+.cinematic-portrait {
+  height: 160svh;
+}
+.cinematic-portrait .cinematic-media img {
+  object-position: center 35%;
+}
+.cinematic-portrait .cinematic-shade {
+  background: linear-gradient(
+    90deg,
+    #f8f4ec 44%,
+    rgba(248, 244, 236, 0.82) 48%,
+    rgba(248, 244, 236, 0) 64%
+  );
+}
+.cinematic-portrait .cinematic-copy {
+  padding-top: clamp(70px, 17vh, 180px);
+}
+.cinematic-portrait .cinematic-copy h1 {
+  font-size: clamp(42px, 4.8vw, 70px);
+}
+.cinematic-portrait .cinematic-copy > p:not(.eyebrow) {
+  max-width: min(380px, 42vw);
+}
+.cinematic-portrait .hero-actions {
+  align-items: start;
+  flex-direction: column;
+  gap: 20px;
+}
+.cinematic-portrait .motion-controls {
+  right: auto;
+  gap: 22px;
 }
 .cinematic-stage canvas {
   position: absolute;
@@ -201,15 +250,6 @@ body:has(.cinematic-track) .store-header {
 }
 .collection-card:hover img {
   transform: scale(1.035);
-}
-.editorial-image figcaption {
-  position: absolute;
-  bottom: 12px;
-  left: 12px;
-  font-size: 9px;
-  padding: 4px 7px;
-  background: rgba(248, 244, 236, 0.9);
-  color: #4b5148;
 }
 .collection-title {
   padding: 20px 0;
@@ -315,6 +355,18 @@ body:has(.cinematic-track) .store-header {
   .store-section {
     padding: 48px 20px;
   }
+  .header-main {
+    min-height: 70px;
+    padding-block: 12px;
+    gap: 16px;
+  }
+  .store-logo {
+    width: 140px;
+    height: 38px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
   .section-heading {
     display: block;
   }
@@ -350,6 +402,52 @@ body:has(.cinematic-track) .store-header {
     gap: 12px;
     flex-wrap: wrap;
   }
+  .cinematic-portrait .cinematic-stage {
+    min-height: 790px;
+    display: grid;
+    grid-template-rows: 42% 1fr;
+  }
+  .cinematic-portrait .cinematic-media {
+    inset: 0 0 58%;
+  }
+  .cinematic-portrait .cinematic-media img {
+    object-position: center 30%;
+  }
+  .cinematic-portrait .cinematic-shade {
+    background: linear-gradient(
+      180deg,
+      transparent 40%,
+      #f8f4ec 42%,
+      #f8f4ec
+    );
+  }
+  .cinematic-portrait .cinematic-copy {
+    grid-row: 2;
+    width: 100%;
+    margin: 0;
+    padding: 22px 22px 70px;
+  }
+  .cinematic-portrait .cinematic-copy h1 {
+    font-size: clamp(38px, 10.5vw, 48px);
+    margin: 14px 0;
+  }
+  .cinematic-portrait .cinematic-copy > p:not(.eyebrow) {
+    max-width: 420px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .cinematic-portrait .hero-actions {
+    gap: 18px;
+    margin-top: 22px;
+  }
+  .cinematic-portrait .hero-note {
+    margin-top: 20px;
+    font-size: 10px;
+  }
+  .cinematic-portrait .motion-controls {
+    bottom: 12px;
+    gap: 20px;
+  }
   .store-values {
     gap: 12px;
     flex-direction: column;
@@ -361,7 +459,8 @@ body:has(.cinematic-track) .store-header {
     gap: 16px;
   }
   .collection-title h3 {
-    font-size: 19px;
+    font-size: 18px;
+    line-height: 1.25;
   }
   .collection-title .eyebrow {
     font-size: 8px;

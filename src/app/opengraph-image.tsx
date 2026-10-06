@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { TIENDA } from "@/config/tienda";
+import { TIENDA, nombrePublicoDeMarca } from "@/config/tienda";
 import { getStoreSettings } from "@/domain/store-settings";
 import { OG_IMAGE_SIZE } from "@/lib/images";
 import { nombreTienda } from "@/lib/marca";
@@ -26,10 +26,11 @@ export const size = OG_IMAGE_SIZE;
 export const contentType = "image/png";
 
 export default async function OpenGraphImage() {
-  const [nombre, { marca }] = await Promise.all([
+  const [nombreActual, { marca }] = await Promise.all([
     nombreTienda(),
     getStoreSettings(),
   ]);
+  const nombre = nombrePublicoDeMarca(nombreActual);
   const photograph = await readFile(
     join(process.cwd(), "public/media/og-editorial.jpg")
   );
@@ -89,17 +90,6 @@ export default async function OpenGraphImage() {
         }}
       >
         {marca.tagline ?? TIENDA.tagline}
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 32,
-          left: 90,
-          fontSize: 18,
-          color: "#52564e",
-        }}
-      >
-        Editorial ilustrativo · IA
       </div>
     </div>,
     size

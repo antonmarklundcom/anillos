@@ -21,7 +21,6 @@ export function EditorialImage({
         priority={priority}
         className="object-cover"
       />
-      <figcaption>Imagen ilustrativa · IA</figcaption>
     </figure>
   );
 }

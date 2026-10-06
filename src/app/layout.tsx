@@ -15,7 +15,7 @@ import { idiomaActivo } from "@/i18n";
 import { siteOrigin } from "@/lib/site-url";
 import "./globals.css";
 import { cargarIntegraciones } from "@/lib/integraciones-store";
-import { marcaEfectiva } from "@/lib/marca";
+import { storeIdentity } from "@/store/identity";
 
 /**
  * `generateMetadata` y no un `metadata` fijo: el título y la descripción de la
@@ -25,7 +25,7 @@ import { marcaEfectiva } from "@/lib/marca";
 export async function generateMetadata(): Promise<Metadata> {
   const [{ marca }, identidad] = await Promise.all([
     getStoreSettings(),
-    marcaEfectiva(),
+    storeIdentity(),
   ]);
 
   return {
@@ -60,7 +60,7 @@ export default async function RootLayout({
   // este render: src/lib/integraciones.ts. Nunca tira.
   const [{ anuncio }, marca] = await Promise.all([
     getStoreSettings(),
-    marcaEfectiva(),
+    storeIdentity(),
     cargarIntegraciones(),
   ]);
 

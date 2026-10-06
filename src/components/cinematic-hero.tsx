@@ -3,9 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { HERO_MEDIA, type HomeHeroVariant } from "@/config/home-hero";
 
 /** Optional, progressive motion; the poster and all navigation are SSR. */
-export function CinematicHero() {
+export function CinematicHero({
+  variant = "rings",
+}: {
+  variant?: HomeHeroVariant;
+}) {
+  const editorial = HERO_MEDIA[variant];
   const track = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [paused, setPaused] = useState(false);
@@ -21,6 +27,8 @@ export function CinematicHero() {
     let timeout = 0;
     const frames = new Map<number, HTMLImageElement>();
     const mobile = window.innerWidth < 768;
+    // The wider mobile edit keeps her ring in view before the final close-up.
+    const frameCount = mobile ? editorial.mobileFrameCount : editorial.frameCount;
     const draw = () => {
       raf = 0;
       const element = track.current;
@@ -31,7 +39,7 @@ export function CinematicHero() {
         0,
         Math.min(1, -rect.top / Math.max(1, rect.height - window.innerHeight))
       );
-      const index = Math.round(progress * 47) + 1;
+      const index = Math.round(progress * (frameCount - 1)) + 1;
       const image = frames.get(index) ?? frames.get(1);
       if (!image) return;
       const ctx = target.getContext("2d");
@@ -63,10 +71,10 @@ export function CinematicHero() {
     };
     const load = async () => {
       // Small batches keep the network available for the rest of the store.
-      for (let batch = 1; batch <= 48 && !disposed; batch += 4) {
+      for (let batch = 1; batch <= frameCount && !disposed; batch += 4) {
         await Promise.all(
           Array.from(
-            { length: Math.min(4, 49 - batch) },
+            { length: Math.min(4, frameCount + 1 - batch) },
             (_, offset) =>
               new Promise<void>((resolve) => {
                 const index = batch + offset;
@@ -80,7 +88,7 @@ export function CinematicHero() {
                   resolve();
                 };
                 image.onerror = () => resolve();
-                image.src = `/media/frames/${mobile ? "mobile" : "desktop"}/${String(index).padStart(3, "0")}.webp`;
+                image.src = `${editorial.frames}/${mobile ? "mobile" : "desktop"}/${String(index).padStart(3, "0")}.webp`;
               })
           )
         );
@@ -111,27 +119,30 @@ export function CinematicHero() {
       window.removeEventListener("resize", schedule);
       media.removeEventListener("change", preferenceChanged);
     };
-  }, [paused]);
+  }, [paused, editorial.frames, editorial.frameCount, editorial.mobileFrameCount]);
   return (
     <section
       ref={track}
-      className={`cinematic-track ${enabled ? "motion-ready" : ""}`}
-      aria-label="Una historia en tres metales"
+      className={`cinematic-track cinematic-${variant} ${enabled ? "motion-ready" : ""}`}
+      aria-label={editorial.label}
+      data-hero-variant={variant}
     >
       <div className="cinematic-stage">
-        <Image
-          src="/media/frames/desktop/001.webp"
-          alt="Tres conceptos de anillos sobre piedra y lino claros"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        <canvas
-          ref={canvas}
-          aria-hidden="true"
-          className={enabled ? "visible" : "invisible"}
-        />
+        <div className="cinematic-media">
+          <Image
+            src={editorial.poster}
+            alt={editorial.alt}
+            fill
+            priority
+            sizes={variant === "portrait" ? "(max-width: 767px) 100vw, 56vw" : "100vw"}
+            className="object-cover"
+          />
+          <canvas
+            ref={canvas}
+            aria-hidden="true"
+            className={enabled ? "visible" : "invisible"}
+          />
+        </div>
         <div className="cinematic-shade" />
         <div className="cinematic-copy">
           <p className="eyebrow">Anillos en Paraguay</p>
@@ -157,7 +168,6 @@ export function CinematicHero() {
           </span>
         </div>
         <div className="motion-controls">
-          <span>Editorial ilustrativo · IA</span>
           <a href="#colecciones">Ir a las colecciones ↓</a>
           {enabled ? (
             <button

@@ -7,14 +7,14 @@ import { WishlistHeaderLink } from "@/components/wishlist-header-link";
 import { getCategories } from "@/db/queries";
 import { getStoreSettings } from "@/domain/store-settings";
 import { COLLECTIONS } from "@/config/ring-store";
-import { TIENDA } from "@/config/tienda";
-import { marcaEfectiva } from "@/lib/marca";
+import { TIENDA, logoPredeterminado } from "@/config/tienda";
+import { storeIdentity } from "@/store/identity";
 import { TESTIDS } from "@/lib/testids";
 
 export async function SiteHeader() {
   const [dbCategories, marca, settings] = await Promise.all([
     getCategories().catch(() => []),
-    marcaEfectiva(),
+    storeIdentity(),
     getStoreSettings(),
   ]);
   const categories = dbCategories.length
@@ -25,18 +25,18 @@ export async function SiteHeader() {
       <div className="border-border text-muted-foreground border-b py-2 text-center text-[9px] tracking-[.15em] uppercase">
         {settings.marca.tagline ?? TIENDA.tagline} · PARAGUAY
       </div>
-      <div className="mx-auto flex max-w-[1240px] items-center gap-5 px-5 py-5">
+      <div className="header-main mx-auto flex max-w-[1240px] items-center gap-5 px-5 py-4">
         <Link
           href="/"
           prefetch={false}
-          className="font-[Georgia] text-[clamp(18px,5.3vw,23px)] font-normal tracking-[.08em] sm:text-[28px]"
+          className="brand-link shrink-0 font-[Georgia] text-[clamp(18px,5.3vw,23px)] font-normal tracking-[.08em] sm:text-[28px]"
         >
-          {marca.logoUrl ? (
+          {marca.logoUrl || logoPredeterminado(marca.nombre) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={marca.logoUrl}
+              src={marca.logoUrl ?? logoPredeterminado(marca.nombre)!}
               alt={marca.nombre}
-              className="h-9 w-auto"
+              className="store-logo"
             />
           ) : (
             marca.nombre
@@ -45,7 +45,7 @@ export async function SiteHeader() {
         <Suspense fallback={null}>
           <SearchBox className="ml-auto hidden max-w-xs sm:block" />
         </Suspense>
-        <div className="ml-auto flex items-center gap-3 sm:ml-0">
+        <div className="header-actions ml-auto flex items-center gap-3 sm:ml-0">
           <Suspense fallback={null}>
             <CuentaHeaderEntry />
           </Suspense>
