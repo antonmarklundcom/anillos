@@ -20,7 +20,7 @@ En el hPanel, dentro del sitio:
 
    | Campo | Valor |
    |---|---|
-   | Install command | `pnpm install --frozen-lockfile` |
+   | Install command | `pnpm install --frozen-lockfile --prod=false` |
    | Build command | `pnpm build` |
    | Start command | `pnpm start` |
 
@@ -31,6 +31,16 @@ En el hPanel, dentro del sitio:
    se cae contra `pnpm-workspace.yaml`. Pisá los tres campos antes del primer
    deploy y verificá que quedaron guardados: el panel a veces los vuelve a su
    valor detectado si guardás la sección dos veces.
+
+   `--prod=false` incluye las herramientas necesarias para compilar (por
+   ejemplo `tsx`, TypeScript y Tailwind), aunque el panel ya tenga
+   `NODE_ENV=production`. Esto no cambia el modo de la aplicación.
+
+   `pnpm-workspace.yaml` desactiva `verifyDepsBeforeRun`: la instalación se
+   hace una vez, en el paso explícito y con lockfile congelado. `pnpm build`
+   y `pnpm start` no vuelven a instalar dependencias. Si el build falla en
+   `runDepsStatusCheck` / `runPnpmCli`, revisá que el deploy use esta versión
+   del archivo y que el paso Install haya terminado correctamente.
 
 3. **Environment variables**: Hostinger lee `.env.example` y precarga un campo
    por variable. Son **sólo las cinco imprescindibles** —`DATABASE_URL`,
