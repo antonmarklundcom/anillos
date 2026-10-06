@@ -2359,6 +2359,13 @@ export const esPY = {
   "panel.ajustes.cuentas.sinSecreto":
     "No hay secreto para las sesiones de cliente: SESSION_SECRET no está bien configurado en el hosting. Prenderlas así hace fallar /cuenta.",
   "adminError.ajustes.color": "El color va en formato #RRGGBB (ej. #1f6feb).",
+  "password.mostrar": "Mostrar contraseña",
+  "password.ocultar": "Ocultar contraseña",
+  "password.confirmar": "Repetí la contraseña",
+  "password.noCoinciden": "Las contraseñas no coinciden. Volvé a escribirlas.",
+  "panel.login.configurar": "Configurar la cuenta del dueño",
+  "setup.entrar": "Entrar al panel",
+  "setup.passwordAyuda": "Al menos {minimo} caracteres, con letras y números.",
   "setup.meta": "Configuración inicial",
   "setup.titulo": "Configuración inicial de la tienda",
   "setup.bajada":

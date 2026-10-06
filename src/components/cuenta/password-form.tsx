@@ -4,10 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { guardarContrasena } from "@/app/actions/cuenta";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  NewPasswordFields,
+  passwordsMatch,
+} from "@/components/ui/new-password-fields";
 import { t } from "@/i18n/client";
-import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
 
 export function CustomerPasswordForm({ required }: { required: boolean }) {
   const [message, setMessage] = useState("");
@@ -20,6 +21,10 @@ export function CustomerPasswordForm({ required }: { required: boolean }) {
         event.preventDefault();
         const form = event.currentTarget;
         const data = new FormData(form);
+        if (!passwordsMatch(data)) {
+          setMessage(t("password.noCoinciden"));
+          return;
+        }
         startTransition(async () => {
           const result = await guardarContrasena({
             password: String(data.get("password") ?? ""),
@@ -36,16 +41,7 @@ export function CustomerPasswordForm({ required }: { required: boolean }) {
       {required ? (
         <p className="text-sm">{t("cuenta.password.verificada")}</p>
       ) : null}
-      <Label htmlFor="new-password">{t("cuenta.password.nueva")}</Label>
-      <Input
-        id="new-password"
-        name="password"
-        type="password"
-        autoComplete="new-password"
-        minLength={MIN_PASSWORD_LENGTH}
-        maxLength={200}
-        required
-      />
+      <NewPasswordFields id="new-password" label={t("cuenta.password.nueva")} />
       {message ? (
         <p role="status" className="text-sm">
           {message}

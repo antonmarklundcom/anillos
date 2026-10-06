@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vites
 import { products, setupState, shippingZones, users } from '../../src/db/schema';
 import { resetRateLimits } from '../../src/lib/rate-limit';
 import { verifyPassword } from '../../src/lib/password';
+import { validateAdminSession } from '../../src/lib/session-validation';
 import { closeTestDb, getTestDb, hasTestDb, resetTables } from '../helpers/db';
 
 /**
@@ -228,6 +229,15 @@ describe.skipIf(!hasTestDb)('POST /api/setup/init', () => {
       owner: { email: 'duenio@tienda.com.py', password: 'contrasenia123' },
     });
 
+    const anterior = (await buscarUsuario('duenio@tienda.com.py'))!;
+    const oldSession = {
+      userId: anterior.id,
+      email: anterior.email,
+      role: anterior.role,
+      sessionVersion: anterior.sessionVersion,
+    };
+    await expect(validateAdminSession(oldSession)).resolves.toMatchObject({ userId: anterior.id });
+
     const forzada = await inicializar({
       force: true,
       seed: true,
@@ -244,6 +254,10 @@ describe.skipIf(!hasTestDb)('POST /api/setup/init', () => {
     const dueño = await buscarUsuario('duenio@tienda.com.py');
     expect(await verifyPassword('otracontra456', dueño?.passwordHash)).toBe(true);
     expect(await verifyPassword('contrasenia123', dueño?.passwordHash)).toBe(false);
+    expect(dueño?.sessionVersion).toBe(anterior.sessionVersion + 1);
+    await expect(validateAdminSession(oldSession)).rejects.toThrow();
+    await expect(validateAdminSession({ ...oldSession, sessionVersion: dueño!.sessionVersion }))
+      .resolves.toMatchObject({ userId: anterior.id });
   });
 
   it('la marca queda escrita con lo que efectivamente corrió', async () => {

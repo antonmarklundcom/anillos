@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/admin/login-form";
@@ -17,26 +18,40 @@ export const dynamic = "force-dynamic";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-export default async function AdminLoginPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const query = await searchParams;
   const rawNext = Array.isArray(query.next) ? query.next[0] : query.next;
   const next = safeNextPath(rawNext);
 
   // Ya está adentro: no tiene sentido pedirle la contraseña de nuevo.
   const session = await getSession();
-  if (session.userId && (session.role === "owner" || session.role === "staff")) {
+  if (
+    session.userId &&
+    (session.role === "owner" || session.role === "staff")
+  ) {
     redirect(next);
   }
 
   return (
     <main className="mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-16">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("panel.login.titulo")}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">
+        {t("panel.login.titulo")}
+      </h1>
       <p className="text-muted-foreground mt-1 text-sm">
         {t("panel.login.bajada")}
       </p>
       <div className="mt-6">
         <LoginForm next={next} />
       </div>
+      {(process.env.SETUP_SECRET?.length ?? 0) >= 16 ? (
+        <Link href="/setup" className="mt-6 text-sm underline">
+          {t("panel.login.configurar")}
+        </Link>
+      ) : null}
     </main>
   );
 }
