@@ -48,6 +48,16 @@ En el hPanel, dentro del sitio:
    y el `prebuild` hayan pasado. Es una [opción soportada por Next.js 16](https://nextjs.org/docs/app/guides/upgrading/version-16);
    no requiere variables adicionales ni cambiar el preset del panel.
 
+   **Si Build command es un desplegable:** elegí `pnpm run build:webpack`.
+   Ese script genera los mensajes públicos y compila con Webpack, sin
+   depender de poder escribir flags en el panel. `pnpm run build` también
+   usa Webpack en la versión actual. Conservá Node 22, pnpm y `.next`.
+   Si el menú todavía no muestra `build:webpack`, refrescá la configuración
+   de GitHub antes de desplegar: está mostrando una versión anterior del
+   `package.json`. Confirmá en el nuevo log el commit y el banner `(webpack)`.
+   El log con `a585e9a` y `(Turbopack)` corresponde a antes de esta corrección;
+   borrar `.next` o cambiar de versión de Node no actualiza ese checkout.
+
    No hace falta un comando que instale otra vez antes del build ni la
    variable `pnpm_config_verify_deps_before_run`. Si usaste ese workaround,
    volvés a `pnpm run build` y podés quitar la variable después de desplegar
