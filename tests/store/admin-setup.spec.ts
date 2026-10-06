@@ -86,11 +86,12 @@ test("setup blocks missing and mismatched confirmation and preserves success whe
   await confirmation.fill("Edited-local-test-2026");
   await submit.click();
   await expect(
-    page.getByRole("link", { name: "Entrar al panel" })
+    page.getByRole("link", { name: "Ir al login de administración" })
   ).toHaveAttribute("href", "/admin/login?next=%2Fadmin%2Fbienvenida");
   await expect(page.getByRole("status")).toContainText(
     "ingreso automático no se completó"
   );
+  await expect(page.getByRole("status")).toBeFocused();
   expect(posted).toEqual([
     {
       body: {

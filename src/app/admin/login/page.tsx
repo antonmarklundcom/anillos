@@ -4,7 +4,13 @@ import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/admin/login-form";
 import { safeNextPath } from "@/lib/safe-redirect";
-import { getSession } from "@/lib/session";
+import { requireAdminSession } from "@/lib/admin-guard";
+import { can } from "@/lib/permissions";
+import {
+  ForbiddenError,
+  UnauthorizedError,
+  type AdminActor,
+} from "@/lib/session";
 import { t } from "@/i18n";
 
 export const metadata: Metadata = {
@@ -27,14 +33,24 @@ export default async function AdminLoginPage({
   const rawNext = Array.isArray(query.next) ? query.next[0] : query.next;
   const next = safeNextPath(rawNext);
 
-  // Ya está adentro: no tiene sentido pedirle la contraseña de nuevo.
-  const session = await getSession();
-  if (
-    session.userId &&
-    (session.role === "owner" || session.role === "staff")
-  ) {
-    redirect(next);
+  // A signed cookie may be revoked, inactive or contain an old role. Use the
+  // same database validation as panel pages before skipping the login form.
+  let actor: AdminActor | null = null;
+  try {
+    actor = await requireAdminSession();
+  } catch (error) {
+    if (!(
+      error instanceof UnauthorizedError || error instanceof ForbiddenError
+    ))
+      throw error;
   }
+  // Keep Next's redirect outside the catch: it is a control-flow exception.
+  if (actor)
+    redirect(
+      next === "/admin" && !can(actor.role, "dashboard")
+        ? "/admin/pedidos"
+        : next
+    );
 
   return (
     <main className="mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-16">

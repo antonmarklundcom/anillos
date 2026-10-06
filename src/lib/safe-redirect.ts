@@ -17,5 +17,22 @@ export function safeNextPath(next: string | null | undefined): string {
   if (next.includes("\\")) return "/admin";
   if (next.startsWith("//")) return "/admin";
   if (!/^\/admin(\/|\?|$)/.test(next)) return "/admin";
+  try {
+    // URL normalization handles dot segments; decoding also catches a login
+    // destination spelled with escaped letters. Never redirect back to login.
+    const parsed = new URL(next, "https://admin.invalid");
+    const path = new URL(
+      decodeURIComponent(parsed.pathname),
+      "https://admin.invalid"
+    );
+    if (
+      path.origin !== "https://admin.invalid" ||
+      !/^\/admin(?:\/|$)/.test(path.pathname)
+    )
+      return "/admin";
+    if (path.pathname.replace(/\/+$/, "") === "/admin/login") return "/admin";
+  } catch {
+    return "/admin";
+  }
   return next;
 }

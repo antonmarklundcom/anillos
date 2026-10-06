@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
+import { usePathname } from "next/navigation";
 import { Loader2, ShoppingBag, Trash2 } from "lucide-react";
 
 import { cartWhatsAppLink } from "@/app/actions/cart-consulta";
@@ -31,6 +32,8 @@ import { TESTIDS } from "@/lib/testids";
  * muestra al abrirlo tiene que ser lo que dice la DB.
  */
 export function CartSheet() {
+  const pathname = usePathname();
+  const inAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const {
     lines,
     isOpen,
@@ -42,6 +45,11 @@ export function CartSheet() {
     remove,
   } = useCart();
   const subtotal = cartSubtotal(lines);
+  useEffect(() => {
+    if (inAdmin && isOpen) close();
+  }, [inAdmin, isOpen, close]);
+
+  if (inAdmin) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => (open ? undefined : close())}>

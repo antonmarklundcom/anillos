@@ -1969,7 +1969,6 @@ export const esPY = {
 
   // `/admin/resenas`.
   "panel.nav.resenas": "Reseñas",
-  "panel.nav.resenasPendientes": "Reseñas ({n})",
   "panel.resenas.meta": "Reseñas",
   "panel.resenas.titulo": "Reseñas",
   "panel.resenas.bajada":
@@ -2364,7 +2363,16 @@ export const esPY = {
   "password.confirmar": "Repetí la contraseña",
   "password.noCoinciden": "Las contraseñas no coinciden. Volvé a escribirlas.",
   "panel.login.configurar": "Configurar la cuenta del dueño",
-  "setup.entrar": "Entrar al panel",
+  "setup.loginButton": "Ir al login de administración",
+  "setup.demoCatalogo": "Cargar el catálogo de ejemplo para pruebas",
+  "setup.demoCatalogoAyuda":
+    "Agrega productos ficticios para probar la tienda. Importar productos reales después no elimina estos ejemplos: tendrás que retirarlos por separado antes de vender.",
+  "setup.launchRequiredTitle": "Antes de abrir las ventas",
+  "setup.launchRequired":
+    "Desde el panel, cargá productos reales con precios y stock, contacto y condiciones de entrega, y al menos un medio de pago operativo. Para transferencias, verificá la cuenta bancaria y configurá Cloudinary para subir comprobantes. La guía del panel explica los pasos; crear tu cuenta no completa esta configuración.",
+  "setup.launchOptionalTitle": "Integraciones opcionales",
+  "setup.launchOptional":
+    "Pagopar para tarjetas, mensajes automáticos de WhatsApp y cuentas de clientes se configuran según lo que necesites. La recuperación por correo aún no está implementada. Podés empezar a preparar tu tienda sin estas funciones.",
   "setup.passwordAyuda": "Al menos {minimo} caracteres, con letras y números.",
   "setup.mostrarSecreto": "Mostrar secreto",
   "setup.ocultarSecreto": "Ocultar secreto",
@@ -2372,7 +2380,7 @@ export const esPY = {
     "Este paso crea tu acceso al panel. El catálogo de anillos se prepara después, con productos reales y datos confirmados. No se cargan productos de ejemplo.",
   "setup.avanzado": "Recuperar o actualizar una cuenta existente",
   "setup.forceAyuda":
-    "Usá esta opción sólo si la tienda ya fue inicializada. Si el email ya existe, se reemplaza su contraseña, se habilita su acceso como dueño y se cierran sus sesiones anteriores.",
+    "Si es tu primera configuración, dejá esta opción sin marcar. Permite repetir el setup en una tienda ya inicializada. Si el email ya existe, se reemplaza su contraseña, se habilita su acceso como dueño y se cierran sus sesiones anteriores.",
   "setup.yaTengoCuenta": "Ya tengo una cuenta: entrar al panel",
   "setup.listoAyuda":
     "Tu acceso al panel está listo. La configuración de productos, pagos y entregas se hace desde allí; no hace falta completar todo para empezar a preparar el catálogo.",
@@ -2387,6 +2395,24 @@ export const esPY = {
   "setup.error.cuentaSinConfirmar":
     "El sistema respondió, pero no confirmó la creación de la cuenta. Entrá al panel si ya tenés acceso o revisá el resultado antes de repetir el setup.",
   "panel.nav.guia": "Guía",
+  "panel.menu.navegacion": "Navegación del panel",
+  "panel.menu.abrir": "Menú",
+  "panel.menu.cerrar": "Cerrar menú",
+  "panel.menu.editar": "Editar menú",
+  "panel.menu.verTienda": "Ver tienda",
+  "panel.menu.guardar": "Guardar",
+  "panel.menu.cancelar": "Cancelar",
+  "panel.menu.restaurar": "Restaurar orden original",
+  "panel.menu.subir": "Subir {item}",
+  "panel.menu.bajar": "Bajar {item}",
+  "panel.menu.pendientes": "{n} reseñas pendientes",
+  "panel.menu.ayuda":
+    "Arrastrá las secciones o usá las flechas. Guardá para confirmar los cambios.",
+  "panel.menu.local":
+    "El orden se guarda sólo para tu cuenta en este navegador y este sitio.",
+  "panel.menu.guardado": "Orden guardado.",
+  "panel.menu.sinAlmacenamiento":
+    "El navegador no permite guardar el orden. Se mantiene durante esta visita.",
   "setup.meta": "Configuración inicial",
   "setup.titulo": "Configuración inicial de la tienda",
   "setup.bajada":
