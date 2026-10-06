@@ -6,6 +6,7 @@ import { loginAdmin } from "@/app/actions/admin-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { t } from "@/i18n";
 import { TESTIDS } from "@/lib/testids";
 
@@ -55,17 +56,20 @@ export function LoginForm({ next }: { next: string }) {
 
       <div className="grid gap-1.5">
         <Label htmlFor="password">{t("panel.login.password")}</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           data-testid={TESTIDS.adminLoginPassword}
           required
           autoComplete="current-password"
         />
       </div>
 
-      <Button type="submit" data-testid={TESTIDS.adminLoginSubmit} disabled={isPending}>
+      <Button
+        type="submit"
+        data-testid={TESTIDS.adminLoginSubmit}
+        disabled={isPending}
+      >
         {isPending ? t("panel.login.entrando") : t("panel.login.entrar")}
       </Button>
     </form>

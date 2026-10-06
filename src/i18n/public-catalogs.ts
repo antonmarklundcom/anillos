@@ -488,6 +488,10 @@ export const publicCatalogs: Record<string, Record<string, string>> = {
     "csv.producto.modo": "Modo de venta",
     "checkout.consultar": "Consultá con la tienda para coordinar tu compra",
     "error.operacion.archivada": "Esta operación ya fue procesada y archivada. Revisá el pedido o consultá con la tienda antes de iniciar otra.",
-    "csv.producto.mostrarPrecio": "Mostrar precio"
+    "csv.producto.mostrarPrecio": "Mostrar precio",
+    "password.mostrar": "Mostrar contraseña",
+    "password.ocultar": "Ocultar contraseña",
+    "password.confirmar": "Repetí la contraseña",
+    "password.noCoinciden": "Las contraseñas no coinciden. Volvé a escribirlas."
   }
 };

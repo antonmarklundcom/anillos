@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import path from 'node:path';
 
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/mysql2/migrator';
 import { z } from 'zod';
 
@@ -315,7 +315,13 @@ async function upsertOwner(owner: NonNullable<Input['owner']>): Promise<'creado'
   if (existing) {
     await db
       .update(users)
-      .set({ passwordHash: await hashPassword(owner.password), role: 'owner', isActive: true })
+      .set({
+        passwordHash: await hashPassword(owner.password),
+        role: 'owner',
+        isActive: true,
+        // A recovery reset must revoke previously issued admin cookies too.
+        sessionVersion: sql`${users.sessionVersion} + 1`,
+      })
       .where(eq(users.id, existing.id));
     return 'actualizado';
   }

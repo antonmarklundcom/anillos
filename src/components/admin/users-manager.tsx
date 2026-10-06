@@ -13,8 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  NewPasswordFields,
+  passwordsMatch,
+} from "@/components/ui/new-password-fields";
 import { USER_ROLES, type UserRole } from "@/db/enums";
-import { MIN_PASSWORD_LENGTH } from "@/lib/password";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
 import { t } from "@/i18n";
 
 /** Cómo se llama cada rol para el dueño, con lo que puede en una línea. */
@@ -84,6 +88,10 @@ function NewUserForm() {
         event.preventDefault();
         setError(null);
         const data = new FormData(event.currentTarget);
+        if (!passwordsMatch(data)) {
+          setError(t("password.noCoinciden"));
+          return;
+        }
 
         startTransition(async () => {
           const result = await crearUsuario({
@@ -117,37 +125,30 @@ function NewUserForm() {
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-1.5">
           <Label htmlFor="nuevo-email">{t("panel.usuario.email")}</Label>
-          <Input id="nuevo-email" name="email" type="email" required autoComplete="off" />
+          <Input
+            id="nuevo-email"
+            name="email"
+            type="email"
+            required
+            autoComplete="off"
+          />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="nuevo-name">
             {t("panel.usuario.nombre")}{" "}
-            <span className="text-muted-foreground font-normal">{t("checkout.opcional")}</span>
+            <span className="text-muted-foreground font-normal">
+              {t("checkout.opcional")}
+            </span>
           </Label>
           <Input id="nuevo-name" name="name" autoComplete="off" />
         </div>
       </div>
 
-      <div className="grid gap-1.5">
-        <Label htmlFor="nuevo-password">{t("panel.usuario.passwordTemporal")}</Label>
-        <Input
-          id="nuevo-password"
-          name="password"
-          type="text"
-          required
-          minLength={MIN_PASSWORD_LENGTH}
-          autoComplete="off"
-        />
-        {/*
-          Se muestra en claro y se dice por qué: esta tienda no manda emails
-          (NEW-STORE.md), así que un "le mandamos un link para que la elija"
-          sería mentira. La contraseña la escribe el dueño y se la pasa por
-          donde quiera; el texto le recuerda que la cambie.
-        */}
-        <p className="text-muted-foreground text-xs">
-          {t("panel.usuario.passwordAyuda", { minimo: MIN_PASSWORD_LENGTH })}
-        </p>
-      </div>
+      <NewPasswordFields
+        id="nuevo-password"
+        label={t("panel.usuario.passwordTemporal")}
+        help={t("panel.usuario.passwordAyuda", { minimo: MIN_PASSWORD_LENGTH })}
+      />
 
       <RolePicker value={role} onChange={setRole} idPrefix="nuevo" />
 
@@ -155,7 +156,12 @@ function NewUserForm() {
         <Button type="submit" disabled={isPending}>
           {isPending ? t("panel.usuario.creando") : t("panel.usuario.crear")}
         </Button>
-        <Button type="button" variant="outline" disabled={isPending} onClick={() => setOpen(false)}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isPending}
+          onClick={() => setOpen(false)}
+        >
           {t("panel.abm.cancelar")}
         </Button>
       </div>
@@ -163,16 +169,24 @@ function NewUserForm() {
   );
 }
 
-function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: number }) {
+function UserRow({
+  user,
+  actingUserId,
+}: {
+  user: AdminUserCard;
+  actingUserId: number;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [resetting, setResetting] = useState(false);
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const soyYo = user.id === actingUserId;
 
-  const run = (action: () => Promise<{ ok: boolean; error?: string }>, done: string): void => {
+  const run = (
+    action: () => Promise<{ ok: boolean; error?: string }>,
+    done: string
+  ): void => {
     setError(null);
     startTransition(async () => {
       const result = await action();
@@ -182,7 +196,6 @@ function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: nu
       }
       toast.success(done);
       setResetting(false);
-      setPassword("");
       router.refresh();
     });
   };
@@ -194,13 +207,17 @@ function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: nu
           {user.name ? `${user.name} · ` : ""}
           {user.email}
           {soyYo ? (
-            <span className="text-muted-foreground font-normal">{t("panel.usuario.vos")}</span>
+            <span className="text-muted-foreground font-normal">
+              {t("panel.usuario.vos")}
+            </span>
           ) : null}
         </span>
         <span className="text-sm">
           {ROLE_LABEL[user.role]}
           {user.isActive ? null : (
-            <span className="text-muted-foreground">{t("panel.usuario.desactivado")}</span>
+            <span className="text-muted-foreground">
+              {t("panel.usuario.desactivado")}
+            </span>
           )}
         </span>
       </div>
@@ -225,30 +242,34 @@ function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: nu
       ) : null}
 
       {resetting ? (
-        <div className="border-border mt-3 grid gap-2 rounded-lg border p-3">
-          <Label htmlFor={`pass-${user.id}`} className="text-xs">
-            {t("panel.usuario.passwordNueva", { email: user.email })}
-          </Label>
-          <Input
+        <form
+          className="border-border mt-3 grid gap-2 rounded-lg border p-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            if (!passwordsMatch(data)) {
+              setError(t("password.noCoinciden"));
+              return;
+            }
+            run(
+              () =>
+                resetearPassword({
+                  userId: user.id,
+                  password: String(data.get("password") ?? ""),
+                }),
+              t("panel.usuario.passwordCambiada")
+            );
+          }}
+        >
+          <NewPasswordFields
             id={`pass-${user.id}`}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            minLength={MIN_PASSWORD_LENGTH}
-            autoComplete="off"
+            label={t("panel.usuario.passwordNueva", { email: user.email })}
           />
           <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              disabled={isPending}
-              onClick={() =>
-                run(
-                  () => resetearPassword({ userId: user.id, password }),
-                  t("panel.usuario.passwordCambiada"),
-                )
-              }
-            >
-              {isPending ? t("panel.acciones.guardando") : t("panel.usuario.cambiarPassword")}
+            <Button type="submit" size="sm" disabled={isPending}>
+              {isPending
+                ? t("panel.acciones.guardando")
+                : t("panel.usuario.cambiarPassword")}
             </Button>
             <Button
               type="button"
@@ -257,13 +278,12 @@ function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: nu
               disabled={isPending}
               onClick={() => {
                 setResetting(false);
-                setPassword("");
               }}
             >
               {t("panel.acciones.volver")}
             </Button>
           </div>
-        </div>
+        </form>
       ) : (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
@@ -274,8 +294,11 @@ function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: nu
             onChange={(event) =>
               run(
                 () =>
-                  cambiarRolUsuario({ userId: user.id, role: event.target.value as UserRole }),
-                t("panel.usuario.rolActualizado"),
+                  cambiarRolUsuario({
+                    userId: user.id,
+                    role: event.target.value as UserRole,
+                  }),
+                t("panel.usuario.rolActualizado")
               )
             }
           >
@@ -310,12 +333,20 @@ function UserRow({ user, actingUserId }: { user: AdminUserCard; actingUserId: nu
               disabled={isPending}
               onClick={() =>
                 run(
-                  () => cambiarEstadoUsuario({ userId: user.id, isActive: !user.isActive }),
-                  user.isActive ? t("panel.usuario.desactivadoOk") : t("panel.usuario.reactivadoOk"),
+                  () =>
+                    cambiarEstadoUsuario({
+                      userId: user.id,
+                      isActive: !user.isActive,
+                    }),
+                  user.isActive
+                    ? t("panel.usuario.desactivadoOk")
+                    : t("panel.usuario.reactivadoOk")
                 )
               }
             >
-              {user.isActive ? t("panel.abm.desactivar") : t("panel.abm.reactivar")}
+              {user.isActive
+                ? t("panel.abm.desactivar")
+                : t("panel.abm.reactivar")}
             </Button>
           )}
         </div>
@@ -353,7 +384,9 @@ function RolePicker({
           />
           <span>
             <span className="font-medium">{ROLE_LABEL[role]}</span>
-            <span className="text-muted-foreground block text-xs">{ROLE_HELP[role]}</span>
+            <span className="text-muted-foreground block text-xs">
+              {ROLE_HELP[role]}
+            </span>
           </span>
         </label>
       ))}

@@ -7,6 +7,10 @@ import { registrarCliente } from "@/app/actions/cuenta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  NewPasswordFields,
+  passwordsMatch,
+} from "@/components/ui/new-password-fields";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
 import { t } from "@/i18n/client";
 
@@ -27,6 +31,10 @@ export function CustomerRegisterForm({
         event.preventDefault();
         setError(null);
         const data = new FormData(event.currentTarget);
+        if (!passwordsMatch(data)) {
+          setError(t("password.noCoinciden"));
+          return;
+        }
 
         startTransition(async () => {
           const result = await registrarCliente({
@@ -92,20 +100,13 @@ export function CustomerRegisterForm({
         <Input id="email" name="email" type="email" autoComplete="email" />
       </div>
 
-      <div className="grid gap-1.5">
-        <Label htmlFor="password">{t("cuenta.entrar.password")}</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={MIN_PASSWORD_LENGTH}
-          autoComplete="new-password"
-        />
-        <p className="text-muted-foreground text-xs">
-          {t("cuenta.registro.passwordAyuda", { minimo: MIN_PASSWORD_LENGTH })}
-        </p>
-      </div>
+      <NewPasswordFields
+        id="password"
+        label={t("cuenta.entrar.password")}
+        help={t("cuenta.registro.passwordAyuda", {
+          minimo: MIN_PASSWORD_LENGTH,
+        })}
+      />
 
       <label className="flex items-start gap-2 text-sm">
         <input

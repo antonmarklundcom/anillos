@@ -1,13 +1,24 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  NewPasswordFields,
+  passwordsMatch,
+} from "@/components/ui/new-password-fields";
 import { t } from "@/i18n";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
 
-type Chequeo = { id: string; severity: "bloquea" | "advierte" | "ok"; title: string; detail: string };
+type Chequeo = {
+  id: string;
+  severity: "bloquea" | "advierte" | "ok";
+  title: string;
+  detail: string;
+};
 
 type Respuesta = {
   ok?: boolean;
@@ -26,6 +37,7 @@ type Respuesta = {
 export function SetupForm() {
   const [isPending, startTransition] = useTransition();
   const [respuesta, setRespuesta] = useState<Respuesta | null>(null);
+  const [email, setEmail] = useState("");
 
   return (
     <div className="grid gap-6">
@@ -39,10 +51,22 @@ export function SetupForm() {
           const email = String(data.get("email") ?? "").trim();
           const password = String(data.get("password") ?? "");
           const nombre = String(data.get("nombre") ?? "").trim();
+          if (email !== "" && !passwordsMatch(data)) {
+            setRespuesta({ ok: false, error: "password_no_coincide" });
+            return;
+          }
           const cuerpo = {
             seed: data.get("seed") !== null,
             force: data.get("force") !== null,
-            ...(email !== "" ? { owner: { email, password, ...(nombre ? { name: nombre } : {}) } } : {}),
+            ...(email !== ""
+              ? {
+                  owner: {
+                    email,
+                    password,
+                    ...(nombre ? { name: nombre } : {}),
+                  },
+                }
+              : {}),
           };
 
           startTransition(async () => {
@@ -50,13 +74,21 @@ export function SetupForm() {
             try {
               const res = await fetch("/api/setup/init", {
                 method: "POST",
-                headers: { authorization: `Bearer ${secreto}`, "content-type": "application/json" },
+                headers: {
+                  authorization: `Bearer ${secreto}`,
+                  "content-type": "application/json",
+                },
                 body: JSON.stringify(cuerpo),
               });
               const json = (await res.json().catch(() => ({}))) as Respuesta;
-              setRespuesta(res.ok ? { ...json, ok: true } : { ...json, ok: false });
+              setRespuesta(
+                res.ok ? { ...json, ok: true } : { ...json, ok: false }
+              );
               // La contraseña y el secreto no se quedan en pantalla.
-              if (res.ok) form.reset();
+              if (res.ok) {
+                form.reset();
+                setEmail("");
+              }
             } catch {
               setRespuesta({ ok: false, error: "red" });
             }
@@ -65,25 +97,46 @@ export function SetupForm() {
       >
         <div className="grid gap-1.5">
           <Label htmlFor="setup-secreto">{t("setup.secreto")}</Label>
-          <Input id="setup-secreto" name="secreto" type="password" required autoComplete="off" />
-          <p className="text-muted-foreground text-xs">{t("setup.secretoAyuda")}</p>
+          <Input
+            id="setup-secreto"
+            name="secreto"
+            type="password"
+            required
+            autoComplete="off"
+          />
+          <p className="text-muted-foreground text-xs">
+            {t("setup.secretoAyuda")}
+          </p>
         </div>
 
         <fieldset className="border-border grid gap-3 rounded-lg border p-3">
-          <legend className="px-1 text-sm font-medium">{t("setup.duenio")}</legend>
+          <legend className="px-1 text-sm font-medium">
+            {t("setup.duenio")}
+          </legend>
           <div className="grid gap-1.5">
             <Label htmlFor="setup-email">{t("setup.email")}</Label>
-            <Input id="setup-email" name="email" type="email" autoComplete="off" />
+            <Input
+              id="setup-email"
+              name="email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
           </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="setup-password">{t("setup.password")}</Label>
-            <Input id="setup-password" name="password" type="password" autoComplete="new-password" />
-          </div>
+          <NewPasswordFields
+            id="setup-password"
+            label={t("setup.password")}
+            required={email.trim() !== ""}
+            help={t("setup.passwordAyuda", { minimo: MIN_PASSWORD_LENGTH })}
+          />
           <div className="grid gap-1.5">
             <Label htmlFor="setup-nombre">{t("setup.nombre")}</Label>
             <Input id="setup-nombre" name="nombre" autoComplete="off" />
           </div>
-          <p className="text-muted-foreground text-xs">{t("setup.duenioAyuda")}</p>
+          <p className="text-muted-foreground text-xs">
+            {t("setup.duenioAyuda")}
+          </p>
         </fieldset>
 
         <label className="flex items-center gap-2 text-sm">
@@ -115,6 +168,8 @@ function mensajeDeError(respuesta: Respuesta): string {
       return t("setup.error.https");
     case "ya_inicializada":
       return t("setup.error.yaInicializada");
+    case "password_no_coincide":
+      return t("password.noCoinciden");
     case "password_debil":
     case "cuerpo_invalido":
       return respuesta.detalle ?? t("setup.error.generico");
@@ -127,8 +182,15 @@ function mensajeDeError(respuesta: Respuesta): string {
 
 function Resultado({ respuesta }: { respuesta: Respuesta }) {
   return (
-    <div role="status" className="border-border grid gap-3 rounded-xl border p-4 text-sm">
-      <p className={respuesta.ok ? "font-medium" : "text-destructive font-medium"}>
+    <div
+      role="status"
+      className="border-border grid gap-3 rounded-xl border p-4 text-sm"
+    >
+      <p
+        className={
+          respuesta.ok ? "font-medium" : "text-destructive font-medium"
+        }
+      >
         {respuesta.ok ? t("setup.listo") : mensajeDeError(respuesta)}
       </p>
       {respuesta.pasos ? (
@@ -148,14 +210,25 @@ function Resultado({ respuesta }: { respuesta: Respuesta }) {
               .filter((chequeo) => chequeo.severity !== "ok")
               .map((chequeo) => (
                 <li key={chequeo.id}>
-                  <span className={chequeo.severity === "bloquea" ? "text-destructive" : ""}>
+                  <span
+                    className={
+                      chequeo.severity === "bloquea" ? "text-destructive" : ""
+                    }
+                  >
                     {chequeo.severity === "bloquea" ? "✗" : "!"} {chequeo.title}
                   </span>
-                  <span className="text-muted-foreground block text-xs">{chequeo.detail}</span>
+                  <span className="text-muted-foreground block text-xs">
+                    {chequeo.detail}
+                  </span>
                 </li>
               ))}
           </ul>
         </div>
+      ) : null}
+      {respuesta.ok ? (
+        <Link href="/admin/login" className="font-medium underline">
+          {t("setup.entrar")}
+        </Link>
       ) : null}
     </div>
   );
