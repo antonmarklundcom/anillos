@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isConceptProduct } from "@/lib/concept-products";
 import { COLLECTION_GUIDANCE } from "@/content/collection-guidance";
 import { CATEGORY_PAGES } from "@/content/category-pages";
 import {
@@ -17,6 +18,7 @@ import { Suspense, cache } from "react";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { CatalogUnavailable } from "@/components/catalog-unavailable";
 import { ProductCard } from "@/components/product-card";
+import { EditorialImage } from "@/components/editorial-image";
 import { ProductDescription } from "@/components/product-description";
 import { Button } from "@/components/ui/button";
 import { getStoreSettings } from "@/domain/store-settings";
@@ -37,6 +39,61 @@ type Params = Promise<{ slug: string }>;
 
 /** `cache()` memoiza por request: metadata y página comparten una consulta. */
 const loadCategory = cache(getStoreCategory);
+
+// Primitive arguments let metadata and rendering share one request-cached
+// product query, including its outage outcome rather than only category state.
+const loadCategoryProducts = cache(
+  async (
+    slug: string,
+    brand: string | undefined,
+    minPricePyg: number | undefined,
+    maxPricePyg: number | undefined,
+    sort: "relevancia" | "precio-asc" | "precio-desc" | "nuevos",
+    page: number
+  ) => {
+    const category = await loadCategory(slug);
+    const empty = {
+      products: [],
+      total: 0,
+      page: 1,
+      perPage: 12,
+      totalPages: 0,
+    };
+    if (!category?.catalogAvailable)
+      return { result: empty, catalogAvailable: false };
+    try {
+      const result = await getCategoryProducts({
+        categorySlug: slug,
+        brand,
+        minPricePyg,
+        maxPricePyg,
+        sort,
+        page,
+      });
+      return { result, catalogAvailable: true };
+    } catch (error) {
+      log.error("store.category.products_unavailable", { slug, error });
+      return { result: empty, catalogAvailable: false };
+    }
+  }
+);
+
+function productQuery(query: Awaited<SearchParams>) {
+  const requestedPage = Number(first(query.page));
+  const page =
+    Number.isSafeInteger(requestedPage) && requestedPage > 1
+      ? requestedPage
+      : 1;
+  const sortParam = first(query.orden);
+  const { min, max } = parsePriceRange(first(query.precio));
+  return {
+    page,
+    sort: isCatalogSort(sortParam) ? sortParam : ("relevancia" as const),
+    brand: first(query.marca),
+    min,
+    max,
+  };
+}
 
 export async function generateStaticParams() {
   try {
@@ -70,15 +127,21 @@ export async function generateMetadata({
   // quedan fuera del índice y apuntan a la categoría base.
   const origin = siteOrigin();
   const query = await searchParams;
-  const parsedPage = Number(first(query.page));
-  const page =
-    Number.isSafeInteger(parsedPage) && parsedPage > 1 ? parsedPage : 1;
+  const { page, sort, brand, min, max } = productQuery(query);
+  const { catalogAvailable } = await loadCategoryProducts(
+    slug,
+    brand,
+    min,
+    max,
+    sort,
+    page
+  );
   const filtered = Object.keys(query).some(
     (key) => key !== "page" && Boolean(first(query[key]))
   );
   const canonical = origin
     ? new URL(
-        `/categoria/${slug}${page > 1 && !filtered && category.catalogAvailable ? `?page=${page}` : ""}`,
+        `/categoria/${slug}${page > 1 && !filtered && catalogAvailable ? `?page=${page}` : ""}`,
         origin
       ).toString()
     : undefined;
@@ -88,7 +151,7 @@ export async function generateMetadata({
       { title: CATEGORY_PAGES[slug]?.title ?? category.name, description },
       canonical ?? `/categoria/${slug}`
     )),
-    ...(filtered || (page > 1 && !category.catalogAvailable)
+    ...(filtered || (page > 1 && !catalogAvailable)
       ? { robots: { index: false, follow: true } }
       : {}),
     ...(canonical ? { alternates: { canonical } } : {}),
@@ -108,6 +171,7 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const editorial = CATEGORY_PAGES[slug];
+  const collection = collectionFor(slug);
   const query = await searchParams;
 
   const category = await loadCategory(slug);
@@ -119,13 +183,7 @@ export default async function CategoryPage({
   // encabezado de texto de siempre (plan-operacion §6.3).
   const categoryImageUrl = productImageUrl(category.imageCloudinaryId, "hero");
 
-  const sortParam = first(query.orden);
-  const { min, max } = parsePriceRange(first(query.precio));
-  const requestedPage = Number(first(query.page));
-  const page =
-    Number.isSafeInteger(requestedPage) && requestedPage > 1
-      ? requestedPage
-      : 1;
+  const { page, sort, brand, min, max } = productQuery(query);
 
   const [settings, categories] = await Promise.all([
     getStoreSettings(),
@@ -133,28 +191,15 @@ export default async function CategoryPage({
   ]);
   const { vidriera } = settings;
   const available = new Set(categories.map((item) => item.slug));
-  let catalogAvailable = category.catalogAvailable;
-  const empty = { products: [], total: 0, page: 1, perPage: 12, totalPages: 0 };
-  const [result, brands] = category.catalogAvailable
-    ? await Promise.all([
-        getCategoryProducts({
-          categorySlug: slug,
-          brand: first(query.marca),
-          minPricePyg: min,
-          maxPricePyg: max,
-          sort: isCatalogSort(sortParam) ? sortParam : "relevancia",
-          page,
-        }),
-        getBrands(slug).catch((error) => {
+  const [{ result, catalogAvailable }, brands] = await Promise.all([
+    loadCategoryProducts(slug, brand, min, max, sort, page),
+    category.catalogAvailable
+      ? getBrands(slug).catch((error) => {
           log.error("store.category.brands_unavailable", { slug, error });
           return [];
-        }),
-      ]).catch((error) => {
-        log.error("store.category.products_unavailable", { slug, error });
-        catalogAvailable = false;
-        return [empty, []] as const;
-      })
-    : ([empty, []] as const);
+        })
+      : Promise.resolve([]),
+  ]);
 
   // An impossible page must not become an indexable copy of the buying guide.
   // A known category with temporarily unavailable data cannot prove a page absent.
@@ -188,7 +233,7 @@ export default async function CategoryPage({
   // resuelve contra la página, así que sigue siendo válido.
   const origin = siteOrigin();
   const verifiedProducts = result.products.filter(
-    (product) => !product.slug.startsWith("concepto-")
+    (product) => !isConceptProduct(product.slug)
   );
   const jsonLd = [
     breadcrumbJsonLd(origin, [
@@ -206,7 +251,7 @@ export default async function CategoryPage({
   ];
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
+    <main className="category-editorial">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
@@ -223,12 +268,57 @@ export default async function CategoryPage({
         <span className="text-foreground">{category.name}</span>
       </nav>
 
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-        {editorial?.heading ?? category.name}
-      </h1>
-      {editorial ? (
-        <p className="section-intro mt-4">{editorial.description}</p>
-      ) : null}
+      <header className="category-hero">
+        <div>
+          <p className="eyebrow">
+            {collection?.eyebrow ?? "Una elección personal"}
+          </p>
+          <h1>{editorial?.heading ?? category.name}</h1>
+          {editorial ? (
+            <p className="section-intro">{editorial.description}</p>
+          ) : null}
+          <div className="category-topline">
+            <span>{priceUnit(slug)}</span>
+            <span aria-hidden>·</span>
+            <span>Diseño, material y medida</span>
+          </div>
+          <div className="category-hero-links">
+            <a href="#modelos" className="store-button">
+              Explorá los diseños ↗
+            </a>
+            {editorial ? (
+              <a href="#guia-de-eleccion" className="text-link">
+                Cómo elegir →
+              </a>
+            ) : null}
+            <Link href="/guias/talles" className="text-link">
+              Tu medida →
+            </Link>
+          </div>
+        </div>
+        {categoryImageUrl || collection ? (
+          <div className="category-hero-photo">
+            {categoryImageUrl ? (
+              <Image
+                src={categoryImageUrl}
+                alt={category.imageAlt ?? category.name}
+                fill
+                unoptimized
+                priority
+                sizes="(max-width: 700px) 100vw, 500px"
+                className="object-cover"
+              />
+            ) : collection ? (
+              <EditorialImage
+                asset={collection.image}
+                alt={`Referencia ilustrativa para ${collection.name.toLowerCase()}`}
+                priority
+              />
+            ) : null}
+            {!categoryImageUrl ? <span>Imagen ilustrativa</span> : null}
+          </div>
+        ) : null}
+      </header>
       {!editorial && COLLECTION_GUIDANCE[slug] ? (
         <details className="border-border mt-6 rounded-lg border p-5">
           <summary className="cursor-pointer font-medium">
@@ -245,18 +335,11 @@ export default async function CategoryPage({
           </p>
         </details>
       ) : null}
-      {catalogAvailable ? (
-        <p className="text-muted-foreground mt-1 text-sm">
-          {tPlural("catalogo.productos", result.total)} · {priceUnit(slug)}
-        </p>
-      ) : null}
       {collectionFor(slug) &&
-      result.products.some((product) =>
-        product.slug.startsWith("concepto-")
-      ) ? (
+      result.products.some((product) => isConceptProduct(product.slug)) ? (
         <p className="text-muted-foreground mt-4 text-sm">
-          Las piezas actuales son conceptos ilustrativos sin precio ni
-          disponibilidad confirmados.{" "}
+          Los modelos identificados como conceptos son referencias ilustrativas
+          sin precio ni disponibilidad confirmados.{" "}
           <Link
             className="underline"
             href={`/guias/${collectionFor(slug)!.guide}`}
@@ -268,21 +351,8 @@ export default async function CategoryPage({
 
       {/* Sin foto ni descripción cargadas (O7, `/admin/categorias`), esta
           página queda exactamente igual que antes de esta sección. */}
-      {categoryImageUrl || showCategoryDescription ? (
+      {showCategoryDescription ? (
         <div className="mt-5">
-          {categoryImageUrl ? (
-            <div className="bg-muted relative aspect-[16/5] w-full overflow-hidden rounded-xl">
-              <Image
-                src={categoryImageUrl}
-                alt={category.imageAlt ?? category.name}
-                fill
-                unoptimized
-                priority
-                sizes="(max-width: 1024px) 100vw, 1152px"
-                className="object-cover"
-              />
-            </div>
-          ) : null}
           {showCategoryDescription && category.description ? (
             <ProductDescription
               markdown={category.description}
@@ -292,103 +362,138 @@ export default async function CategoryPage({
         </div>
       ) : null}
 
-      {catalogAvailable ? (
-        <div className="mt-5">
-          <Suspense fallback={null}>
-            <CatalogFilters brands={[...brands]} />
-          </Suspense>
+      <section
+        id="modelos"
+        className="category-models"
+        aria-labelledby="modelos-titulo"
+      >
+        <div className="catalogue-section-heading">
+          <div>
+            <p className="eyebrow">Miralos de cerca</p>
+            <h2 id="modelos-titulo">Diseños de la colección</h2>
+          </div>
+          {catalogAvailable ? (
+            <p className="catalogue-count">
+              {tPlural("catalogo.productos", result.total)}
+            </p>
+          ) : null}
         </div>
-      ) : null}
-
-      {!catalogAvailable && category.id === null && editorial ? (
-        <aside
-          className="launch-note mt-8"
-          aria-label="Estado de esta colección"
+        <nav
+          className="catalogue-pills"
+          aria-label="Seguí explorando las colecciones"
         >
-          <p>
-            Esta colección reúne información para elegir. Todavía no hay piezas
-            verificadas para comprar en ella. Podés comparar materiales, estilos
-            y medidas en las secciones de abajo.
-          </p>
-          <Link className="text-link" href="/como-funciona">
-            Disponibilidad y próximos pasos →
-          </Link>
-        </aside>
-      ) : !catalogAvailable ? (
-        <CatalogUnavailable guide={collectionFor(slug)?.guide} />
-      ) : result.products.length === 0 ? (
-        <div className="border-border mt-8 rounded-xl border border-dashed p-10 text-center">
-          <p className="font-medium">{t("categoria.sinResultados")}</p>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {t("categoria.sinResultados.ayuda")}
-          </p>
-          <Button asChild variant="outline" className="mt-4">
-            <Link href={`/categoria/${slug}`}>{t("categoria.verTodo")}</Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {/* El h3 de cada ProductCard necesita un h2 arriba para no saltar
+          <Link href="/colecciones">Todas las colecciones</Link>
+          {categories.map((item) => (
+            <Link
+              key={item.slug}
+              href={`/categoria/${item.slug}`}
+              aria-current={item.slug === slug ? "page" : undefined}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+        {catalogAvailable ? (
+          <div className="mt-5">
+            <Suspense fallback={null}>
+              <CatalogFilters brands={[...brands]} />
+            </Suspense>
+          </div>
+        ) : null}
+
+        {!catalogAvailable && category.id === null && editorial ? (
+          <aside
+            className="launch-note mt-8"
+            aria-label="Estado de esta colección"
+          >
+            <p>
+              Esta colección reúne información para elegir. Todavía no hay
+              piezas verificadas para comprar en ella. Podés comparar
+              materiales, estilos y medidas en las secciones de abajo.
+            </p>
+            <Link className="text-link" href="/como-funciona">
+              Disponibilidad y próximos pasos →
+            </Link>
+          </aside>
+        ) : !catalogAvailable ? (
+          <CatalogUnavailable guide={collectionFor(slug)?.guide} />
+        ) : result.products.length === 0 ? (
+          <div className="border-border mt-8 rounded-xl border border-dashed p-10 text-center">
+            <p className="font-medium">{t("categoria.sinResultados")}</p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {t("categoria.sinResultados.ayuda")}
+            </p>
+            <Button asChild variant="outline" className="mt-4">
+              <Link href={`/categoria/${slug}`}>{t("categoria.verTodo")}</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="catalogue-products mt-6">
+            {/* El h3 de cada ProductCard necesita un h2 arriba para no saltar
               de nivel (regla heading-order de axe) — la grilla no tiene un
               título visible propio, así que va oculto para lectores de
               pantalla. */}
-          <h2 className="sr-only">{t("catalogo.tituloOculto")}</h2>
-          {result.products.map((product, index) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              priority={index < 4}
-              showRating={vidriera.estrellasEnTarjetas}
-            />
-          ))}
-        </div>
-      )}
+            <h2 className="sr-only">{t("catalogo.tituloOculto")}</h2>
+            {result.products.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                priority={index < 4}
+                showRating={vidriera.estrellasEnTarjetas}
+              />
+            ))}
+          </div>
+        )}
 
-      {result.totalPages > 1 ? (
-        <nav
-          className="mt-8 flex items-center justify-center gap-3"
-          aria-label={t("nav.paginacion")}
-        >
-          {/* == S17 == En los bordes, un `<span aria-disabled>` con el mismo
+        {result.totalPages > 1 ? (
+          <nav
+            className="mt-8 flex items-center justify-center gap-3"
+            aria-label={t("nav.paginacion")}
+          >
+            {/* == S17 == En los bordes, un `<span aria-disabled>` con el mismo
               estilo del botón deshabilitado — no un `<Link>`: un `<a href>`
               sigue siendo clickeable (y navegable con teclado) aunque el
               `Button` que lo envuelve diga `disabled`, que es justo lo que
               pasaba acá antes de este PR. */}
-          {result.page > 1 ? (
-            <Button asChild variant="outline" size="sm">
-              <Link href={buildPageHref(result.page - 1)}>
+            {result.page > 1 ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={buildPageHref(result.page - 1)}>
+                  {t("nav.anterior")}
+                </Link>
+              </Button>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="border-input text-muted-foreground pointer-events-none rounded-md border px-3 py-1.5 text-sm opacity-50"
+              >
                 {t("nav.anterior")}
-              </Link>
-            </Button>
-          ) : (
-            <span
-              aria-disabled="true"
-              className="border-input text-muted-foreground pointer-events-none rounded-md border px-3 py-1.5 text-sm opacity-50"
-            >
-              {t("nav.anterior")}
+              </span>
+            )}
+            <span className="text-muted-foreground text-sm">
+              {t("nav.pagina", {
+                actual: result.page,
+                total: result.totalPages,
+              })}
             </span>
-          )}
-          <span className="text-muted-foreground text-sm">
-            {t("nav.pagina", { actual: result.page, total: result.totalPages })}
-          </span>
-          {result.page < result.totalPages ? (
-            <Button asChild variant="outline" size="sm">
-              <Link href={buildPageHref(result.page + 1)}>
+            {result.page < result.totalPages ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={buildPageHref(result.page + 1)}>
+                  {t("nav.siguiente")}
+                </Link>
+              </Button>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="border-input text-muted-foreground pointer-events-none rounded-md border px-3 py-1.5 text-sm opacity-50"
+              >
                 {t("nav.siguiente")}
-              </Link>
-            </Button>
-          ) : (
-            <span
-              aria-disabled="true"
-              className="border-input text-muted-foreground pointer-events-none rounded-md border px-3 py-1.5 text-sm opacity-50"
-            >
-              {t("nav.siguiente")}
-            </span>
-          )}
-        </nav>
-      ) : null}
+              </span>
+            )}
+          </nav>
+        ) : null}
+      </section>
       {editorial ? (
-        <div className="mt-12">
+        <div id="guia-de-eleccion" className="category-reading">
           <RingContents sections={editorial.sections} />
           <article className="store-prose">
             <RingSections sections={editorial.sections} available={available} />

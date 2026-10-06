@@ -1,8 +1,10 @@
 import { productInquiryLinks } from "@/domain/product-inquiries";
-import { conceptFor, priceUnit, CONCEPT_NOTICE } from "@/config/ring-store";
+import { priceUnit, CONCEPT_NOTICE } from "@/config/ring-store";
+import { isConceptProduct } from "@/lib/concept-products";
 import { ProductGallery } from "@/components/product-gallery";
 import { PRODUCT_PLACEHOLDERS } from "@/config/product-placeholders";
-import { descriptionSnippet, ringMetadata } from "@/store/seo";
+import { ringMetadata } from "@/store/seo";
+import { productMetaDescription } from "@/store/product-metadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -67,12 +69,14 @@ export async function generateMetadata({
   // markdown, una que empiece con `**Importado**` publicaría literalmente los
   // asteriscos en el resultado de Google. Es el único lugar de la vidriera que
   // O7 toca — el render de la descripción en la página es de S11.
-  const description =
-    descriptionSnippet(markdownToText(product.description)) ||
-    t("producto.metaDescripcion", {
-      nombre: product.name,
-      precio: cheapest ? formatGs(cheapest) : "",
-    });
+  const description = productMetaDescription({
+    name: product.name,
+    categoryName: product.categoryName,
+    description: product.description,
+    cheapestPrice: cheapest,
+    saleMode: product.saleMode,
+    showPrice: product.showPrice,
+  });
 
   // La foto principal, recortada a la caja que espera WhatsApp. Si el
   // producto todavía no tiene fotos (o falta el cloud de Cloudinary), se
@@ -87,17 +91,17 @@ export async function generateMetadata({
   // parámetro de tracking para dejar de indexarse como página aparte.
   const origin = siteOrigin();
   const canonical = origin
-    ? new URL(`/producto/${slug}`, origin).toString()
+    ? new URL(`/producto/${product.slug}`, origin).toString()
     : undefined;
 
   const metadata = await ringMetadata(
     { title: product.name, description },
-    canonical ?? `/producto/${slug}`
+    canonical ?? `/producto/${product.slug}`
   );
   return {
     ...metadata,
     title: product.name,
-    ...(slug.startsWith("concepto-")
+    ...(isConceptProduct(product.slug)
       ? { robots: { index: false, follow: true } }
       : {}),
     description,
@@ -220,7 +224,7 @@ export default async function ProductPage({ params }: { params: Params }) {
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
+    <main className="product-editorial">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -228,10 +232,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         }}
       />
 
-      <nav
-        aria-label="Ruta de navegación"
-        className="text-muted-foreground text-sm"
-      >
+      <nav aria-label="Ruta de navegación" className="product-breadcrumbs">
         <Link href="/" className="hover:text-foreground">
           {t("nav.inicio")}
         </Link>
@@ -246,32 +247,30 @@ export default async function ProductPage({ params }: { params: Params }) {
         <span>{product.name}</span>
       </nav>
 
-      <div className="mt-4 grid gap-8 lg:grid-cols-2">
-        <div>
+      <div className="product-hero">
+        <div className="product-visual">
           <ProductGallery
             images={gallery.length ? gallery : PRODUCT_PLACEHOLDERS}
           />
         </div>
 
-        <div>
-          <p className="text-muted-foreground text-sm">
+        <div className="product-summary">
+          <p className="product-eyebrow">
             {product.brand ?? product.categoryName}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-            {product.name}
-          </h1>
-          <p className="mt-4 text-sm" data-testid="ring-price-unit">
+          <h1 className="product-title">{product.name}</h1>
+          <p className="product-unit" data-testid="ring-price-unit">
             {priceUnit(product.categorySlug)}
           </p>
-          {conceptFor(slug) ? (
+          {isConceptProduct(product.slug) ? (
             <p
-              className="border-border bg-muted/50 mt-4 border p-4 text-sm"
+              className="product-concept-note"
               data-testid="ring-concept-notice"
             >
               {CONCEPT_NOTICE}
             </p>
           ) : null}
-          <div className="mt-4 flex flex-wrap gap-4 text-sm">
+          <div className="product-help-links">
             <Link href="/guias/talles" className="underline underline-offset-4">
               Cómo medir tu talle
             </Link>
@@ -302,10 +301,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
           {/* `id` para la barra de compra móvil (`StickyBuyBar`), que trae
               de vuelta hasta acá. */}
-          <div
-            id={BLOQUE_COMPRA_ID}
-            className="mt-6 flex scroll-mt-24 flex-wrap items-start gap-3"
-          >
+          <div id={BLOQUE_COMPRA_ID} className="product-purchase scroll-mt-24">
             <AddToCart
               product={product}
               inquiryLinks={inquiryLinks}
@@ -343,21 +339,9 @@ export default async function ProductPage({ params }: { params: Params }) {
             </a>
           ) : null}
 
-          {product.description ? (
-            <div className="border-border mt-8 border-t pt-6">
-              <h2 className="text-sm font-medium">
-                {t("producto.descripcion")}
-              </h2>
-              <ProductDescription
-                markdown={product.description}
-                className="mt-2 text-sm"
-              />
-            </div>
-          ) : null}
-
           {(product.saleMode ?? "stock") === "stock" &&
           product.showPrice !== false ? (
-            <dl className="border-border text-muted-foreground mt-6 grid grid-cols-2 gap-2 border-t pt-6 text-sm">
+            <dl className="product-stock-details">
               <dt>{t("producto.iva")}</dt>
               <dd className="text-foreground">
                 {t("producto.ivaValor", { tasa: product.ivaRate })}
@@ -382,7 +366,56 @@ export default async function ProductPage({ params }: { params: Params }) {
       </div>
 
       <section
-        className="store-prose ring-faq mt-12 border-t pt-6"
+        className="product-details"
+        aria-labelledby="product-details-heading"
+      >
+        <div className="product-section-intro">
+          <p className="product-eyebrow">La pieza, de cerca</p>
+          <h2 id="product-details-heading">Detalles para elegir con calma</h2>
+          <p>
+            El diseño es el comienzo. La unidad, las medidas y la información de
+            la ficha ayudan a elegir una pieza que tenga sentido para vos.
+          </p>
+          <Link
+            href={`/categoria/${product.categorySlug}`}
+            className="product-text-link"
+          >
+            Explorar {product.categoryName} <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
+        <div className="product-detail-content">
+          {product.description ? (
+            <div className="product-description">
+              <h3>{t("producto.descripcion")}</h3>
+              <ProductDescription markdown={product.description} />
+            </div>
+          ) : null}
+          <dl className="product-reference-details">
+            <div>
+              <dt>Colección</dt>
+              <dd>
+                <Link href={`/categoria/${product.categorySlug}`}>
+                  {product.categoryName}
+                </Link>
+              </dd>
+            </div>
+            <div>
+              <dt>Unidad de la colección</dt>
+              <dd>{priceUnit(product.categorySlug)}</dd>
+            </div>
+            <div>
+              <dt>Medidas</dt>
+              <dd>
+                Revisá las opciones de esta ficha y la escala del proveedor.{" "}
+                <Link href="/guias/talles">Ver guía de talles</Link>.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section
+        className="product-faq store-prose ring-faq"
         aria-label="Información para elegir esta pieza"
       >
         <h2>Antes de elegir este anillo</h2>
@@ -424,7 +457,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         <section
           id="resenas"
           data-testid={TESTIDS.productReviewsSection}
-          className="border-border mt-12 scroll-mt-24 border-t pt-8"
+          className="product-reviews scroll-mt-24"
         >
           <h2 className="text-lg font-semibold tracking-tight">
             {t("producto.resenas.titulo")}
@@ -458,7 +491,7 @@ export default async function ProductPage({ params }: { params: Params }) {
       ) : null}
 
       {related.length > 0 ? (
-        <section className="border-border mt-12 border-t pt-8">
+        <section className="product-related">
           <h2 className="text-lg font-semibold tracking-tight">
             {t("producto.relacionados")}
           </h2>

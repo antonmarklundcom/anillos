@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { isConceptProduct } from "@/lib/concept-products";
 import { CinematicHero } from "@/components/cinematic-hero";
 import { EditorialImage } from "@/components/editorial-image";
 import { ProductCard } from "@/components/product-card";
@@ -47,6 +48,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     getStoreCategories(),
   ]);
   const available = new Set(categories.map((item) => item.slug));
+  const conceptsOnly =
+    products.length > 0 &&
+    products.every((product) => isConceptProduct(product.slug));
   const organization = organizationJsonLd({
     origin: siteOrigin(),
     name,
@@ -186,16 +190,32 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <section className="store-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">El catálogo en preparación</p>
+              <p className="eyebrow">
+                {conceptsOnly
+                  ? "El catálogo en preparación"
+                  : "Miralos de cerca"}
+              </p>
               <h2>
-                Ideas para <em>imaginar.</em>
+                {conceptsOnly ? (
+                  <>
+                    Ideas para <em>imaginar.</em>
+                  </>
+                ) : (
+                  <>
+                    Diseños para <em>elegir.</em>
+                  </>
+                )}
               </h2>
             </div>
           </div>
           <p className="section-intro">
-            Estos diseños son conceptos ilustrativos. Todavía no tenemos
-            inventario, precios ni acuerdos de entrega confirmados.
+            {conceptsOnly
+              ? "Estos diseños son conceptos ilustrativos. Todavía no tienen inventario, precios ni acuerdos de entrega confirmados."
+              : "Compará los diseños y revisá la ficha de cada modelo: material, medidas y condiciones. Las referencias identificadas como conceptos son ilustrativas y no están a la venta."}
           </p>
+          <Link href="/colecciones#disenos" className="text-link mb-7 block">
+            Explorá todos los diseños ↗
+          </Link>
           <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />

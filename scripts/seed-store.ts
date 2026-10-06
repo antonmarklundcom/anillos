@@ -58,18 +58,20 @@ async function main() {
         publishedAt: new Date(),
         isFeatured: true,
       });
-      const labels = concept.category.startsWith("alianzas-")
-        ? [
-            "A: 17 mm · B: 18 mm · 2 anillos",
-            "A: 17 mm · B: 19 mm · 2 anillos",
-            "A: 18 mm · B: 19 mm · 2 anillos",
-          ]
-        : [
-            "Interior: 16 mm · 1 anillo",
-            "Interior: 17 mm · 1 anillo",
-            "Interior: 18 mm · 1 anillo",
-            "Interior: 19 mm · 1 anillo",
-          ];
+      const labels =
+        COLLECTIONS.find((item) => item.slug === concept.category)?.unit ===
+        "pair"
+          ? [
+              "A: 17 mm · B: 18 mm · 2 anillos",
+              "A: 17 mm · B: 19 mm · 2 anillos",
+              "A: 18 mm · B: 19 mm · 2 anillos",
+            ]
+          : [
+              "Interior: 16 mm · 1 anillo",
+              "Interior: 17 mm · 1 anillo",
+              "Interior: 18 mm · 1 anillo",
+              "Interior: 19 mm · 1 anillo",
+            ];
       await tx.insert(variants).values(
         labels.map((label, position) => ({
           productId: result.insertId,

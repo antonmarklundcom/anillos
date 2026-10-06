@@ -143,4 +143,95 @@ describe.skipIf(!hasTestDb)("selling modes and usable payments", () => {
       .where(eq(variants.id, variantId));
     expect(v!.onHand).toBe(5);
   });
+
+  it("reserved concepts cannot become merchandise after contradictory admin edits", async () => {
+    const categoryId = await createCategory("concept-protection");
+    const conceptId = await createProduct(categoryId);
+    const realId = await createProduct(categoryId);
+    const conceptVariant = await createVariant({
+      productId: conceptId,
+      onHand: 0,
+      pricePyg: 0,
+    });
+    const realVariant = await createVariant({
+      productId: realId,
+      onHand: 5,
+      pricePyg: 50000,
+    });
+    const db = getTestDb();
+    await db
+      .update(products)
+      .set({
+        slug: "concepto-protected-fixture",
+        saleMode: "enquiry",
+        showPrice: false,
+      })
+      .where(eq(products.id, conceptId));
+    // Simulate a later owner/import edit that contradicts the reserved slug.
+    await db
+      .update(products)
+      .set({ saleMode: "stock", showPrice: true })
+      .where(eq(products.id, conceptId));
+    await db
+      .update(variants)
+      .set({ pricePyg: 123456, compareAtPyg: 150000, onHand: 50 })
+      .where(eq(variants.id, conceptVariant));
+
+    expect(
+      await priceCart([{ variantId: conceptVariant, qty: 1 }])
+    ).toMatchObject({ lines: [], issues: [{ type: "solo_consulta" }] });
+    await expect(
+      createOrder(purchase(conceptVariant, "contra_entrega"))
+    ).rejects.toMatchObject({ code: "error.checkout.noDisponible" });
+    expect(await db.select().from(orders)).toHaveLength(0);
+    expect(await db.select().from(stockReservations)).toHaveLength(0);
+    expect((await getFeedProducts()).map((product) => product.id)).toEqual([
+      realId,
+    ]);
+
+    const concept = await getProductBySlug("concepto-protected-fixture");
+    expect(concept).toMatchObject({
+      saleMode: "enquiry",
+      showPrice: false,
+      variants: [{ pricePyg: 0, compareAtPyg: null, available: 0 }],
+    });
+    // Schema must also defend itself when called with unnormalized DB values.
+    const ld = productJsonLd({
+      ...concept!,
+      saleMode: "stock",
+      showPrice: true,
+      origin: null,
+      images: [],
+      variants: [
+        {
+          sku: "CONCEPT",
+          label: "Referencia",
+          pricePyg: 123456,
+          available: 50,
+        },
+      ],
+    });
+    expect(JSON.parse(JSON.stringify(ld))).not.toHaveProperty("offers");
+    const filtered = await getCategoryProducts({
+      categorySlug: "concept-protection",
+      minPricePyg: 1,
+      maxPricePyg: 200000,
+    });
+    expect(filtered.products.map((product) => product.id)).toEqual([realId]);
+
+    const realCart = await priceCart([{ variantId: realVariant, qty: 1 }]);
+    expect(realCart.lines[0]).toMatchObject({
+      unitPricePyg: 50000,
+      available: 5,
+    });
+    expect(realCart.issues).toEqual([]);
+    await createOrder(purchase(realVariant, "contra_entrega"));
+    expect(await db.select().from(orders)).toHaveLength(1);
+    expect(await db.select().from(stockReservations)).toHaveLength(1);
+    const [unchanged] = await db
+      .select()
+      .from(variants)
+      .where(eq(variants.id, conceptVariant));
+    expect(unchanged).toMatchObject({ pricePyg: 123456, onHand: 50 });
+  });
 });

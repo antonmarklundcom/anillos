@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { GUIDES } from "../../src/content/guides";
 
 const origin = "https://anillos.com.py";
 const categories = [
@@ -13,17 +14,7 @@ const categories = [
   "oro",
   "hombre",
 ];
-const guides = [
-  "talles",
-  "materiales",
-  "anillos-economicos",
-  "alianzas-boda-civil",
-  "compromiso-y-alianzas",
-  "cuidados",
-  "bodas-de-oro",
-  "estilos-de-anillos",
-  "piedras-para-anillos",
-];
+const guides = GUIDES.map((guide) => guide.slug);
 const publicRoutes = [
   "/",
   "/colecciones",

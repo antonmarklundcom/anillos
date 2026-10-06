@@ -1,5 +1,10 @@
 import type { RingContent, ContentSection } from "./ring-content";
 import { GUIDE_ENRICHMENT, NEW_GUIDES } from "./guide-pages";
+import {
+  appendRingContent,
+  EXPANDED_GUIDES,
+  GUIDE_EXPANSION,
+} from "./ring-expansion";
 
 type BaseGuide = {
   slug: string;
@@ -269,7 +274,7 @@ const BASE_GUIDES: BaseGuide[] = [
   },
 ];
 
-export const GUIDES: Guide[] = [
+const ORIGINAL_GUIDES: Guide[] = [
   ...BASE_GUIDES.map((guide) => {
     const {
       sectionTitles,
@@ -296,4 +301,11 @@ export const GUIDES: Guide[] = [
     };
   }),
   ...NEW_GUIDES,
+];
+
+export const GUIDES: Guide[] = [
+  ...ORIGINAL_GUIDES.map((guide) =>
+    appendRingContent(guide, GUIDE_EXPANSION[guide.slug])
+  ),
+  ...EXPANDED_GUIDES,
 ];

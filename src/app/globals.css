@@ -11,6 +11,8 @@
  * NEW-STORE.md §5 para cómo crear un cuarto.
  */
 @import "../styles/temas/calido.css";
+@import "../styles/catalogue-editorial.css";
+@import "../styles/product-editorial.css";
 
 html {
   --font-geist-sans: "Segoe UI", Arial, sans-serif;

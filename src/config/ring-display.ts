@@ -1,3 +1,5 @@
+import { isConceptProduct } from "@/lib/concept-products";
+
 /** Minimal display values shared with client-rendered cards; no editorial copy. */
 const CONCEPT_IMAGES: Record<string, string> = {
   "concepto-banda-acero": "steel",
@@ -33,7 +35,10 @@ export const COLLECTION_NAV_LABELS: Record<string, string> = {
   hombre: "Hombre",
 };
 export function conceptImageFor(slug: string) {
-  return CONCEPT_IMAGES[slug];
+  return (
+    CONCEPT_IMAGES[slug] ??
+    (isConceptProduct(slug) ? "ring-detail-desktop" : undefined)
+  );
 }
 export function priceUnit(categorySlug: string) {
   return categorySlug === "alianzas" ||

@@ -152,7 +152,7 @@ export default async function AdminGuidePage() {
           ))}
         </ul>
         <p className="bg-muted/40 mt-4 rounded-lg p-3 text-sm leading-relaxed">
-          Los cinco ejemplos ilustrativos con slugs <code>concepto-*</code> son
+          Los ejemplos ilustrativos con slugs <code>concepto-*</code> son
           referencias de diseño. No se pueden comprar, están marcados noindex y
           no se incluyen en el sitemap. Conservá esa separación: creá los
           productos reales con slugs nuevos. No conviertas esos ejemplos en
