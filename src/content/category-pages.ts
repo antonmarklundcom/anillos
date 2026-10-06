@@ -1,10 +1,12 @@
 import type { RingContent } from "./ring-content";
+import { appendRingContent, CATEGORY_EXPANSION } from "./ring-expansion";
 
 const talles = { label: "Medidas y tallas de anillos", href: "/guias/talles" };
 const materiales = {
   label: "Plata 925, oro 18k y acero",
   href: "/guias/materiales",
 };
+
 const cuidados = {
   label: "Cómo limpiar y cuidar tus anillos",
   href: "/guias/cuidados",
@@ -811,3 +813,8 @@ export const CATEGORY_PAGES: Record<string, RingContent> = {
     related: [materiales, talles, cuidados],
   },
 };
+
+for (const [slug, expansion] of Object.entries(CATEGORY_EXPANSION)) {
+  if (CATEGORY_PAGES[slug])
+    CATEGORY_PAGES[slug] = appendRingContent(CATEGORY_PAGES[slug], expansion);
+}

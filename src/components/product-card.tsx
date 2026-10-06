@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { conceptImageFor, priceUnit } from "@/config/ring-display";
+import { isConceptProduct } from "@/lib/concept-products";
 
 import { PriceTag } from "@/components/price-tag";
 import { ProductImage } from "@/components/product-image";
@@ -47,9 +48,9 @@ export function ProductCard({
       href={`/producto/${product.slug}`}
       data-testid={TESTIDS.productCard}
       data-slug={product.slug}
-      className="group border-border hover:border-foreground/20 focus-visible:ring-ring flex flex-col border-b pb-5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      className="product-editorial-card group focus-visible:ring-ring flex flex-col focus-visible:ring-2 focus-visible:outline-none"
     >
-      <div className="relative">
+      <div className="product-card-photo relative">
         <ProductImage
           image={product.image}
           alt={product.name}
@@ -64,11 +65,11 @@ export function ProductCard({
         />
       </div>
 
-      <div className="mt-3 flex flex-1 flex-col gap-1">
-        <p className="text-muted-foreground text-xs">
+      <div className="product-card-copy mt-4 flex flex-1 flex-col gap-2">
+        <p className="product-card-category text-muted-foreground text-xs">
           {product.brand ?? product.categoryName}
         </p>
-        <h3 className="group-hover:text-foreground line-clamp-2 text-sm font-medium">
+        <h3 className="product-card-title group-hover:text-foreground line-clamp-2 font-medium">
           {product.name}
         </h3>
         <p
@@ -78,8 +79,8 @@ export function ProductCard({
           {priceUnit(product.categorySlug)}
         </p>
         {conceptImageFor(product.slug) ? (
-          <p className="text-muted-foreground text-xs">
-            Concepto · sin precio ni disponibilidad confirmados
+          <p className="product-card-note text-muted-foreground text-xs">
+            Referencia de diseño · no disponible para compra
           </p>
         ) : null}
         {showRating && product.rating && product.rating.count >= 1 ? (
@@ -98,8 +99,10 @@ export function ProductCard({
               size="sm"
             />
           ) : null}
-          <div className="mt-2 flex items-center gap-2">
-            {(product.saleMode ?? "stock") === "stock" ? (
+          <div className="product-card-foot mt-2 flex flex-wrap items-center gap-2">
+            {isConceptProduct(product.slug) ? (
+              <span className="text-xs">Explorá la idea y sus detalles</span>
+            ) : (product.saleMode ?? "stock") === "stock" ? (
               <StockBadge available={totalAvailable} />
             ) : (
               <span className="text-xs">
@@ -115,6 +118,9 @@ export function ProductCard({
                 {t("catalogo.opciones", { n: product.variants.length })}
               </span>
             ) : null}
+            <span className="product-card-arrow ml-auto" aria-hidden>
+              ↗
+            </span>
           </div>
         </div>
       </div>

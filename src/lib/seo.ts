@@ -9,6 +9,7 @@
  */
 
 import { formatDatePY } from "./py";
+import { isConceptProduct } from "./concept-products";
 
 /**
  * Lo que ningún buscador debería recorrer.
@@ -208,6 +209,7 @@ export function productJsonLd(input: {
     brand: input.brand ? { "@type": "Brand", name: input.brand } : undefined,
     sku: input.variants[0]?.sku,
     offers:
+      !isConceptProduct(input.slug) &&
       (input.saleMode === undefined || input.saleMode === "stock") &&
       input.showPrice !== false
         ? input.variants.map((variant) => ({

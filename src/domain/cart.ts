@@ -3,6 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { categories, products, variants } from "@/db/schema";
 import { assertGs, ivaBreakdown, lineTotal } from "@/lib/money";
+import { isConceptProduct } from "@/lib/concept-products";
 
 import type { CartIssue } from "@/lib/cart-issues";
 
@@ -125,7 +126,11 @@ export async function priceCart(
     }
 
     const available = Math.max(0, row.onHand - (held.get(row.variantId) ?? 0));
-    if (row.saleMode !== "stock" || !row.showPrice) {
+    if (
+      isConceptProduct(row.productSlug) ||
+      row.saleMode !== "stock" ||
+      !row.showPrice
+    ) {
       issues.push({
         type: "solo_consulta",
         variantId: item.variantId,

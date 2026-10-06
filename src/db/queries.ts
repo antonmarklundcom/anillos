@@ -27,6 +27,10 @@ import {
 import type { Executor } from "@/domain/executor";
 import { getRatingSummaries, type RatingSummary } from "@/domain/reviews";
 import { heldQtyMap } from "@/domain/stock";
+import {
+  CONCEPT_PRODUCT_PREFIX,
+  isConceptProduct,
+} from "@/lib/concept-products";
 
 export type CatalogVariant = {
   id: number;
@@ -105,7 +109,7 @@ export function isCatalogSort(value: string | undefined): value is CatalogSort {
 }
 
 /** Precio mínimo por producto — es el número por el que la gente ordena y filtra. */
-const minPriceSql = sql<number>`MIN(CASE WHEN ${products.showPrice} THEN ${variants.pricePyg} ELSE NULL END)`;
+const minPriceSql = sql<number>`MIN(CASE WHEN ${products.showPrice} AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} THEN ${variants.pricePyg} ELSE NULL END)`;
 
 type ProductRow = {
   saleMode: "stock" | "enquiry" | "showcase";
@@ -193,8 +197,8 @@ async function hydrate(
   }
 
   return rows.map((row) => ({
-    saleMode: row.saleMode,
-    showPrice: row.showPrice,
+    saleMode: isConceptProduct(row.slug) ? "enquiry" : row.saleMode,
+    showPrice: !isConceptProduct(row.slug) && row.showPrice,
     id: row.id,
     slug: row.slug,
     name: row.name,
@@ -204,7 +208,11 @@ async function hydrate(
     categorySlug: row.categorySlug,
     image: imagesByProduct.get(row.id)?.[0] ?? null,
     variants: (variantsByProduct.get(row.id) ?? []).map((variant) =>
-      row.showPrice ? variant : { ...variant, pricePyg: 0, compareAtPyg: null }
+      isConceptProduct(row.slug)
+        ? { ...variant, pricePyg: 0, compareAtPyg: null, available: 0 }
+        : row.showPrice
+          ? variant
+          : { ...variant, pricePyg: 0, compareAtPyg: null }
     ),
     ...(ratings.has(row.id) ? { rating: ratings.get(row.id) } : {}),
   }));
@@ -908,7 +916,8 @@ export async function getFeedProducts(
       and(
         PUBLISHED(),
         eq(products.saleMode, "stock"),
-        eq(products.showPrice, true)
+        eq(products.showPrice, true),
+        sql`LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`
       )
     )
     .orderBy(asc(products.slug));

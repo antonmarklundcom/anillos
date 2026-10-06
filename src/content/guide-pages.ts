@@ -524,10 +524,10 @@ export const NEW_GUIDES: Guide[] = [
   {
     slug: "piedras-para-anillos",
     collection: "solitarios",
-    title: "Piedras para anillos: diamantes y amatistas",
+    title: "Piedras para anillos: diamante, moissanita y formas",
     heading: "Piedras para anillos: qué comparar antes de elegir",
     description:
-      "Conocé qué comparar en diamantes y amatistas para anillos: identificación, características, engarce y factores que influyen en el precio de la pieza.",
+      "Compará diamante, moissanita, circonita y amatista para anillos: identificación, formas, engarce, cuidados y factores de precio.",
     sections: [
       {
         id: "identificar",

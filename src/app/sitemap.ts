@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { GUIDES } from "@/content/guides";
+import { isConceptProduct } from "@/lib/concept-products";
 
 import { getSitemapEntries } from "@/db/queries";
 import { getStoreCategories } from "@/store/catalog";
@@ -42,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...entries,
       categories,
       products: entries.products.filter(
-        (product) => !product.slug.startsWith("concepto-")
+        (product) => !isConceptProduct(product.slug)
       ),
       pages,
     });
