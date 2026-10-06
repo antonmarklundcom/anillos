@@ -1,17 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/content/guides";
-export const metadata: Metadata = {
+import { ringMetadata } from "@/store/seo";
+const pageSeo = {
   title: "Guías para elegir anillos en Paraguay",
   description:
-    "Aprendé sobre talles, plata 925, acero, alianzas para el civil y cuidados. Información clara para elegir con tu presupuesto.",
-  alternates: { canonical: "/guias" },
+    "Resolvé dudas sobre medidas, plata 925, oro 18k, promesa, alianzas y cuidados. Guías de anillos en español para elegir con información en Paraguay.",
 };
+export async function generateMetadata(): Promise<Metadata> {
+  return ringMetadata(pageSeo, "/guias");
+}
 export default function GuidesPage() {
   return (
     <main className="store-section">
       <p className="eyebrow">La biblioteca</p>
-      <h1 className="article-heading mt-5">Elegí con información.</h1>
+      <h1 className="article-heading mt-5">
+        Guías para elegir y cuidar tus anillos
+      </h1>
       <p className="section-intro">
         Guías para resolver las dudas que una fotografía no responde. Empezá por
         tu talle, compará materiales y definí qué importa para vos.

@@ -6,6 +6,14 @@ import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { RingMeasurement } from "@/components/ring-measurement";
 import { getStoreCategories } from "@/store/catalog";
+import {
+  RingContents,
+  RingSections,
+  RingQuestions,
+  RingRelated,
+} from "@/components/ring-content";
+import { ringMetadata } from "@/store/seo";
+import { storeName } from "@/store/identity";
 type Props = { params: Promise<{ slug: string }> };
 // Render per request so Next's script nonces match the template's CSP.
 export const dynamic = "force-dynamic";
@@ -13,25 +21,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const guide = GUIDES.find((item) => item.slug === slug);
   return guide
-    ? {
-        title: guide.title,
-        description: guide.description,
-        alternates: { canonical: `/guias/${slug}` },
-        openGraph: {
-          title: guide.title,
-          description: guide.description,
-          type: "article",
-        },
-      }
+    ? ringMetadata(guide, `/guias/${slug}`, "article")
     : { title: "Guía no encontrada", robots: { index: false } };
 }
 export default async function GuidePage({ params }: Props) {
   const { slug } = await params;
   const guide = GUIDES.find((item) => item.slug === slug);
   if (!guide) notFound();
-  const available = new Set(
-    (await getStoreCategories()).map((category) => category.slug)
-  );
+  const [categories, name] = await Promise.all([
+    getStoreCategories(),
+    storeName(),
+  ]);
+  const available = new Set(categories.map((category) => category.slug));
   return (
     <main className="store-section">
       <nav
@@ -60,9 +61,10 @@ export default async function GuidePage({ params }: Props) {
           __html: jsonLdScript({
             "@context": "https://schema.org",
             "@type": "Article",
-            headline: guide.title,
+            headline: guide.heading,
             description: guide.description,
             inLanguage: "es-PY",
+            author: { "@type": "Organization", name },
             ...(siteOrigin()
               ? {
                   mainEntityOfPage: new URL(
@@ -74,38 +76,17 @@ export default async function GuidePage({ params }: Props) {
           }),
         }}
       />
-      <h1 className="article-heading mt-4 max-w-4xl">{guide.title}</h1>
+      <h1 className="article-heading mt-4 max-w-4xl">{guide.heading}</h1>
       <p className="section-intro">{guide.description}</p>
-      <nav className="guide-contents" aria-label="Contenido de la guía">
-        <p className="mb-4 font-medium">En esta guía</p>
-        <ol>
-          {guide.sections.map((section, index) => (
-            <li key={section.title}>
-              <a href={`#seccion-${index + 1}`}>{section.title}</a>
-            </li>
-          ))}
-          {slug === "talles" ? (
-            <li>
-              <a href="#medida">Calculá tu medida</a>
-            </li>
-          ) : null}
-        </ol>
-      </nav>
+      <RingContents sections={guide.sections} measurement={slug === "talles"} />
       <article className="store-prose">
-        {guide.sections.map((section, index) => (
-          <section key={section.title} id={`seccion-${index + 1}`}>
-            <h2>{section.title}</h2>
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </section>
-        ))}
+        <RingSections sections={guide.sections} available={available} />
         {slug === "talles" ? (
           <>
             <div id="medida">
               <RingMeasurement />
             </div>
-            <h2>Ejemplos de diámetro y contorno</h2>
+            <h2>Tabla de medidas de anillos: diámetro y contorno</h2>
             <table>
               <caption>
                 Relación geométrica aproximada, sin talles comerciales
@@ -117,14 +98,16 @@ export default async function GuidePage({ params }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {[16, 17, 18, 19, 20].map((diameter) => (
-                  <tr key={diameter}>
-                    <td>{diameter} mm</td>
-                    <td>
-                      {(diameter * Math.PI).toFixed(1).replace(".", ",")} mm
-                    </td>
-                  </tr>
-                ))}
+                {[14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24].map(
+                  (diameter) => (
+                    <tr key={diameter}>
+                      <td>{diameter} mm</td>
+                      <td>
+                        {(diameter * Math.PI).toFixed(1).replace(".", ",")} mm
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
             <p>
@@ -133,49 +116,12 @@ export default async function GuidePage({ params }: Props) {
             </p>
           </>
         ) : null}
-        {guide.sources?.length ? (
-          <aside className="mt-10 border-t pt-6">
-            <h2>Para seguir leyendo</h2>
-            <ul>
-              {guide.sources.map((source) => (
-                <li key={source.url}>
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {source.title} ↗
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </aside>
-        ) : null}
-        <aside className="mt-10 border-t pt-6">
-          <h2>Tu próximo paso</h2>
-          <p>
-            {available.has(guide.collection) ? (
-              <Link href={`/categoria/${guide.collection}`}>
-                Explorá la colección relacionada
-              </Link>
-            ) : (
-              <Link href="/colecciones">Explorá las colecciones</Link>
-            )}{" "}
-            o <Link href="/contacto">conocé cómo preparar una consulta</Link>.
-            Las piezas actuales son conceptos ilustrativos y no se venden.
-          </p>
-          <div className="flex flex-wrap gap-5">
-            {GUIDES.filter((item) => item.slug !== slug).map((item) => (
-              <Link
-                className="text-sm"
-                key={item.slug}
-                href={`/guias/${item.slug}`}
-              >
-                {item.title}
-              </Link>
-            ))}
-          </div>
-        </aside>
+        <RingQuestions faq={guide.faq} />
+        <RingRelated
+          related={guide.related}
+          sources={guide.sources}
+          available={available}
+        />
       </article>
     </main>
   );

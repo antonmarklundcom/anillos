@@ -1,12 +1,17 @@
-export type Guide = {
+import type { RingContent, ContentSection } from "./ring-content";
+import { GUIDE_ENRICHMENT, NEW_GUIDES } from "./guide-pages";
+
+type BaseGuide = {
   slug: string;
   title: string;
   description: string;
   collection: string;
-  sections: { title: string; paragraphs: string[] }[];
+  sections: ContentSection[];
   sources?: { title: string; url: string }[];
 };
-export const GUIDES: Guide[] = [
+export type Guide = BaseGuide &
+  Pick<RingContent, "heading" | "faq" | "related">;
+const BASE_GUIDES: BaseGuide[] = [
   {
     slug: "talles",
     title: "Cómo saber tu talle de anillo",
@@ -39,7 +44,7 @@ export const GUIDES: Guide[] = [
         title: "Ancho, comodidad y dos talles",
         paragraphs: [
           "Probá un ancho parecido al del diseño elegido: una banda ancha puede sentirse distinta de una fina. El anillo debería pasar por el nudillo con una resistencia razonable y permitirte mover el dedo cómodamente. Si el ajuste genera dudas, confirmalo presencialmente antes de autorizar fabricación o grabado.",
-          "Para un par de alianzas, anotá las dos medidas por separado. Aclarar ‘persona A: 17 mm; persona B: 19 mm’ es mejor que pedir ‘un par mediano’. Consultá si se puede ajustar el material, cuánto costaría y qué condiciones aplicarían si el talle no queda bien. Esas condiciones todavía no están confirmadas en nuestro catálogo conceptual.",
+          "Para un par de alianzas, anotá las dos medidas por separado. Aclarar ‘persona A: 17 mm; persona B: 19 mm’ es mejor que pedir ‘un par mediano’. Consultá si se puede ajustar el material, cuánto costaría y qué condiciones aplicarían si el talle no queda bien. Pedí que esas condiciones queden identificadas en la propuesta del modelo elegido.",
         ],
       },
     ],
@@ -61,7 +66,7 @@ export const GUIDES: Guide[] = [
         title: "El color no identifica el metal",
         paragraphs: [
           "Dos anillos de apariencia plateada pueden tener composiciones distintas. Una foto ayuda a comparar formas, pero no demuestra plata, acero, oro blanco ni un recubrimiento. Pedí una descripción escrita del material base y de cualquier baño o acabado. Separar esas dos cosas evita comparar productos que sólo se parecen en la imagen.",
-          "Las imágenes de nuestro catálogo son generadas e ilustrativas. Los nombres de las colecciones describen materiales que queremos explorar; no certifican las piezas que ves. No presentamos quilatajes, sellos o gemas como verificados hasta contar con información real del proveedor.",
+          "Una imagen ilustrativa sirve para explorar formas, pero no acredita el material de una pieza. Tampoco el nombre de una colección certifica quilatajes, sellos o gemas. Revisá la ficha del modelo real y pedí documentación que respalde sus especificaciones antes de decidir.",
         ],
       },
       {
@@ -115,7 +120,7 @@ export const GUIDES: Guide[] = [
         title: "Empezá por comparar acero y plata",
         paragraphs: [
           "Explorá bandas lisas, perfiles finos y diseños sin piedras si querés una comparación fácil. Mirá el metal base, el acabado y el ancho. Una descripción precisa es más útil que palabras como ‘premium’ o ‘lujo’. La opción más económica no siempre tiene la misma composición que otra visualmente parecida.",
-          "En plata, distinguí plata 925 de un baño. En acero de color dorado, preguntá por el recubrimiento. Si no hay información suficiente, dejá la elección pendiente. Una compra accesible sigue necesitando claridad sobre lo que recibís. Nuestro catálogo inicial permite explorar estas diferencias sin publicar precios de proveedores que todavía no están confirmados.",
+          "En plata, distinguí plata 925 de un baño. En acero de color dorado, preguntá por el recubrimiento. Si no hay información suficiente, dejá la elección pendiente. Una compra accesible sigue necesitando claridad sobre lo que recibís. Compará precios sólo después de identificar la composición y las características de cada modelo.",
         ],
       },
       {
@@ -129,7 +134,7 @@ export const GUIDES: Guide[] = [
         title: "Una decisión simple y bien informada",
         paragraphs: [
           "Prepará una lista corta con material deseado, acabado, medida aproximada, presupuesto y fecha orientativa. Así una consulta futura se vuelve concreta. Si tenés dos opciones, comparalas con los mismos datos en vez de decidir sólo por la fotografía.",
-          "No aceptes una fecha de entrega implícita porque el diseño aparece en una web. Confirmá por escrito disponibilidad, fabricación o despacho, precio final y condiciones antes de pagar. Hoy no tenemos inventario ni compromisos de proveedores; los conceptos que mostramos sirven para planificar una elección, no para reservar mercadería.",
+          "No aceptes una fecha de entrega implícita porque el diseño aparece en una web. Confirmá por escrito disponibilidad, fabricación o despacho, precio final y condiciones antes de pagar. Una referencia de estilo ayuda a planificar la elección; para reservar una pieza necesitás una propuesta real que identifique el producto y sus condiciones.",
         ],
       },
     ],
@@ -145,7 +150,7 @@ export const GUIDES: Guide[] = [
         title: "Empiecen por lo que quieren compartir",
         paragraphs: [
           "Las alianzas pueden ser iguales o tener diferencias de ancho y acabado. Conversen sobre qué van a usar cada día: una banda discreta, un perfil redondeado o una superficie satinada. Elijan pensando en la comodidad de cada persona, no sólo en cómo se ven juntas en una foto.",
-          "Una boda civil no obliga a elegir oro. Pueden explorar acero, plata u otros materiales según sus preferencias y presupuesto. El catálogo actual ofrece ideas, pero todavía no hay un proveedor acordado que pueda confirmar composiciones, fabricación, grabados o plazos.",
+          "Una boda civil no obliga a elegir oro. Pueden explorar acero, plata u otros materiales según sus preferencias y presupuesto. Cuando tengan una opción concreta, pidan composición y condiciones de fabricación, grabado y entrega para ese par antes de tomar una decisión.",
         ],
       },
       {
@@ -158,15 +163,15 @@ export const GUIDES: Guide[] = [
       {
         title: "Qué incluye el precio del par",
         paragraphs: [
-          "Pidán una cotización que diga ‘par de dos anillos’ e identifique las medidas de ambos. Tiene que aclarar metal, ancho, perfil, acabado y cualquier grabado. Si se ofrece una cifra por anillo, pidán también el total de las dos piezas antes de comparar con otra propuesta.",
-          "El costo de entrega o de un ajuste no debe quedar confundido con el precio de las alianzas. Tampoco den por incluido un estuche o una inscripción porque aparezca en una imagen. En nuestras fichas conceptuales indicamos la unidad prevista y dejamos el precio sin publicar hasta tener información verificable.",
+          "Pidan una cotización que diga ‘par de dos anillos’ e identifique las medidas de ambos. Tiene que aclarar metal, ancho, perfil, acabado y cualquier grabado. Si se ofrece una cifra por anillo, pidan también el total de las dos piezas antes de comparar con otra propuesta.",
+          "El costo de entrega o de un ajuste no debe quedar confundido con el precio de las alianzas. Tampoco den por incluido un estuche o una inscripción porque aparezca en una imagen. Revisen la unidad indicada en cada ficha y soliciten un total verificable que separe las piezas de los servicios adicionales.",
         ],
       },
       {
         title: "La fecha merece una confirmación propia",
         paragraphs: [
           "Anoten la fecha del civil y cuándo les gustaría tener las piezas para poder probarlas con tiempo. Una fecha deseada es información para la consulta; no es una promesa de fabricación. Si intervienen taller y despacho, pregunten quién confirma cada etapa y cómo se comunica cualquier cambio.",
-          "Antes de autorizar un pago, revisen la propuesta completa: dos talles, unidad, precio final, condiciones de ajuste y entrega confirmada. Hoy las compras están deshabilitadas. Cuando exista un catálogo real, la disponibilidad y las condiciones se publicarán para cada producto sin trasladar promesas de otras joyerías.",
+          "Antes de autorizar un pago, revisen la propuesta completa: dos talles, unidad, precio final, condiciones de ajuste y entrega confirmada. Guarden la ficha y la cotización aceptada. Las condiciones de una joyería o de otro modelo no se trasladan automáticamente al par que ustedes eligen.",
         ],
       },
     ],
@@ -182,7 +187,7 @@ export const GUIDES: Guide[] = [
         title: "Dos momentos, muchas maneras de elegir",
         paragraphs: [
           "El anillo de compromiso suele acompañar una propuesta; las alianzas suelen representar la unión de una pareja. Son usos habituales, no requisitos. Podés elegir una banda simple para el compromiso, usar una sola pieza para ambos momentos o decidir no usar anillos. La elección puede responder a lo que ustedes quieren simbolizar.",
-          "Un solitario es un estilo con una piedra protagonista. No significa automáticamente diamante ni oro. En una ficha real, material y gema deben identificarse por separado. Los conceptos de nuestra colección muestran apariencia y forma sin afirmar origen de piedras, quilataje o certificaciones.",
+          "Un solitario es un estilo con una piedra protagonista. No significa automáticamente diamante ni oro. En una ficha real, material y gema deben identificarse por separado. Una referencia visual muestra apariencia y forma; el origen de la piedra, el quilataje y la documentación se confirman con los datos de la pieza concreta.",
         ],
       },
       {
@@ -195,15 +200,16 @@ export const GUIDES: Guide[] = [
       {
         title: "Pensá en la mano y en la rutina",
         paragraphs: [
+          "No hay una única mano obligatoria para el anillo de compromiso: las costumbres varían y ustedes pueden elegir cómo usarlo. Definí la mano y el dedo antes de medir, especialmente si querés llevarlo junto a la alianza. No des por hecho que el mismo talle queda igual en la otra mano.",
           "Una montura alta puede sentirse diferente de una banda lisa al trabajar o vestir. Mirá la altura del diseño, las puntas y cómo apoyaría junto a una alianza si se van a usar juntas. Probá el ajuste y evaluá si cada pieza resulta cómoda por separado.",
-          "Si el anillo es una sorpresa, una medida aproximada ayuda a empezar, pero no sustituye confirmar el talle. Antes de grabar o fabricar, preguntá qué opciones habrá si no queda bien. No prometemos ajustes, cambios ni fabricación en los conceptos actuales porque esas condiciones todavía no existen.",
+          "Si el anillo es una sorpresa, una medida aproximada ayuda a empezar, pero no sustituye confirmar el talle. Antes de grabar o fabricar, preguntá qué opciones habrá si no queda bien. Consultá las condiciones de ajuste y cambio del modelo elegido antes de autorizar la personalización.",
         ],
       },
       {
         title: "Cuando una piedra requiere más información",
         paragraphs: [
           "Una imagen no permite distinguir con certeza un diamante de otras gemas o imitaciones. Para una pieza real, pedí identificación de la piedra y cualquier tratamiento declarado. Si corresponde un informe gemológico, verificá qué describe y a qué piedra pertenece. No tomes la palabra ‘certificado’ como una explicación suficiente.",
-          "Prepará tu consulta con estilo, presupuesto, medida y uso previsto. Esa información permite conversar sin imponer una elección. Antes de pagar, necesitás una ficha y una cotización reales. El catálogo conceptual está separado de cualquier oferta de venta y no recibe pagos ni reservas.",
+          "Prepará tu consulta con estilo, presupuesto, medida y uso previsto. Esa información permite conversar sin imponer una elección. Antes de pagar, necesitás una ficha y una cotización reales. Identificá el modelo, la unidad vendida y las condiciones aplicables; una ilustración de estilo no reemplaza una oferta concreta.",
         ],
       },
     ],
@@ -239,14 +245,14 @@ export const GUIDES: Guide[] = [
         title: "Plata y recubrimientos",
         paragraphs: [
           "La plata puede oscurecerse con el tiempo. Guardarla seca y protegida, con materiales adecuados para plata, ayuda a conservar su aspecto. Un paño destinado a plata puede ser útil en una pieza compatible, pero no conviene pulir agresivamente un recubrimiento o un acabado satinado sin instrucciones.",
-          "Si hay baño de oro, rodio u otra capa, consultá qué limpieza está permitida. Un producto que funciona sobre el metal base puede afectar la superficie. No prometemos que una pieza mantenga siempre el mismo color ni que pueda restaurarse sin conocer cómo está fabricada.",
+          "Si hay baño de oro, rodio u otra capa, consultá qué limpieza está permitida. Un producto que funciona sobre el metal base puede afectar la superficie. Para evaluar una restauración o un cambio de color, hace falta conocer la fabricación y el estado de la pieza.",
         ],
       },
       {
         title: "Piedras y limpieza profesional",
         paragraphs: [
           "Los equipos ultrasónicos y el vapor no son adecuados para todas las gemas o tratamientos. Si no conocés la piedra, evitá usarlos por cuenta propia. También conviene revisar periódicamente la sujeción de una piedra con alguien que pueda evaluar la pieza físicamente.",
-          "Para conservar un anillo durante mucho tiempo, combiná un uso cuidadoso con revisiones apropiadas a su construcción. Antes de comprar, preguntá qué mantenimiento será necesario y si existe un servicio real disponible. El catálogo inicial no ofrece reparaciones ni garantías aún no acordadas con proveedores.",
+          "Para conservar un anillo durante mucho tiempo, combiná un uso cuidadoso con revisiones apropiadas a su construcción. Antes de comprar, preguntá qué mantenimiento será necesario y si existe un servicio real disponible. Pedí las condiciones de reparación y garantía de esa pieza y conservá la documentación de la compra.",
         ],
       },
     ],
@@ -261,4 +267,33 @@ export const GUIDES: Guide[] = [
       },
     ],
   },
+];
+
+export const GUIDES: Guide[] = [
+  ...BASE_GUIDES.map((guide) => {
+    const {
+      sectionTitles,
+      sectionIds,
+      sectionLinks,
+      extraSections = [],
+      ...changes
+    } = GUIDE_ENRICHMENT[guide.slug] ?? {};
+    return {
+      ...guide,
+      heading: guide.title,
+      faq: [],
+      related: [],
+      ...changes,
+      sections: [
+        ...guide.sections.map((section, index) => ({
+          ...section,
+          title: sectionTitles?.[index] ?? section.title,
+          id: sectionIds?.[index] ?? section.id,
+          links: sectionLinks?.[index] ?? section.links,
+        })),
+        ...extraSections,
+      ],
+    };
+  }),
+  ...NEW_GUIDES,
 ];

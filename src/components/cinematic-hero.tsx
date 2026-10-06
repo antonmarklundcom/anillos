@@ -174,13 +174,13 @@ export function CinematicHero({
         <div className="cinematic-copy">
           <p className="eyebrow">Anillos en Paraguay</p>
           <h1>
-            Pequeños detalles.
+            Anillos en Paraguay
             <br />
-            <em>Grandes historias.</em>
+            <em>Para tu historia.</em>
           </h1>
           <p>
-            Acero, plata, alianzas y compromiso en Paraguay. Encontrá tu estilo
-            y aprendé a elegir tu medida.
+            Compará acero, plata, promesa, alianzas y compromiso. Encontrá tu
+            estilo y aprendé a elegir tu medida.
           </p>
           <div className="hero-actions">
             <Link href="#colecciones" className="store-button">

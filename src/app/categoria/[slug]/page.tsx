@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
 import { COLLECTION_GUIDANCE } from "@/content/collection-guidance";
+import { CATEGORY_PAGES } from "@/content/category-pages";
+import {
+  RingContents,
+  RingSections,
+  RingQuestions,
+  RingRelated,
+} from "@/components/ring-content";
+import { descriptionSnippet, ringMetadata } from "@/store/seo";
 import { collectionFor, priceUnit } from "@/config/ring-store";
 import Image from "next/image";
 import Link from "next/link";
@@ -54,7 +62,8 @@ export async function generateMetadata({
   // con `**Importado**` publicaría literalmente los asteriscos en el
   // resultado de Google — mismo motivo que en `producto/[slug]`.
   const description =
-    markdownToText(category.description).slice(0, 160) ||
+    CATEGORY_PAGES[slug]?.description ||
+    descriptionSnippet(markdownToText(category.description)) ||
     t("categoria.metaDescripcion", { nombre: category.name });
 
   // Cada página sin filtros tiene su canonical. Las combinaciones de filtros
@@ -69,15 +78,19 @@ export async function generateMetadata({
   );
   const canonical = origin
     ? new URL(
-        `/categoria/${slug}${page > 1 && !filtered ? `?page=${page}` : ""}`,
+        `/categoria/${slug}${page > 1 && !filtered && category.catalogAvailable ? `?page=${page}` : ""}`,
         origin
       ).toString()
     : undefined;
 
   return {
-    title: category.name,
-    description,
-    ...(filtered ? { robots: { index: false, follow: true } } : {}),
+    ...(await ringMetadata(
+      { title: CATEGORY_PAGES[slug]?.title ?? category.name, description },
+      canonical ?? `/categoria/${slug}`
+    )),
+    ...(filtered || (page > 1 && !category.catalogAvailable)
+      ? { robots: { index: false, follow: true } }
+      : {}),
     ...(canonical ? { alternates: { canonical } } : {}),
   };
 }
@@ -94,6 +107,7 @@ export default async function CategoryPage({
   searchParams: SearchParams;
 }) {
   const { slug } = await params;
+  const editorial = CATEGORY_PAGES[slug];
   const query = await searchParams;
 
   const category = await loadCategory(slug);
@@ -113,7 +127,12 @@ export default async function CategoryPage({
       ? requestedPage
       : 1;
 
-  const { vidriera } = await getStoreSettings();
+  const [settings, categories] = await Promise.all([
+    getStoreSettings(),
+    getStoreCategories(),
+  ]);
+  const { vidriera } = settings;
+  const available = new Set(categories.map((item) => item.slug));
   let catalogAvailable = category.catalogAvailable;
   const empty = { products: [], total: 0, page: 1, perPage: 12, totalPages: 0 };
   const [result, brands] = category.catalogAvailable
@@ -137,6 +156,21 @@ export default async function CategoryPage({
       })
     : ([empty, []] as const);
 
+  // An impossible page must not become an indexable copy of the buying guide.
+  // A known category with temporarily unavailable data cannot prove a page absent.
+  if (
+    page > 1 &&
+    ((catalogAvailable && page > result.totalPages) || category.id === null)
+  ) {
+    notFound();
+  }
+  const showCategoryDescription = Boolean(
+    category.description &&
+    (!editorial ||
+      (category.catalogAvailable &&
+        category.description !== collectionFor(slug)?.description))
+  );
+
   const buildPageHref = (target: number) => {
     const next = new URLSearchParams();
     for (const [key, value] of Object.entries(query)) {
@@ -153,15 +187,22 @@ export default async function CategoryPage({
   // no el 1. Sin `NEXT_PUBLIC_SITE_URL` las URLs salen relativas — Google las
   // resuelve contra la página, así que sigue siendo válido.
   const origin = siteOrigin();
+  const verifiedProducts = result.products.filter(
+    (product) => !product.slug.startsWith("concepto-")
+  );
   const jsonLd = [
     breadcrumbJsonLd(origin, [
       { name: t("nav.inicio"), path: "/" },
       { name: category.name, path: `/categoria/${slug}` },
     ]),
-    itemListJsonLd(origin, result.products, {
-      name: category.name,
-      startPosition: (result.page - 1) * result.perPage + 1,
-    }),
+    ...(verifiedProducts.length
+      ? [
+          itemListJsonLd(origin, verifiedProducts, {
+            name: category.name,
+            startPosition: (result.page - 1) * result.perPage + 1,
+          }),
+        ]
+      : []),
   ];
 
   return (
@@ -171,7 +212,10 @@ export default async function CategoryPage({
         dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
-      <nav className="text-muted-foreground text-sm">
+      <nav
+        aria-label="Ruta de navegación"
+        className="text-muted-foreground text-sm"
+      >
         <Link href="/" className="hover:text-foreground">
           {t("nav.inicio")}
         </Link>
@@ -180,9 +224,12 @@ export default async function CategoryPage({
       </nav>
 
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-        {category.name}
+        {editorial?.heading ?? category.name}
       </h1>
-      {COLLECTION_GUIDANCE[slug] ? (
+      {editorial ? (
+        <p className="section-intro mt-4">{editorial.description}</p>
+      ) : null}
+      {!editorial && COLLECTION_GUIDANCE[slug] ? (
         <details className="border-border mt-6 rounded-lg border p-5">
           <summary className="cursor-pointer font-medium">
             {COLLECTION_GUIDANCE[slug].heading}
@@ -203,7 +250,10 @@ export default async function CategoryPage({
           {tPlural("catalogo.productos", result.total)} · {priceUnit(slug)}
         </p>
       ) : null}
-      {collectionFor(slug) ? (
+      {collectionFor(slug) &&
+      result.products.some((product) =>
+        product.slug.startsWith("concepto-")
+      ) ? (
         <p className="text-muted-foreground mt-4 text-sm">
           Las piezas actuales son conceptos ilustrativos sin precio ni
           disponibilidad confirmados.{" "}
@@ -218,7 +268,7 @@ export default async function CategoryPage({
 
       {/* Sin foto ni descripción cargadas (O7, `/admin/categorias`), esta
           página queda exactamente igual que antes de esta sección. */}
-      {categoryImageUrl || category.description ? (
+      {categoryImageUrl || showCategoryDescription ? (
         <div className="mt-5">
           {categoryImageUrl ? (
             <div className="bg-muted relative aspect-[16/5] w-full overflow-hidden rounded-xl">
@@ -233,7 +283,7 @@ export default async function CategoryPage({
               />
             </div>
           ) : null}
-          {category.description ? (
+          {showCategoryDescription && category.description ? (
             <ProductDescription
               markdown={category.description}
               className={categoryImageUrl ? "mt-4" : undefined}
@@ -250,7 +300,21 @@ export default async function CategoryPage({
         </div>
       ) : null}
 
-      {!catalogAvailable ? (
+      {!catalogAvailable && category.id === null && editorial ? (
+        <aside
+          className="launch-note mt-8"
+          aria-label="Estado de esta colección"
+        >
+          <p>
+            Esta colección reúne información para elegir. Todavía no hay piezas
+            verificadas para comprar en ella. Podés comparar materiales, estilos
+            y medidas en las secciones de abajo.
+          </p>
+          <Link className="text-link" href="/como-funciona">
+            Disponibilidad y próximos pasos →
+          </Link>
+        </aside>
+      ) : !catalogAvailable ? (
         <CatalogUnavailable guide={collectionFor(slug)?.guide} />
       ) : result.products.length === 0 ? (
         <div className="border-border mt-8 rounded-xl border border-dashed p-10 text-center">
@@ -322,6 +386,20 @@ export default async function CategoryPage({
             </span>
           )}
         </nav>
+      ) : null}
+      {editorial ? (
+        <div className="mt-12">
+          <RingContents sections={editorial.sections} />
+          <article className="store-prose">
+            <RingSections sections={editorial.sections} available={available} />
+            <RingQuestions faq={editorial.faq} />
+            <RingRelated
+              related={editorial.related}
+              sources={editorial.sources}
+              available={available}
+            />
+          </article>
+        </div>
       ) : null}
     </main>
   );

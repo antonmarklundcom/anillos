@@ -56,7 +56,8 @@ async function main() {
       console.log(
         "Check disabled categories in admin. For missing records only, run the insert-only scripts/seed-store.ts after migrations."
       );
-    } else console.log("All five ring collections are active.");
+    } else
+      console.log(`All ${COLLECTIONS.length} ring collections are active.`);
   }
 }
 

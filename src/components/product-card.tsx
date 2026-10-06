@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { conceptImageFor, priceUnit } from "@/config/ring-display";
-import { EditorialImage } from "@/components/editorial-image";
 
 import { PriceTag } from "@/components/price-tag";
 import { ProductImage } from "@/components/product-image";
@@ -51,20 +50,12 @@ export function ProductCard({
       className="group border-border hover:border-foreground/20 focus-visible:ring-ring flex flex-col border-b pb-5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <div className="relative">
-        {conceptImageFor(product.slug) && !product.image ? (
-          <EditorialImage
-            asset={conceptImageFor(product.slug)!}
-            alt={`${product.name}, imagen ilustrativa`}
-            priority={priority}
-          />
-        ) : (
-          <ProductImage
-            image={product.image}
-            alt={product.name}
-            categorySlug={product.categorySlug}
-            priority={priority}
-          />
-        )}
+        <ProductImage
+          image={product.image}
+          alt={product.name}
+          categorySlug={product.categorySlug}
+          priority={priority}
+        />
         <WishlistButton
           slug={product.slug}
           name={product.name}

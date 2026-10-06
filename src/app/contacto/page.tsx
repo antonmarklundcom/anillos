@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { contactoPublico, waLinkPublico } from "@/lib/comercio";
-export const metadata: Metadata = {
-  title: "Contacto y consultas",
+import { ringMetadata } from "@/store/seo";
+const pageSeo = {
+  title: "Consultas sobre anillos en Paraguay",
   description:
     "Conocé el estado del catálogo y qué información preparar para consultar sobre materiales, medidas, precio por unidad o por par.",
-  alternates: { canonical: "/contacto" },
 };
+export async function generateMetadata(): Promise<Metadata> {
+  return ringMetadata(pageSeo, "/contacto");
+}
 export default async function ContactPage() {
   const [contact, whatsapp] = await Promise.all([
     contactoPublico(),
@@ -17,7 +20,9 @@ export default async function ContactPage() {
   return (
     <main className="store-section">
       <p className="eyebrow">Hablemos de tu elección</p>
-      <h1 className="article-heading mt-5">Primero, los detalles.</h1>
+      <h1 className="article-heading mt-5">
+        Consultas sobre anillos en Paraguay
+      </h1>
       <div className="store-prose mt-8">
         <p>
           Estamos preparando el catálogo y evaluando opciones de suministro.
