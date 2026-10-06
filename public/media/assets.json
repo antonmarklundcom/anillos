@@ -1,0 +1,75 @@
+[
+  {
+    "asset": "hero",
+    "file": "public/media/hero.webp",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 146720,
+    "sha256": "bbb63d6ddf1e1a02b6d8968d8f9d13f7f3e01da834993bbb3fea156020b510d3"
+  },
+  {
+    "asset": "steel",
+    "file": "public/media/steel.webp",
+    "width": 1000,
+    "height": 1000,
+    "bytes": 61140,
+    "sha256": "01f0ebfa533dd7668167fb6b7c2d33ae26f563192cc91559c5bd3b192796dd88"
+  },
+  {
+    "asset": "silver",
+    "file": "public/media/silver.webp",
+    "width": 1000,
+    "height": 1000,
+    "bytes": 95142,
+    "sha256": "329cbb653cd456095125c272010159208089b170c2ac78b60dcf3932d88848ef"
+  },
+  {
+    "asset": "pair",
+    "file": "public/media/pair.webp",
+    "width": 1000,
+    "height": 1000,
+    "bytes": 55070,
+    "sha256": "7137be107e9f8cfd40910f1452b370884c95d5ab41b56d825e2ef94c8568d957"
+  },
+  {
+    "asset": "engagement",
+    "file": "public/media/engagement.webp",
+    "width": 1000,
+    "height": 1000,
+    "bytes": 59092,
+    "sha256": "a4c27906faee76c5529f32e8582c2054023b2a3057e5633dbd2da16215e91649"
+  },
+  {
+    "asset": "portrait",
+    "file": "public/media/portrait.webp",
+    "width": 880,
+    "height": 1168,
+    "bytes": 107148,
+    "sha256": "fb5875dcec1c019e51363fb6c945520f62fa3f26b32a4131c5ed4758e8cea13e"
+  },
+  {
+    "asset": "gold-pair",
+    "file": "public/media/gold-pair.webp",
+    "width": 1000,
+    "height": 1000,
+    "bytes": 66150,
+    "sha256": "d11c0d8e2599a2e880a40fe8a0acb6ef4a3473f25eacd6df705c7aba16cc97c1"
+  },
+  {
+    "asset": "header-video",
+    "file": "public/media/header-concept-720p.mp4",
+    "width": 1280,
+    "height": 720,
+    "durationSeconds": 8.04,
+    "bytes": 1198393,
+    "sha256": "39f3745ba9db4698e0dcee7d8739a8029175e6d13b2b942ae9533310a4184135"
+  },
+  {
+    "asset": "og-editorial",
+    "file": "public/media/og-editorial.jpg",
+    "width": 1200,
+    "height": 630,
+    "bytes": 129292,
+    "sha256": "4407173b3553c5a3f82f21e77d13a2d522d64525ade995c8fa6b6006fbc06f7c"
+  }
+]

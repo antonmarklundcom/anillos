@@ -1,0 +1,74 @@
+{
+  "created": "2026-10-05",
+  "scope": "Concept editorial media only; not supplier photos or proof of materials.",
+  "tool": "Built-in image_gen plus Higgsfield",
+  "hero": {
+    "prompt": "Use case: photorealistic-natural. Asset type: editorial hero for a Paraguayan ring store. Create a refined landscape still life photograph, 1536 by 1024 composition. Three affordable and simple rings arranged casually on warm ivory limestone with fine natural linen: a brushed stainless steel band, a slim polished silver band, and a modest yellow gold band. Quiet Mediterranean editorial mood, warm daylight from left, soft authentic shadows, exceptional tactile detail, honest metal surfaces, subtle grain. Rings occupy central right half with breathing room; no diamonds, no lavish luxury display. Background cream #f5f1e9, muted olive-grey shadows. Camera at a low oblique angle, macro fashion editorial, contemporary restrained art direction. No people, lettering, logos, prices, brands or watermark. This is illustrative concept jewellery, not verified merchandise.",
+    "source": "exec-d771191f-74bf-4b72-9191-9855cf8ac0c7.png"
+  },
+  "catalog": [
+    [
+      "steel",
+      "Use case: product-mockup. Asset type: illustrative catalogue photo. Square 1024x1024 fine editorial macro photograph of one simple affordable brushed stainless steel ring, 5mm wide flat band with gently softened edges, resting on a small ivory stone pedestal. Warm cream studio background, silver grey tones, diffuse daylight, subtle real shadow, jewellery is entire and in sharp focus in the middle 60 percent of frame, tactile realistic surface, restrained contemporary catalogue. No people, text, watermark, logos, diamonds, packaging or certification marks. Concept design only."
+    ],
+    [
+      "silver",
+      "Use case: product-mockup. Asset type: illustrative catalogue photo. Square 1024x1024 refined realistic still life of a single slim polished silver ring with a delicate organic slightly wavy shape, no stones, sitting on warm ivory limestone. Neutral cream seamless background, soft natural daylight, subtle shadow, entire ring in sharp focus occupying central 60 percent, tasteful minimal silver 925 style concept, not branded. No text, stamps, logos, watermark, people or packaging."
+    ],
+    [
+      "pair",
+      "Use case: product-mockup. Asset type: illustrative wedding band pair catalogue photograph. Square 1024x1024 natural macro photograph of exactly two matching plain gently rounded polished silver wedding bands, one slightly larger in diameter than the other, touching and leaning against each other on folded cream linen, warm ivory background, clear separate rings, understated attainable civil wedding style, crisp metal detail, soft side daylight and natural shadow. No gemstones, engraving, marks, text, logos, watermark or hands. Illustration of concept design, not actual goods."
+    ],
+    [
+      "engagement",
+      "Use case: product-mockup. Asset type: illustrative concept engagement ring catalogue photo. Square 1024x1024 fine editorial macro photograph of one simple warm yellow gold solitaire style ring with a small clear round stone in a restrained four prong setting, placed on warm ivory limestone. The material and stone identity are unverified conceptual appearance only; no brands or certificates. Whole ring centered in middle 60 percent, soft natural daylight, sharp realistic metal details, warm cream background, tasteful modest proportions. No text, logos, watermark, people, packaging or opulence."
+    ]
+  ],
+  "portrait": {
+    "params": {
+      "model": "gpt_image_2_5",
+      "aspect_ratio": "3:4",
+      "count": 1,
+      "prompt": "Photorealistic editorial jewellery lifestyle portrait in Asuncion, Paraguay. A stunningly beautiful slim Paraguayan adult woman, explicitly 24 years old, dark brown eyes, long dark brown hair, natural glowing skin with authentic texture, soft sophisticated makeup, joyful quiet confident expression. Tasteful ivory linen sleeveless dress, seated beside a warm cream wall and sunlit green courtyard. Medium portrait including face, shoulders and hands; her elegant hand rests near her collarbone showing one understated slim silver band ring. Warm late afternoon daylight, refined cinematic fashion magazine photography, ivory and olive palette, gentle grain, very high quality natural details, anatomically accurate hands. No text, logos, watermarks, luxury packaging or jewelry certification. Fictional generated adult model, illustrative editorial concept, not a customer endorsement."
+    },
+    "jobId": "6ff129ad-1c23-4a9d-90c8-35d7f5db0487",
+    "inspection": "Adult fictional model; hands, ring and overall visual composition inspected."
+  },
+  "motion": {
+    "params": {
+      "model": "seedance_2_5",
+      "mode": "t2v",
+      "duration": 8,
+      "resolution": "720p",
+      "aspect_ratio": "16:9",
+      "generate_audio": false,
+      "bitrate_mode": "standard",
+      "count": 1,
+      "prompt": "A continuous single-take cinematic macro editorial jewellery shot for a contemporary affordable Paraguayan ring store. Exactly three beautifully simple rings remain stationary on warm ivory limestone with cream linen in background: brushed stainless steel flat band, slim polished silver ring, modest plain yellow-gold wedding band. Camera very slowly arcs from left to right and gently pushes in across 8 seconds, light gliding naturally over metal. Soft afternoon window light in Asuncion, warm ivory and pale olive-grey palette, tactile fabric, quiet elegant realistic film photography, shallow depth of field, no cuts and no abrupt movement. The ring shapes and number remain constant, perfect intact circular geometry, no melting or morphing. Jewellery arranged in the central-right half; left half softly defocused negative space for website text, but generate NO TEXT. No humans, no hands, no face, no gems, no logos, no watermark, no packaging, no sound. Illustrative design concepts rather than a real advertised product."
+    },
+    "jobId": "06f9b786-5aa3-490f-b041-8491a27b806d",
+    "durationSeconds": 8.041667,
+    "width": 1280,
+    "height": 720,
+    "frames": 48,
+    "variants": [
+      "desktop 960x540",
+      "mobile 480x270"
+    ],
+    "inspection": "Opening, middle and final frames inspected; slow camera motion and intact ring forms.",
+    "sourceVideo": "public/media/header-concept-720p.mp4"
+  },
+  "replacement": "Upload actual supplier photography using the existing admin; it takes precedence over concept images. New real products must use new non-concept slugs. Do not repurpose the reserved concept slugs.",
+  "goldPair": {
+    "model": "gpt_image_2_5",
+    "tool": "Higgsfield",
+    "jobId": "514b9832-87b1-494c-a7fb-cf7d9c948061",
+    "prompt": "Photorealistic editorial catalogue still life of EXACTLY TWO simple plain yellow gold wedding band concept rings, one slightly larger in diameter than the other. Both have a modest gently rounded 3 mm wide profile. Exactly two complete rings are touching, one resting against the other, on folded warm ivory linen and a small pale limestone surface. Cream neutral background, soft afternoon window light, quiet refined attainable civil-wedding aesthetic in Paraguay, precise natural metal reflections, macro photograph, entire rings visible in sharp focus, centered within the middle 60 percent of the square. No other jewellery, no gemstones, no stamps, engraving, text, branding, watermark, hands or people. Illustrative concept designs: appearance does not verify any gold material, supplier, weight, purity, inventory or certification.",
+    "inspection": "Exactly two intact bands inspected; linen, proportions, metal reflections and composition approved."
+  },
+  "ogEditorial": {
+    "derivedFrom": "public/media/hero.webp",
+    "operation": "center crop and resize to 1200x630 JPEG for the server-rendered editorial social card",
+    "label": "Editorial ilustrativo · IA"
+  }
+}
