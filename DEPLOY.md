@@ -41,6 +41,13 @@ En el hPanel, dentro del sitio:
    generar los mensajes públicos, sin invocar otro pnpm. El pin se conserva;
    no se desactiva la comprobación de versiones ni se cambia el lockfile.
 
+   **Compilador de producción:** el script `build` usa `next build --webpack`.
+   Hostinger sigue ejecutando `pnpm run build` y el output sigue siendo
+   `.next`. Evita el worker de PostCSS de Turbopack, que en este hosting sale
+   antes de conectarse y produce un panic en `globals.css` aunque Install
+   y el `prebuild` hayan pasado. Es una [opción soportada por Next.js 16](https://nextjs.org/docs/app/guides/upgrading/version-16);
+   no requiere variables adicionales ni cambiar el preset del panel.
+
    No hace falta un comando que instale otra vez antes del build ni la
    variable `pnpm_config_verify_deps_before_run`. Si usaste ese workaround,
    volvés a `pnpm run build` y podés quitar la variable después de desplegar
