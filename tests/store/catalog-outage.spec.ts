@@ -14,16 +14,17 @@ test("collections, search and sitemap remain useful without catalog tables", asy
   for (const collection of COLLECTIONS) {
     const response = await page.goto(`${origin}/categoria/${collection.slug}`);
     expect(response?.status()).toBe(200);
-    await expect(page.locator("main h1")).toHaveText(collection.name);
-    await expect(page.getByRole("status")).toContainText(
-      "Estamos preparando el catálogo"
-    );
+    await expect(page.locator("main h1")).toBeVisible();
     await expect(
-      page
-        .locator("main")
-        .getByRole("link", { name: "Leé la guía para elegir →" })
-        .last()
-    ).toHaveAttribute("href", `/guias/${collection.guide}`);
+      page.getByRole("complementary", { name: "Estado de esta colección" })
+    ).toContainText("Todavía no hay piezas verificadas para comprar");
+    await expect(page.locator("main article")).toBeVisible();
+    expect(
+      (await page.locator("main article").innerText()).split(/\s+/).length
+    ).toBeGreaterThan(300);
+    await expect(
+      page.locator(`main a[href="/guias/${collection.guide}"]`).first()
+    ).toBeVisible();
     await expect(page.locator("button[data-testid=add-to-cart]")).toHaveCount(
       0
     );

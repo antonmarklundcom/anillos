@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-export const metadata: Metadata = {
+import { ringMetadata } from "@/store/seo";
+const pageSeo = {
   title: "Catálogo, disponibilidad y entrega",
   description:
     "Estado del catálogo conceptual, próximos pasos de confirmación y qué necesitás saber antes de cualquier compra o pedido.",
-  alternates: { canonical: "/como-funciona" },
 };
+export async function generateMetadata(): Promise<Metadata> {
+  return ringMetadata(pageSeo, "/como-funciona");
+}
 export default function FulfilmentPage() {
   return (
     <main className="store-section">
       <p className="eyebrow">Información antes de elegir</p>
-      <h1 className="article-heading mt-5">Cómo funciona hoy.</h1>
+      <h1 className="article-heading mt-5">
+        Catálogo de anillos: disponibilidad y entrega
+      </h1>
       <article className="store-prose mt-8">
         <h2>Estamos en etapa de catálogo conceptual</h2>
         <p>

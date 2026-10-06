@@ -50,6 +50,56 @@ export const COLLECTIONS = [
     description:
       "Un solitario, una banda simple o una forma distinta: la elección puede acompañar tu historia y tu presupuesto. Compará altura, comodidad y tipo de piedra. Los conceptos de esta colección no tienen composición, gemas ni certificaciones verificadas y no se pueden comprar.",
   },
+  {
+    slug: "promesa",
+    name: "Anillos de promesa",
+    eyebrow: "Un significado compartido",
+    image: "silver",
+    unit: "individual",
+    guide: "compromiso-y-alianzas",
+    description:
+      "Conocé el significado de un anillo de promesa y compará diseños para una persona o una pareja. Prepará tu elección con material, talle y presupuesto claros.",
+  },
+  {
+    slug: "solitarios",
+    name: "Anillos solitarios",
+    eyebrow: "Una piedra protagonista",
+    image: "engagement",
+    unit: "individual",
+    guide: "piedras-para-anillos",
+    description:
+      "Compará el perfil, el engarce y los materiales de un solitario. Una forma no identifica su gema: conocé qué información pedir sobre la piedra y la montura.",
+  },
+  {
+    slug: "alianzas",
+    name: "Anillos de boda y alianzas",
+    eyebrow: "Para ustedes dos",
+    image: "pair",
+    unit: "pair",
+    guide: "alianzas-boda-civil",
+    description:
+      "Elegí sus anillos de boda con dos talles independientes. Compará alianzas de plata y oro, y prepará una consulta que aclare piezas, materiales y precio del par.",
+  },
+  {
+    slug: "oro",
+    name: "Anillos de oro",
+    eyebrow: "Composición y diseño",
+    image: "gold-pair",
+    unit: "individual",
+    guide: "materiales",
+    description:
+      "Aprendé a comparar anillos de oro por quilataje, peso y construcción. Conocé qué distingue una pieza de una aleación de oro de un baño dorado.",
+  },
+  {
+    slug: "hombre",
+    name: "Anillos para hombre",
+    eyebrow: "Tu estilo cotidiano",
+    image: "steel",
+    unit: "individual",
+    guide: "talles",
+    description:
+      "Explorá diseños de anillos para hombre y compará ancho, perfil y material. Elegí con una medida del dedo correcto y una ficha clara de la pieza.",
+  },
 ] as const;
 
 export const CONCEPTS = [

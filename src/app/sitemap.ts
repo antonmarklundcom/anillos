@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { conceptFor } from "@/config/ring-store";
 import { GUIDES } from "@/content/guides";
 
 import { getSitemapEntries } from "@/db/queries";
@@ -42,7 +41,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return buildSitemap(origin, {
       ...entries,
       categories,
-      products: entries.products.filter((product) => !conceptFor(product.slug)),
+      products: entries.products.filter(
+        (product) => !product.slug.startsWith("concepto-")
+      ),
       pages,
     });
   } catch {

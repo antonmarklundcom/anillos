@@ -32,6 +32,7 @@ vi.mock("@/db", () => ({
 vi.mock("@/db/queries", () => ({ getCategoryBySlug: mocks.complete }));
 vi.mock("@/lib/log", () => ({ log: { error: mocks.error } }));
 import { getStoreCategories, getStoreCategory } from "@/store/catalog";
+import { COLLECTIONS } from "@/config/ring-store";
 
 beforeEach(() => {
   mocks.records = [];
@@ -55,7 +56,7 @@ it("keeps collection information available during a database failure and records
   expect(await getStoreCategory("plata-925")).toMatchObject({
     catalogAvailable: false,
   });
-  expect(await getStoreCategories()).toHaveLength(5);
+  expect(await getStoreCategories()).toHaveLength(COLLECTIONS.length);
   expect(mocks.error).toHaveBeenCalled();
 });
 

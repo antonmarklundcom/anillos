@@ -83,7 +83,10 @@ test("the whole ring stays inside the hero through forward and reverse scroll", 
     const stage = node.querySelector(".cinematic-stage") as HTMLElement;
     return {
       start: node.getBoundingClientRect().top + scrollY,
-      distance: (node as HTMLElement).offsetHeight - stage.offsetHeight,
+      distance:
+        getComputedStyle(stage).position === "sticky"
+          ? (node as HTMLElement).offsetHeight - stage.offsetHeight
+          : stage.offsetHeight * 0.65,
     };
   });
   for (const progress of [0, 0.4, 0.72, 1, 0.72, 0.4, 0]) {

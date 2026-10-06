@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { isRingCollection } from "@/config/ring-display";
+import { PRODUCT_PLACEHOLDERS } from "@/config/product-placeholders";
 
 import { t } from "@/i18n/client";
 import {
@@ -68,6 +70,23 @@ export function ProductImage({
   );
 
   if (!url) {
+    if (isRingCollection(categorySlug)) {
+      return (
+        <div className={wrapper}>
+          <Image
+            src={PRODUCT_PLACEHOLDERS[0].src}
+            alt={`Imagen ilustrativa para ${alt}; no es una fotografía del producto`}
+            fill
+            priority={priority}
+            sizes={sizes ?? "(max-width: 640px) 50vw, 300px"}
+            className="object-contain"
+          />
+          <span className="text-muted-foreground bg-background/90 absolute inset-x-3 bottom-3 rounded px-2 py-1 text-center text-xs">
+            Imagen ilustrativa
+          </span>
+        </div>
+      );
+    }
     // == S18 == Una categoría fuera de las cuatro del seed (una tienda que
     // agregó las suyas) no cae en `categoryPlaceholderSrc`, que sin
     // conocerla mostraría el mismo dibujo genérico de "producto" sin decir

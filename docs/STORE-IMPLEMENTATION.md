@@ -8,7 +8,7 @@ No source environments, credentials, databases, builds or Git metadata were copi
 
 Store-only merchandising lives in `src/config/ring-store.ts`, prose in `src/content/guides.ts`, generated media in `public/media`, and the brand in `src/config/tienda.ts`. The effective admin identity still takes precedence. Shared domain, actions, inventory, payment readiness, integer PYG calculations, transitionOrder, SQL casts, outbox, account security and migrations remain the pinned template implementations. Existing test IDs remain in place.
 
-Five collections prioritize steel and silver before gold. Pairs are identified as **two rings per unit**. Individual rings are **one ring per unit**. The concept variants use interior millimetres, with two independent measures for pairs. No supplier price has been invented. Internal zero values in preview fixtures satisfy the existing schema and never appear as a public price or offer.
+Ten collections cover steel, silver, gold, promise, engagement, solitaire, wedding rings and men's rings. Pairs are identified as **two rings per unit**. Individual rings are **one ring per unit**. The concept variants use interior millimetres, with two independent measures for pairs. No supplier price has been invented. Internal zero values in preview fixtures satisfy the existing schema and never appear as a public price or offer.
 
 The home has an ivory editorial layout, a civil-wedding section, an adult fictional Paraguayan model and guide links. The current header uses a complete ring still with continuous scroll motion and three detail stages; the model appears in the lifestyle section. The earlier video sequence is superseded. Current changes and validation are in `RING-SCROLL-AUDIT.md`; `HOMEPAGE-REVIEW.md` records the previous review. GEMORA and Caretline informed the direction without importing unsupported heritage, atelier, certification or commission claims. No GSAP, AOS, preloader, tracking provider or production dependency was added. System sans and Georgia remove build-time Google Fonts requests.
 
@@ -16,13 +16,21 @@ The default hero now uses one responsive still of a complete ring with a small s
 
 ## Local and production data
 
-After migrations, run `pnpm exec tsx scripts/seed-store.ts` to create the five collection records. This command inserts missing records only and preserves owner edits. It invents no products, stock, prices, shipping zones or provider configuration.
+After migrations, run `pnpm exec tsx scripts/seed-store.ts` to create the ten collection records. This command inserts missing records only and preserves owner edits. It invents no products, stock, prices, shipping zones or provider configuration. Rich buying content can render on the configured routes before these records exist; an explicitly disabled database category stays hidden.
 
 For a **disposable loopback database with `test` in its name**, add `--with-concepts` to preview five enquiry-mode examples. They have zero inventory, hidden prices, no purchase controls, no merchant offers, and cannot enter checkout. Their reserved `concepto-*` slugs are noindex and omitted from the sitemap. New real supplier products must use new slugs. Supplier photography uploaded through the admin takes precedence over illustrative fallback images.
 
 Do not run the generic template `pnpm db:seed`, `pnpm demo` or HTTP setup with `seed:true` in production. Those commands retain the template's test catalogue and stock fixtures. Use the store seed above. Customer accounts remain disabled by default; all validated account machinery is available when deliberately configured.
 
-Six substantial Spanish/voseo guides cover sizing, materials, limited budgets, civil-wedding pairs, engagement versus wedding rings and care. Category metadata and pagination are inherited; guides, collections, contact and fulfilment information have distinct metadata and canonicals. Search/filter pages stay noindex. The sitemap excludes concept product URLs. No reviews, partnerships, certifications, search volumes or delivery promises were invented.
+Nine substantial Spanish/voseo guides cover sizing, materials, limited budgets, civil-wedding pairs, engagement versus wedding rings, care, golden wedding anniversaries, styles and gemstones. All ten category destinations have original buying content, FAQs and contextual links. Public pages have distinct metadata, H1s, canonicals and social metadata; the homepage keeps admin SEO overrides. Search/filter pages stay noindex. Impossible category page numbers return 404 when their absence is known. The sitemap excludes every reserved `concepto-*` product URL. No reviews, partnerships, certifications, search volumes or delivery promises were invented.
+
+## Keyword Planner implementation
+
+The approved first wave maps approximately forty meaning groups from the owner's Paraguay/Spanish Keyword Planner export to 24 public destinations: home, four hubs, ten categories and nine guides. Identical-number close variants count once and share a page or section. Exported spelling variants do not become separate URLs. Generic informational and buying intents are connected without targeting competitors or inventing city branches; no city pages were added in this wave. Material and gemstone guidance links to primary GIA references.
+
+One shared product placeholder and two additional gallery placeholders reuse the existing ring assets. Real uploaded photography takes precedence. Placeholder captions identify illustrations, and these assets never become Product or merchant-feed image claims. The product gallery supports native keyboard selection. Current concepts remain unpurchasable, noindex and outside the sitemap/feed.
+
+The local preview uses its existing disposable MariaDB catalogue. Integration checks use separately named disposable MySQL and MariaDB schemas; they never reset that preview or a production database. No new environment variables, tracking integrations or production dependencies are required for this SEO change. Production inventory, supplier conditions and any live catalogue SQL failure still require verified operational data/access.
 
 New public pages and favourites render per request to match the template's nonce-based CSP. The security policy is unchanged. Guides are crawlable server-rendered content; the initial static-parameter approach was removed after a fresh-visit screenshot exposed blocked hydration. Browser checks assert visible headings and articles, including on the small-phone guide capture.
 

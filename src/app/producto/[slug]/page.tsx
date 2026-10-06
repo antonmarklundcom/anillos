@@ -1,6 +1,8 @@
 import { productInquiryLinks } from "@/domain/product-inquiries";
 import { conceptFor, priceUnit, CONCEPT_NOTICE } from "@/config/ring-store";
-import { EditorialImage } from "@/components/editorial-image";
+import { ProductGallery } from "@/components/product-gallery";
+import { PRODUCT_PLACEHOLDERS } from "@/config/product-placeholders";
+import { descriptionSnippet, ringMetadata } from "@/store/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,7 +11,6 @@ import { cache } from "react";
 import { AddToCart } from "@/components/add-to-cart";
 import { FunnelEvent } from "@/components/funnel-event";
 import { ProductDescription } from "@/components/product-description";
-import { ProductImage } from "@/components/product-image";
 import { ProductCard } from "@/components/product-card";
 import { RatingStars, formatRating } from "@/components/rating-stars";
 import { RecentlyViewed } from "@/components/recently-viewed";
@@ -26,7 +27,7 @@ import { OG_IMAGE_SIZE, productImageUrl } from "@/lib/images";
 import { markdownToText } from "@/lib/markdown";
 import { formatGs } from "@/lib/money";
 import { formatDatePY } from "@/lib/py";
-import { jsonLdScript, productJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, jsonLdScript, productJsonLd } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { TESTIDS } from "@/lib/testids";
 
@@ -67,7 +68,7 @@ export async function generateMetadata({
   // asteriscos en el resultado de Google. Es el único lugar de la vidriera que
   // O7 toca — el render de la descripción en la página es de S11.
   const description =
-    markdownToText(product.description).slice(0, 160) ||
+    descriptionSnippet(markdownToText(product.description)) ||
     t("producto.metaDescripcion", {
       nombre: product.name,
       precio: cheapest ? formatGs(cheapest) : "",
@@ -89,15 +90,24 @@ export async function generateMetadata({
     ? new URL(`/producto/${slug}`, origin).toString()
     : undefined;
 
+  const metadata = await ringMetadata(
+    { title: product.name, description },
+    canonical ?? `/producto/${slug}`
+  );
   return {
+    ...metadata,
     title: product.name,
-    ...(conceptFor(slug) ? { robots: { index: false, follow: true } } : {}),
+    ...(slug.startsWith("concepto-")
+      ? { robots: { index: false, follow: true } }
+      : {}),
     description,
     ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {
+      ...metadata.openGraph,
       title: product.name,
       description,
       type: "website",
+      ...(canonical ? { url: canonical } : {}),
       ...(ogImage
         ? {
             images: [
@@ -199,15 +209,29 @@ export default async function ProductPage({ params }: { params: Params }) {
       date: review.createdAt,
     })),
   });
+  const gallery = product.images.slice(0, 5).flatMap((image) => {
+    const src = productImageUrl(image.cloudinaryId, "detail");
+    return src ? [{ src, alt: image.alt ?? product.name }] : [];
+  });
+  const breadcrumbs = breadcrumbJsonLd(origin, [
+    { name: t("nav.inicio"), path: "/" },
+    { name: product.categoryName, path: `/categoria/${product.categorySlug}` },
+    { name: product.name, path: `/producto/${product.slug}` },
+  ]);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript([breadcrumbs, jsonLd]),
+        }}
       />
 
-      <nav className="text-muted-foreground text-sm">
+      <nav
+        aria-label="Ruta de navegación"
+        className="text-muted-foreground text-sm"
+      >
         <Link href="/" className="hover:text-foreground">
           {t("nav.inicio")}
         </Link>
@@ -218,40 +242,15 @@ export default async function ProductPage({ params }: { params: Params }) {
         >
           {product.categoryName}
         </Link>
+        <span aria-hidden> / </span>
+        <span>{product.name}</span>
       </nav>
 
       <div className="mt-4 grid gap-8 lg:grid-cols-2">
         <div>
-          {conceptFor(slug) && !product.images.length ? (
-            <EditorialImage
-              asset={conceptFor(slug)!.image}
-              alt={`${product.name}, imagen ilustrativa`}
-              priority
-            />
-          ) : (
-            <ProductImage
-              image={product.images[0] ?? null}
-              alt={product.name}
-              categorySlug={product.categorySlug}
-              size="detail"
-              priority
-              sizes="(max-width: 1024px) 100vw, 550px"
-            />
-          )}
-          {product.images.length > 1 ? (
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              {product.images.slice(1, 5).map((image) => (
-                <ProductImage
-                  key={image.cloudinaryId}
-                  image={image}
-                  alt={product.name}
-                  categorySlug={product.categorySlug}
-                  size="thumb"
-                  sizes="120px"
-                />
-              ))}
-            </div>
-          ) : null}
+          <ProductGallery
+            images={gallery.length ? gallery : PRODUCT_PLACEHOLDERS}
+          />
         </div>
 
         <div>
@@ -381,6 +380,45 @@ export default async function ProductPage({ params }: { params: Params }) {
           ) : null}
         </div>
       </div>
+
+      <section
+        className="store-prose ring-faq mt-12 border-t pt-6"
+        aria-label="Información para elegir esta pieza"
+      >
+        <h2>Antes de elegir este anillo</h2>
+        <details>
+          <summary>¿Cómo confirmo el talle de esta pieza?</summary>
+          <p>
+            Medí el dedo donde la usarás y compará esa medida con las variantes
+            y la escala del proveedor. Para un par, registrá las dos medidas.{" "}
+            <Link href="/guias/talles">
+              Consultá la guía de medidas de anillos
+            </Link>
+            .
+          </p>
+        </details>
+        <details>
+          <summary>¿Qué tengo que revisar en la ficha?</summary>
+          <p>
+            Composición, recubrimientos, piedra identificada si la tiene, ancho
+            y unidad vendida. Una imagen ilustrativa no acredita esos datos.{" "}
+            <Link href="/guias/materiales">Compará los materiales</Link> antes
+            de decidir.
+          </p>
+        </details>
+        <details>
+          <summary>¿Qué debe incluir una propuesta de compra?</summary>
+          <p>
+            Modelo real, talle, cantidad de piezas, precio final en guaraníes y
+            condiciones de entrega, ajustes y cambios. Confirmá esos datos antes
+            de pagar. Los conceptos no se venden ni se reservan.
+          </p>
+        </details>
+        <p className="mt-5">
+          <Link href="/guias/cuidados">Cómo limpiar y cuidar un anillo</Link> ·{" "}
+          <Link href="/como-funciona">Disponibilidad y entrega</Link>
+        </p>
+      </section>
 
       {reviews.length > 0 ? (
         <section

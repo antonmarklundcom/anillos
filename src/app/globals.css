@@ -188,6 +188,7 @@ body:has(.cinematic-track) .store-header {
 }
 :is(.cinematic-portrait, .cinematic-rings) .cinematic-copy h1 {
   font-size: clamp(42px, 4.8vw, 70px);
+  max-width: min(610px, 44vw);
 }
 :is(.cinematic-portrait, .cinematic-rings) .cinematic-copy > p:not(.eyebrow) {
   max-width: min(380px, 42vw);
@@ -521,6 +522,30 @@ summary:focus-visible {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+.store-prose .content-links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 24px;
+}
+.ring-faq details {
+  border-top: 1px solid var(--border);
+  padding: 18px 0;
+}
+.ring-faq summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.ring-faq details p {
+  margin: 14px 0 0;
+}
+.store-prose #preguntas {
+  scroll-margin-top: 180px;
+}
+.collection-menu nav {
+  max-height: min(65vh, 480px);
+  overflow-y: auto;
+}
 .store-prose table {
   width: 100%;
   margin: 28px 0;
@@ -597,10 +622,16 @@ summary:focus-visible {
     flex-wrap: wrap;
   }
   :is(.cinematic-portrait, .cinematic-rings) .cinematic-stage {
-    min-height: 0;
-    height: calc(100svh - 145px);
+    min-height: calc(100svh - 145px);
+    height: auto;
     display: grid;
-    grid-template-rows: minmax(220px, 1fr) auto;
+    grid-template-rows: clamp(220px, 30svh, 320px) auto;
+  }
+  :is(.cinematic-portrait, .cinematic-rings).motion-ready {
+    height: auto;
+  }
+  :is(.cinematic-portrait, .cinematic-rings).motion-ready .cinematic-stage {
+    position: relative;
   }
   :is(.cinematic-portrait, .cinematic-rings) .cinematic-media {
     position: relative;
@@ -614,11 +645,12 @@ summary:focus-visible {
     grid-row: 2;
     width: 100%;
     margin: 0;
-    padding: 18px 22px 76px;
+    padding: 18px 22px 22px;
     background: #f8f4ec;
   }
   :is(.cinematic-portrait, .cinematic-rings) .cinematic-copy h1 {
     font-size: clamp(38px, 10.5vw, 48px);
+    max-width: none;
     margin: 14px 0;
   }
   :is(.cinematic-portrait, .cinematic-rings) .cinematic-copy > p:not(.eyebrow) {
@@ -643,8 +675,13 @@ summary:focus-visible {
     font-size: 10px;
   }
   :is(.cinematic-portrait, .cinematic-rings) .motion-controls {
-    bottom: 12px;
-    right: 22px;
+    position: relative;
+    grid-row: 3;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    padding: 0 22px 18px;
+    background: #f8f4ec;
     gap: 6px 16px;
   }
   .store-values {

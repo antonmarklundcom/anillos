@@ -12,6 +12,9 @@ import { jsonLdScript, organizationJsonLd } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { GUIDES } from "@/content/guides";
 import { getStoreCategories } from "@/store/catalog";
+import { getStoreSettings } from "@/domain/store-settings";
+import { TIENDA } from "@/config/tienda";
+import { ringMetadata } from "@/store/seo";
 
 export const revalidate = 300;
 type HomePageProps = {
@@ -22,8 +25,14 @@ export async function generateMetadata({
   searchParams,
 }: HomePageProps): Promise<Metadata> {
   const { hero } = await searchParams;
+  const { marca } = await getStoreSettings();
+  const title = marca.seoTitulo ?? TIENDA.titulo;
   return {
-    alternates: { canonical: "/" },
+    ...(await ringMetadata(
+      { title, description: marca.seoDescripcion ?? TIENDA.descripcion },
+      "/"
+    )),
+    title: { absolute: title },
     ...(hero ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -64,7 +73,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <div>
             <p className="eyebrow">Un anillo para cada momento</p>
             <h2>
-              Empezá por lo que <em>va con vos.</em>
+              Anillos por material <em>y significado.</em>
             </h2>
           </div>
           <Link href="/colecciones" className="text-link">
@@ -72,8 +81,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </Link>
         </div>
         <p className="section-intro">
-          El estilo no tiene que empezar por el oro. Descubrí ideas en acero y
-          plata, y encontrá tu camino hacia una elección cómoda y accesible.
+          Compará anillos de acero, plata y oro, o empezá por el momento:
+          promesa, compromiso y boda. Cada colección reúne información para
+          elegir con una medida y un presupuesto claros.
         </p>
         <div className="collection-grid">
           {COLLECTIONS.filter((item) => available.has(item.slug)).map(
@@ -89,7 +99,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 />
                 <div className="collection-title">
                   <span className="eyebrow">
-                    0{index + 1} / {collection.eyebrow}
+                    {String(index + 1).padStart(2, "0")} / {collection.eyebrow}
                   </span>
                   <h3>{collection.name} ↗</h3>
                   <p>
@@ -102,6 +112,44 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             )
           )}
         </div>
+      </section>
+      <section className="store-section store-prose">
+        <h2>Cómo elegir un anillo en Paraguay</h2>
+        <p>
+          Empezá por lo que querés simbolizar y por el dedo donde usarás la
+          pieza. Un{" "}
+          {available.has("promesa") ? (
+            <Link href="/categoria/promesa">anillo de promesa</Link>
+          ) : (
+            "anillo de promesa"
+          )}{" "}
+          puede expresar un acuerdo personal; un{" "}
+          {available.has("compromiso") ? (
+            <Link href="/categoria/compromiso">anillo de compromiso</Link>
+          ) : (
+            "anillo de compromiso"
+          )}{" "}
+          suele acompañar una propuesta, y las{" "}
+          {available.has("alianzas") ? (
+            <Link href="/categoria/alianzas">alianzas de boda</Link>
+          ) : (
+            "alianzas de boda"
+          )}{" "}
+          representan una elección de pareja.
+        </p>
+        <p>
+          Después, compará{" "}
+          <Link href="/guias/materiales">materiales y recubrimientos</Link>,{" "}
+          <Link href="/guias/talles">medidas del dedo</Link> y el contenido de
+          una propuesta. Si buscás dos anillos, confirmá dos talles y si el
+          precio corresponde a una pieza o al par. La fotografía por sí sola no
+          acredita composición ni disponibilidad.
+        </p>
+        <p>
+          Las colecciones y guías ayudan a preparar esa elección. Para comprar
+          necesitás un modelo real con especificaciones, precio final en
+          guaraníes y condiciones de entrega confirmadas.
+        </p>
       </section>
       <section className="story-band">
         <div className="store-section story-layout">

@@ -3,12 +3,15 @@ import Link from "next/link";
 import { COLLECTIONS } from "@/config/ring-store";
 import { EditorialImage } from "@/components/editorial-image";
 import { getStoreCategories } from "@/store/catalog";
-export const metadata: Metadata = {
-  title: "Colecciones de acero, plata y alianzas",
+import { ringMetadata } from "@/store/seo";
+const pageSeo = {
+  title: "Colecciones de anillos en Paraguay",
   description:
-    "Explorá anillos de acero, plata 925, pares de alianzas y compromiso en Paraguay. Diseños conceptuales e información para elegir.",
-  alternates: { canonical: "/colecciones" },
+    "Explorá colecciones de anillos en Paraguay por material y significado: acero, plata, oro, promesa, compromiso y alianzas. Compará antes de elegir.",
 };
+export async function generateMetadata(): Promise<Metadata> {
+  return ringMetadata(pageSeo, "/colecciones");
+}
 export default async function CollectionsPage() {
   const available = new Set(
     (await getStoreCategories()).map((item) => item.slug)
@@ -16,11 +19,11 @@ export default async function CollectionsPage() {
   return (
     <main className="store-section">
       <p className="eyebrow">Tu punto de partida</p>
-      <h1 className="article-heading mt-5">Encontrá tu anillo.</h1>
+      <h1 className="article-heading mt-5">Colecciones de anillos</h1>
       <p className="section-intro">
-        Acero y plata para empezar; alianzas y compromiso para compartir una
-        historia. Todas las imágenes actuales son ilustrativas y los conceptos
-        no están a la venta.
+        Empezá por un material o por el momento que querés celebrar. Encontrá
+        información sobre diseño, talle y presupuesto en cada colección. Las
+        imágenes son ilustrativas y los conceptos no están a la venta.
       </p>
       <div className="collection-grid">
         {COLLECTIONS.filter((item) => available.has(item.slug)).map((item) => (

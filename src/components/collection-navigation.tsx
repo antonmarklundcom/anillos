@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { TESTIDS } from "@/lib/testids";
+import { COLLECTION_NAV_LABELS } from "@/config/ring-display";
 
 const subscribe = (callback: () => void) => {
   const query = window.matchMedia("(max-width: 639px)");
@@ -37,8 +38,11 @@ export function CollectionNavigation({
           prefetch={false}
           data-testid={TESTIDS.headerCategoryLink}
           data-slug={category.slug}
+          aria-label={category.name}
         >
-          {category.name}
+          {mobile
+            ? category.name
+            : (COLLECTION_NAV_LABELS[category.slug] ?? category.name)}
         </Link>
       ))}
       <Link href="/guias" prefetch={false}>

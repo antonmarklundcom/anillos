@@ -7,7 +7,10 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: false,
   reporter: "list",
-  use: { baseURL: "http://127.0.0.1:3041", trace: "retain-on-failure" },
+  use: {
+    baseURL: process.env.STORE_BASE_URL ?? "http://127.0.0.1:3041",
+    trace: "retain-on-failure",
+  },
   projects: [
     {
       name: "desktop",

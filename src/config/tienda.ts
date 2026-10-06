@@ -98,7 +98,7 @@ export const TIENDA: Tienda = {
   nombre: "Anillos.com.py",
   titulo: "Anillos en Paraguay | Acero, plata y alianzas",
   descripcion:
-    "Elegí anillos de acero, plata 925 y alianzas en Paraguay. Compará materiales, aprendé a medir tu talle y explorá ideas para cada presupuesto.",
+    "Explorá anillos de acero, plata 925 y alianzas en Paraguay. Consultá medidas, materiales y disponibilidad antes de elegir.",
   tagline: "Para cada día. Para tu historia.",
   lang: "es-PY",
   ogLocale: "es_PY",

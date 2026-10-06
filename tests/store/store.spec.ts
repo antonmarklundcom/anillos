@@ -11,7 +11,7 @@ test("editorial home, accessible navigation, and paused motion", async ({
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Pequeños detalles"
+    "Anillos en Paraguay"
   );
   await page.keyboard.press("Tab");
   await expect(
@@ -47,6 +47,9 @@ test("editorial home, accessible navigation, and paused motion", async ({
   }
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(300);
+  await page.screenshot({
+    path: path.join(shotDir, `${info.project.name}-hero.png`),
+  });
   await page.screenshot({
     path: path.join(shotDir, `${info.project.name}-home.png`),
     fullPage: true,
