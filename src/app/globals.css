@@ -1,0 +1,490 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Kit de piel (plan-crecimiento §6.2): `:root`/`.dark` viven en
+ * `src/styles/temas/<nombre>.css`, no acá. Elegir tema = cambiar esta línea
+ * (o correr `pnpm nueva-tienda --tema <nombre>`, que la reescribe sola).
+ * Los tres temas del template: `neutro`, `calido`, `oscuro-vivo` — ver
+ * NEW-STORE.md §5 para cómo crear un cuarto.
+ */
+@import "../styles/temas/calido.css";
+
+html {
+  --font-geist-sans: "Segoe UI", Arial, sans-serif;
+  --font-geist-mono: Consolas, monospace;
+}
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 20px;
+  z-index: 100;
+  padding: 12px 20px;
+  background: var(--foreground);
+  color: var(--background);
+}
+.skip-link:focus {
+  top: 12px;
+}
+.store-section {
+  max-width: 1240px;
+  margin: auto;
+  padding: 76px 28px;
+}
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.19em;
+  color: var(--muted-foreground);
+}
+.store-section h2,
+.cinematic-copy h1,
+.article-heading {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+.store-section h2 {
+  font-size: clamp(32px, 3.5vw, 50px);
+  margin-top: 15px;
+}
+em {
+  font-weight: 400;
+}
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+.text-link {
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.section-intro {
+  max-width: 580px;
+  color: var(--muted-foreground);
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 24px 0 32px;
+}
+.store-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 15px 23px;
+  background: #343b33;
+  color: #fbf9f5;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  border: 1px solid #343b33;
+  transition: background 0.2s;
+}
+.store-button:hover {
+  background: #4b5346;
+}
+.cinematic-track {
+  position: relative;
+  height: 180svh;
+  min-height: 550px;
+}
+/* The home gives the pinned cinematic stage the full viewport; catalogue nav stays sticky. */
+body:has(.cinematic-track) .store-header {
+  position: relative;
+}
+.cinematic-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 550px;
+  overflow: hidden;
+}
+.cinematic-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cinematic-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(248, 244, 236, 0.96),
+    rgba(248, 244, 236, 0.85) 24%,
+    rgba(248, 244, 236, 0.06) 70%
+  );
+}
+.cinematic-copy {
+  position: relative;
+  max-width: 1240px;
+  margin: auto;
+  padding: clamp(65px, 10vh, 140px) 28px 60px;
+}
+.cinematic-copy h1 {
+  font-size: clamp(42px, 5.2vw, 76px);
+  margin: 22px 0;
+  color: #30342e;
+}
+.cinematic-copy > p:not(.eyebrow) {
+  max-width: 420px;
+  font-size: 15px;
+  line-height: 1.85;
+  color: #52564e;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 29px;
+}
+.hero-note {
+  display: block;
+  font-size: 11px;
+  color: #52564e;
+  margin-top: 22px;
+}
+.motion-controls {
+  position: absolute;
+  bottom: 20px;
+  left: max(28px, calc((100vw - 1184px) / 2));
+  right: 28px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  font-size: 10px;
+  color: #343b33;
+}
+.motion-controls a {
+  margin-left: auto;
+}
+.motion-controls button {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.motion-controls a,
+.motion-controls button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.store-values {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 70px;
+  padding: 22px;
+  border-block: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.editorial-image {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--muted);
+}
+.editorial-image img {
+  transition: transform 0.6s ease;
+}
+.collection-card:hover img {
+  transform: scale(1.035);
+}
+.editorial-image figcaption {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  font-size: 9px;
+  padding: 4px 7px;
+  background: rgba(248, 244, 236, 0.9);
+  color: #4b5148;
+}
+.collection-title {
+  padding: 20px 0;
+}
+.collection-title h3 {
+  font-size: 22px;
+  font-family: Georgia, serif;
+  margin: 10px 0;
+}
+.collection-title p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.story-band {
+  background: #eae8df;
+}
+.story-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 80px;
+}
+.story-layout > div > p:not(.eyebrow) {
+  color: var(--muted-foreground);
+  font-size: 15px;
+  line-height: 1.85;
+  margin: 24px 0;
+}
+.story-layout .editorial-image {
+  aspect-ratio: 4 / 5;
+}
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 40px;
+}
+.guide-card {
+  border-top: 1px solid var(--border);
+  padding: 25px 0;
+}
+.guide-card h3 {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  line-height: 1.2;
+  margin: 20px 0;
+}
+.guide-card p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+  margin-bottom: 24px;
+}
+.launch-note {
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.launch-note p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 24px auto;
+  font-size: 14px;
+  color: var(--muted-foreground);
+  line-height: 1.8;
+}
+.article-heading {
+  font-size: clamp(36px, 4.5vw, 60px);
+}
+.store-prose {
+  max-width: 760px;
+  font-size: 16px;
+  line-height: 1.85;
+}
+.store-prose h2 {
+  font-size: 28px;
+  margin-top: 42px;
+  margin-bottom: 18px;
+}
+.store-prose p {
+  margin-bottom: 18px;
+  color: var(--muted-foreground);
+}
+.store-prose ul {
+  list-style: disc;
+  padding-left: 24px;
+}
+.store-prose a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.store-prose table {
+  width: 100%;
+  margin: 28px 0;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.store-prose th,
+.store-prose td {
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  padding: 10px;
+}
+@media (max-width: 767px) {
+  .store-section {
+    padding: 48px 20px;
+  }
+  .section-heading {
+    display: block;
+  }
+  .section-heading > a {
+    display: inline-block;
+    margin-top: 22px;
+  }
+  .cinematic-stage {
+    min-height: 620px;
+    height: 100svh;
+  }
+  .cinematic-track {
+    min-height: 620px;
+    height: 140svh;
+  }
+  .cinematic-copy {
+    padding: 68px 22px 80px;
+  }
+  .cinematic-shade {
+    background: linear-gradient(
+      90deg,
+      rgba(248, 244, 236, 0.95),
+      rgba(248, 244, 236, 0.7)
+    );
+  }
+  .hero-actions {
+    align-items: start;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .motion-controls {
+    left: 22px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .store-values {
+    gap: 12px;
+    flex-direction: column;
+    font-size: 9px;
+    padding: 18px;
+  }
+  .collection-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .collection-title h3 {
+    font-size: 19px;
+  }
+  .collection-title .eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+  .story-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .guide-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-track,
+  .cinematic-stage {
+    height: 82svh;
+  }
+  .editorial-image img {
+    transition: none;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* == S11 == */
+/*
+ * Prosa de `product-description.tsx` (descripción de producto y de
+ * categoría, plan-operacion §6.3). La salida de `renderMarkdown` no lleva
+ * `class` ni `style` a propósito (ver el comentario de `src/lib/markdown.ts`):
+ * la piel la estila desde acá, y cada tienda puede rediseñar este bloque sin
+ * tocar el parser. El subconjunto de markdown es chico (párrafos, negrita,
+ * cursiva, listas, links) y estos son sus únicos selectores.
+ */
+.prose {
+  @apply text-muted-foreground text-sm leading-relaxed;
+}
+.prose p + p {
+  @apply mt-3;
+}
+.prose ul {
+  @apply mt-3 list-disc space-y-1 pl-5;
+}
+.prose strong {
+  @apply text-foreground font-medium;
+}
+.prose a {
+  @apply text-foreground underline underline-offset-2;
+}
+
+/*
+ * Barra de compra móvil de la ficha (`src/components/sticky-buy-bar.tsx`):
+ * mientras está a la vista marca `<body data-barra-compra>`, y el botón
+ * flotante de WhatsApp sube para no quedar tapado. Sólo en mobile, que es
+ * donde existe la barra.
+ */
+@media (width < 48rem) {
+  body[data-barra-compra] [data-whatsapp-fab] {
+    bottom: 5.5rem;
+  }
+}
+
+/* == S9 ==
+   CSS de impresión del remito (plan-operacion §6.1). Nada inline: el CSP de
+   `src/proxy.ts` no permite `'unsafe-inline'` en `style-src` para las rutas
+   con nonce, y `/admin` es justamente una de ésas.
+
+   `header` es el único <header> que existe bajo `/admin` — el del layout del
+   panel (`src/app/admin/(panel)/layout.tsx`) — así que ocultarlo acá alcanza
+   para sacar el nav de cualquier página del panel que se imprima, sin tocar
+   ese layout (fuera de los Owns de esta fase). `.s9-no-print` es para lo que
+   la fase sí dibuja: el botón "Imprimir" y el link "Volver al pedido" del
+   remito. */
+@media print {
+  header {
+    display: none !important;
+  }
+  .s9-no-print {
+    display: none !important;
+  }
+  .s9-print-page {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
