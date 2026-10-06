@@ -2366,33 +2366,52 @@ export const esPY = {
   "panel.login.configurar": "Configurar la cuenta del dueño",
   "setup.entrar": "Entrar al panel",
   "setup.passwordAyuda": "Al menos {minimo} caracteres, con letras y números.",
+  "setup.mostrarSecreto": "Mostrar secreto",
+  "setup.ocultarSecreto": "Ocultar secreto",
+  "setup.catalogoAyuda":
+    "Este paso crea tu acceso al panel. El catálogo de anillos se prepara después, con productos reales y datos confirmados. No se cargan productos de ejemplo.",
+  "setup.avanzado": "Recuperar o actualizar una cuenta existente",
+  "setup.forceAyuda":
+    "Usá esta opción sólo si la tienda ya fue inicializada. Si el email ya existe, se reemplaza su contraseña, se habilita su acceso como dueño y se cierran sus sesiones anteriores.",
+  "setup.yaTengoCuenta": "Ya tengo una cuenta: entrar al panel",
+  "setup.listoAyuda":
+    "Tu acceso al panel está listo. La configuración de productos, pagos y entregas se hace desde allí; no hace falta completar todo para empezar a preparar el catálogo.",
+  "setup.loginManual":
+    "La cuenta quedó guardada, pero el ingreso automático no se completó. Entrá con el email y la contraseña que elegiste; no repitas la creación de la cuenta.",
+  "setup.entrando": "Estamos abriendo tu panel y la guía de primeros pasos…",
+  "setup.detalles": "Ver detalles técnicos",
+  "setup.detallesAyuda":
+    "Este informe incluye funciones opcionales y revisa algunas variables del servidor. No significa que falló la creación de tu cuenta ni reemplaza los ajustes guardados en el panel.",
+  "setup.error.cuentaIncompleta":
+    "Completá el email y la contraseña de tu cuenta.",
+  "setup.error.cuentaSinConfirmar":
+    "El sistema respondió, pero no confirmó la creación de la cuenta. Entrá al panel si ya tenés acceso o revisá el resultado antes de repetir el setup.",
+  "panel.nav.guia": "Guía",
   "setup.meta": "Configuración inicial",
   "setup.titulo": "Configuración inicial de la tienda",
   "setup.bajada":
-    "Crea las tablas de la base, la cuenta del dueño y, si querés, el catálogo de ejemplo. Es lo mismo que el curl de DEPLOY.md §4, sin terminal.",
+    "Creá tu cuenta de dueño para administrar productos, pedidos y ajustes. Después te llevamos al panel con una guía para empezar.",
   "setup.despues":
-    "Terminado el setup, borrá SETUP_SECRET del hPanel y apretá Redeploy: esta página deja de existir. Después se entra por /admin.",
+    "Después de comprobar que podés entrar al panel, eliminá SETUP_SECRET de las variables del hPanel y hacé Redeploy. Así se cierra esta página de configuración. Tu acceso habitual seguirá siendo /admin/login.",
   "setup.secreto": "SETUP_SECRET",
   "setup.secretoAyuda":
-    "El valor que cargaste en el hPanel (lo imprime pnpm nueva-tienda). No se guarda en ningún lado.",
+    "Pegá el secreto de configuración que cargaste en el hPanel. Sólo autoriza este paso; elegí una contraseña distinta para entrar al panel.",
   "setup.duenio": "Cuenta del dueño",
   "setup.email": "Email",
   "setup.password": "Contraseña",
   "setup.nombre": "Nombre (opcional)",
   "setup.duenioAyuda":
-    "Vacío = no se crea ni se cambia ninguna cuenta (sólo se aplican las migraciones).",
-  "setup.seed":
-    "Cargar el catálogo de ejemplo (sólo para probar; después se reemplaza por el real)",
-  "setup.force": "La tienda ya estaba inicializada y quiero repetirlo igual",
-  "setup.correr": "Inicializar",
-  "setup.corriendo": "Inicializando…",
-  "setup.listo": "Listo. La tienda quedó inicializada.",
-  "setup.preflight": "Lo que falta para cobrar de verdad:",
+    "Usá tu email y elegí una contraseña propia. Este acceso es para administrar la tienda; es independiente de las cuentas de clientes.",
+  "setup.force":
+    "Confirmo que quiero crear o actualizar este acceso en una tienda ya inicializada",
+  "setup.correr": "Crear mi cuenta y entrar al panel",
+  "setup.corriendo": "Preparando tu acceso…",
+  "setup.listo": "Tu acceso al panel está listo",
   "setup.error.secreto": "El SETUP_SECRET no coincide.",
   "setup.error.limite": "Demasiados intentos. Esperá unos minutos.",
   "setup.error.https": "Hace falta entrar por https://.",
   "setup.error.yaInicializada":
-    'La tienda ya estaba inicializada: las migraciones corrieron, pero no se tocaron datos. Marcá "quiero repetirlo igual" si de verdad hace falta.',
+    "Esta tienda ya fue inicializada. Tu cuenta no se creó ni se cambió en este intento. Si ya tenés acceso, entrá al panel. Para una recuperación intencional, abrí la opción de recuperar o actualizar la cuenta.",
   "setup.error.sinSecreto": "SETUP_SECRET no está configurado en el hosting.",
   "setup.error.generico": "No se pudo inicializar. Mirá el log del hPanel.",
 } as const satisfies Record<string, string>;

@@ -15,7 +15,7 @@ export async function SiteFooter() {
     getStoreCategories(),
   ]);
   return (
-    <footer className="border-border border-t bg-[#eae8df]">
+    <footer className="store-footer border-border border-t bg-[#eae8df]">
       <div className="mx-auto grid max-w-[1240px] gap-10 px-6 py-14 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="font-[Georgia] text-2xl tracking-wide">

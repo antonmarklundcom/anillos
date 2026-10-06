@@ -10,8 +10,13 @@ import { cn } from "@/lib/utils";
 
 export function PasswordInput({
   className,
+  showLabel,
+  hideLabel,
   ...props
-}: Omit<ComponentProps<"input">, "type" | "ref">) {
+}: Omit<ComponentProps<"input">, "type" | "ref"> & {
+  showLabel?: string;
+  hideLabel?: string;
+}) {
   const [visible, setVisible] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -42,7 +47,11 @@ export function PasswordInput({
         variant="ghost"
         size="icon"
         className="absolute inset-y-0 right-0 h-9 w-10"
-        aria-label={t(visible ? "password.ocultar" : "password.mostrar")}
+        aria-label={
+          visible
+            ? (hideLabel ?? t("password.ocultar"))
+            : (showLabel ?? t("password.mostrar"))
+        }
         aria-controls={props.id}
         aria-pressed={visible}
         disabled={props.disabled}

@@ -43,7 +43,7 @@ export default async function PanelLayout({
     : 0;
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div data-admin-panel="" className="flex min-h-full flex-col">
       <header className="border-border bg-background sticky top-0 z-10 border-b">
         <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3">
           <Link
@@ -115,9 +115,12 @@ export default async function PanelLayout({
               </NavLink>
             ) : null}
             {can(actor.role, "usuarios") ? (
-              <NavLink href="/admin/usuarios">
-                {t("panel.nav.usuarios")}
-              </NavLink>
+              <>
+                <NavLink href="/admin/usuarios">
+                  {t("panel.nav.usuarios")}
+                </NavLink>
+                <NavLink href="/admin/guia">{t("panel.nav.guia")}</NavLink>
+              </>
             ) : null}
           </nav>
           <LogoutButton />

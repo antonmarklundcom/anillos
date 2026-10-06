@@ -12,12 +12,18 @@ import { UsersManager } from "@/components/admin/users-manager";
 import { CustomerLoginForm } from "@/components/cuenta/login-form";
 import { CustomerPasswordForm } from "@/components/cuenta/password-form";
 import { CustomerRegisterForm } from "@/components/cuenta/register-form";
-import { SetupForm } from "@/components/setup-form";
+import {
+  SetupForm,
+  SETUP_LOGIN_PATH,
+  SETUP_WELCOME_PATH,
+} from "@/components/setup-form";
 import { NewPasswordFields } from "@/components/ui/new-password-fields";
 import { PasswordInput } from "@/components/ui/password-input";
 
 const actions = vi.hoisted(() => ({
   loginAdmin: vi.fn(),
+  loginAdminAfterSetup: vi.fn(),
+  replace: vi.fn(),
   crearUsuario: vi.fn(),
   resetearPassword: vi.fn(),
   registrarCliente: vi.fn(),
@@ -25,7 +31,10 @@ const actions = vi.hoisted(() => ({
   entrarCliente: vi.fn(),
 }));
 
-vi.mock("@/app/actions/admin-auth", () => ({ loginAdmin: actions.loginAdmin }));
+vi.mock("@/app/actions/admin-auth", () => ({
+  loginAdmin: actions.loginAdmin,
+  loginAdminAfterSetup: actions.loginAdminAfterSetup,
+}));
 vi.mock("@/app/actions/admin-users", () => ({
   crearUsuario: actions.crearUsuario,
   resetearPassword: actions.resetearPassword,
@@ -38,7 +47,11 @@ vi.mock("@/app/actions/cuenta", () => ({
   entrarCliente: actions.entrarCliente,
 }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({
+    refresh: vi.fn(),
+    push: vi.fn(),
+    replace: actions.replace,
+  }),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn() } }));
 
@@ -49,6 +62,7 @@ const ERROR = "Las contraseñas no coinciden. Volvé a escribirlas.";
 beforeEach(() => {
   vi.clearAllMocks();
   actions.loginAdmin.mockResolvedValue({ ok: false, error: "Login de prueba" });
+  actions.loginAdminAfterSetup.mockResolvedValue({ ok: true });
   for (const action of [
     actions.crearUsuario,
     actions.resetearPassword,
@@ -125,35 +139,49 @@ describe("password fields", () => {
 });
 
 describe("setup", () => {
-  it("blocks mismatches and sends only the chosen password; clears secrets and links to login after success", async () => {
-    const fetch = vi
-      .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({ pasos: { duenio: "creado" } }),
-      });
-    vi.stubGlobal("fetch", fetch);
-    render(<SetupForm />);
-    fireEvent.input(screen.getByLabelText("SETUP_SECRET"), {
-      target: { value: "setup-secret-for-ui-test" },
-    });
+  function fillSetup(confirmation = PASSWORD) {
+    const secret = screen.getByLabelText("SETUP_SECRET") as HTMLInputElement;
+    const password = screen.getByLabelText("Contraseña") as HTMLInputElement;
+    const repeated = screen.getByLabelText(
+      "Repetí la contraseña"
+    ) as HTMLInputElement;
+    fireEvent.input(secret, { target: { value: "setup-secret-for-ui-test" } });
     fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "owner@example.test" },
     });
-    fillPasswords("Contraseña", MISMATCH);
-    const form = screen.getByLabelText("Contraseña").closest("form")!;
-    fireEvent.submit(form);
+    fillPasswords("Contraseña", confirmation);
+    return { form: password.form!, secret, password, repeated };
+  }
+
+  function mockSetup(
+    body: unknown = { ok: true, pasos: { duenio: "creado" } },
+    ok = true
+  ) {
+    const fetch = vi.fn().mockResolvedValue({ ok, json: async () => body });
+    vi.stubGlobal("fetch", fetch);
+    return fetch;
+  }
+
+  it("blocks mismatches and clears secrets before normal authentication, then opens the welcome page", async () => {
+    const fetch = mockSetup();
+    render(<SetupForm />);
+    const fields = fillSetup(MISMATCH);
+    fireEvent.submit(fields.form);
     expect(fetch).not.toHaveBeenCalled();
     expect(screen.getByRole("status")).toHaveTextContent(ERROR);
     fillPasswords("Contraseña");
     fireEvent.click(
       screen.getAllByRole("button", { name: "Mostrar contraseña" })[0]!
     );
-    fireEvent.submit(form);
+    actions.loginAdminAfterSetup.mockImplementation(async () => {
+      expect(fields.secret.value).toBe("");
+      expect(fields.password.value).toBe("");
+      expect(fields.repeated.value).toBe("");
+      return { ok: true };
+    });
+    fireEvent.submit(fields.form);
     await waitFor(() =>
-      expect(
-        screen.getByRole("link", { name: "Entrar al panel" })
-      ).toHaveAttribute("href", "/admin/login")
+      expect(actions.replace).toHaveBeenCalledWith(SETUP_WELCOME_PATH)
     );
     expect(fetch).toHaveBeenCalledTimes(1);
     const [url, init] = fetch.mock.calls[0]!;
@@ -164,30 +192,136 @@ describe("setup", () => {
       force: false,
       owner: { email: "owner@example.test", password: PASSWORD },
     });
-    expect(screen.getByLabelText("SETUP_SECRET")).toHaveValue("");
-    expect(screen.getByLabelText("Contraseña")).toHaveValue("");
-    expect(screen.getByLabelText("Contraseña")).toHaveAttribute(
-      "type",
-      "password"
-    );
-    expect(screen.getByLabelText("Repetí la contraseña")).toHaveValue("");
+    const credentials = actions.loginAdminAfterSetup.mock
+      .calls[0]![0] as FormData;
+    expect(Array.from(credentials.entries())).toEqual([
+      ["email", "owner@example.test"],
+      ["password", PASSWORD],
+    ]);
+    expect(screen.queryByLabelText("SETUP_SECRET")).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Repetí la contraseña")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Cargar el catálogo de ejemplo/)
+    ).not.toBeInTheDocument();
   });
 
-  it("still allows migrations without requesting an owner", async () => {
-    const fetch = vi
-      .fn()
-      .mockResolvedValue({ ok: true, json: async () => ({}) });
-    vi.stubGlobal("fetch", fetch);
+  it("requires owner details rather than silently doing migrations only", () => {
+    const fetch = mockSetup();
     render(<SetupForm />);
-    expect(screen.getByLabelText("Contraseña")).not.toBeRequired();
-    expect(screen.getByLabelText("Repetí la contraseña")).not.toBeRequired();
+    for (const label of ["Email", "Contraseña", "Repetí la contraseña"])
+      expect(screen.getByLabelText(label)).toBeRequired();
     fireEvent.submit(screen.getByLabelText("SETUP_SECRET").closest("form")!);
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
-    expect(JSON.parse(fetch.mock.calls[0]![1].body)).toEqual({
+    expect(fetch).not.toHaveBeenCalled();
+    expect(actions.loginAdminAfterSetup).not.toHaveBeenCalled();
+  });
+
+  it("can show and hide the setup key separately without submitting", () => {
+    const fetch = mockSetup();
+    render(<SetupForm />);
+    const { secret } = fillSetup();
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar secreto" }));
+    expect(secret.type).toBe("text");
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar secreto" }));
+    expect(secret.type).toBe("password");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("authenticates an intentionally updated owner and never requests demo seeding", async () => {
+    const fetch = mockSetup({ ok: true, pasos: { duenio: "actualizado" } });
+    render(<SetupForm />);
+    const { form } = fillSetup();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.submit(form);
+    await waitFor(() =>
+      expect(actions.replace).toHaveBeenCalledWith(SETUP_WELCOME_PATH)
+    );
+    expect(JSON.parse(fetch.mock.calls[0]![1].body)).toMatchObject({
       seed: false,
-      force: false,
+      force: true,
     });
   });
+
+  it.each([
+    { ok: false, body: { error: "unauthorized" } },
+    { ok: false, body: { ok: true, pasos: { duenio: "creado" } } },
+    {
+      ok: true,
+      body: {
+        ok: true,
+        pasos: { migraciones: "aplicadas", duenio: "no pedido" },
+      },
+    },
+    { ok: true, body: { pasos: { duenio: "creado" } } },
+    { ok: true, body: {} },
+  ])(
+    "never signs in after a rejected or unconfirmed setup ($body)",
+    async ({ ok, body }) => {
+      const fetch = mockSetup(body, ok);
+      render(<SetupForm />);
+      fireEvent.submit(fillSetup().form);
+      await waitFor(() =>
+        expect(screen.getByRole("status")).toBeInTheDocument()
+      );
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(actions.loginAdminAfterSetup).not.toHaveBeenCalled();
+      expect(actions.replace).not.toHaveBeenCalled();
+      expect(screen.getByLabelText("SETUP_SECRET")).toBeInTheDocument();
+    }
+  );
+
+  it.each(["rejected", "transport"])(
+    "preserves account success and offers login if sign-in has a %s failure",
+    async (failure) => {
+      mockSetup({
+        ok: true,
+        pasos: { duenio: "creado" },
+        preflight: {
+          checks: [
+            {
+              id: "pagopar",
+              severity: "advierte",
+              title: "Pagopar",
+              detail: "Servicio opcional",
+            },
+          ],
+          blocking: 0,
+          warnings: 1,
+        },
+      });
+      if (failure === "transport")
+        actions.loginAdminAfterSetup.mockRejectedValueOnce(
+          new Error("offline")
+        );
+      else
+        actions.loginAdminAfterSetup.mockResolvedValueOnce({
+          ok: false,
+          error: "Login no disponible",
+        });
+      render(<SetupForm />);
+      fireEvent.submit(fillSetup().form);
+      await waitFor(() =>
+        expect(screen.getByRole("status")).toHaveTextContent(
+          /ingreso automático no se completó/
+        )
+      );
+      expect(
+        screen.getByRole("heading", { name: "Tu acceso al panel está listo" })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: "Entrar al panel" })
+      ).toHaveAttribute("href", SETUP_LOGIN_PATH);
+      expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
+      expect(actions.replace).not.toHaveBeenCalled();
+      const details = screen
+        .getByText("Ver detalles técnicos")
+        .closest("details")!;
+      expect(details).not.toHaveAttribute("open");
+      expect(SETUP_LOGIN_PATH).not.toContain("owner@example.test");
+      expect(SETUP_LOGIN_PATH).not.toContain(PASSWORD);
+    }
+  );
 });
 
 describe("admin accounts", () => {

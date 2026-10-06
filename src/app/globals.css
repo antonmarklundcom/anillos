@@ -28,6 +28,13 @@ html {
 .skip-link:focus {
   top: 12px;
 }
+/* The authenticated panel owns its navigation. The sticky storefront header
+   otherwise covers the panel's menu and setup success message on desktop. */
+body:has([data-admin-panel]) .store-header,
+body:has([data-admin-panel]) .store-footer,
+body:has([data-admin-panel]) [data-whatsapp-fab] {
+  display: none;
+}
 .store-section {
   max-width: 1240px;
   margin: auto;
