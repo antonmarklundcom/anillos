@@ -11,13 +11,16 @@ import { storeName } from "@/store/identity";
 import { jsonLdScript, organizationJsonLd } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { GUIDES } from "@/content/guides";
+import { getStoreCategories } from "@/store/catalog";
 
 export const revalidate = 300;
 type HomePageProps = {
   searchParams: Promise<{ hero?: string }>;
 };
 
-export async function generateMetadata({ searchParams }: HomePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: HomePageProps): Promise<Metadata> {
   const { hero } = await searchParams;
   return {
     alternates: { canonical: "/" },
@@ -26,12 +29,15 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
 }
 export default async function HomePage({ searchParams }: HomePageProps) {
   const { hero } = await searchParams;
-  const heroVariant = hero === "rings" || hero === "portrait" ? hero : HOME_HERO_VARIANT;
-  const [products, contact, name] = await Promise.all([
+  const heroVariant =
+    hero === "rings" || hero === "portrait" ? hero : HOME_HERO_VARIANT;
+  const [products, contact, name, categories] = await Promise.all([
     getCatalog({ limit: 8 }).catch(() => []),
     contactoPublico(),
     storeName(),
+    getStoreCategories(),
   ]);
+  const available = new Set(categories.map((item) => item.slug));
   const organization = organizationJsonLd({
     origin: siteOrigin(),
     name,
@@ -70,29 +76,31 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           plata, y encontrá tu camino hacia una elección cómoda y accesible.
         </p>
         <div className="collection-grid">
-          {COLLECTIONS.slice(0, 4).map((collection, index) => (
-            <Link
-              key={collection.slug}
-              href={`/categoria/${collection.slug}`}
-              className="collection-card"
-            >
-              <EditorialImage
-                asset={collection.image}
-                alt={`Concepto para ${collection.name.toLowerCase()}`}
-              />
-              <div className="collection-title">
-                <span className="eyebrow">
-                  0{index + 1} / {collection.eyebrow}
-                </span>
-                <h3>{collection.name} ↗</h3>
-                <p>
-                  {collection.unit === "pair"
-                    ? "Ideas para un par de dos anillos"
-                    : "Ideas para una pieza individual"}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {COLLECTIONS.filter((item) => available.has(item.slug))
+            .slice(0, 4)
+            .map((collection, index) => (
+              <Link
+                key={collection.slug}
+                href={`/categoria/${collection.slug}`}
+                className="collection-card"
+              >
+                <EditorialImage
+                  asset={collection.image}
+                  alt={`Concepto para ${collection.name.toLowerCase()}`}
+                />
+                <div className="collection-title">
+                  <span className="eyebrow">
+                    0{index + 1} / {collection.eyebrow}
+                  </span>
+                  <h3>{collection.name} ↗</h3>
+                  <p>
+                    {collection.unit === "pair"
+                      ? "Ideas para un par de dos anillos"
+                      : "Ideas para una pieza individual"}
+                  </p>
+                </div>
+              </Link>
+            ))}
         </div>
       </section>
       <section className="story-band">
@@ -160,8 +168,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </Link>
         </div>
         <EditorialImage
-          asset="silver"
-          alt="Concepto de un anillo plateado de forma orgánica sobre piedra clara"
+          asset="ring-on-hand-mobile"
+          alt="Una mujer paraguaya adulta con un anillo plateado en el dedo"
         />
       </section>
       <section className="store-section">

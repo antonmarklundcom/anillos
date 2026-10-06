@@ -104,5 +104,37 @@
     "height": 187,
     "bytes": 30014,
     "sha256": "43baf43f373263f89e9d9c25a1a5622e9f42d8eacda8067228d2fd4fadf436ac"
+  },
+  {
+    "asset": "ring-on-hand-desktop",
+    "file": "public/media/ring-on-hand-desktop.webp",
+    "width": 1086,
+    "height": 1448,
+    "bytes": 145930,
+    "sha256": "3c3d78968b9a1a3cfaca296d995afac7d52741d9718dd2a8c155f0fa920fa721"
+  },
+  {
+    "asset": "ring-on-hand-mobile",
+    "file": "public/media/ring-on-hand-mobile.webp",
+    "width": 1080,
+    "height": 1440,
+    "bytes": 143274,
+    "sha256": "45972c292dede9c1efa4ad49fb369093f1a93bee4271dde77643df8a8b437b0c"
+  },
+  {
+    "asset": "ring-detail-desktop",
+    "file": "public/media/ring-detail-desktop.webp",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 80608,
+    "sha256": "5ac56451bd4ace9b54132f5b09942f847ff31b188475de32290368ad5a641e94"
+  },
+  {
+    "asset": "ring-detail-mobile",
+    "file": "public/media/ring-detail-mobile.webp",
+    "width": 800,
+    "height": 800,
+    "bytes": 44834,
+    "sha256": "96c815d903a08ddb0a047ce0489be4845392e593a65cd4c6860de3057fab4ec4"
   }
 ]

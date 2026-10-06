@@ -1,5 +1,7 @@
 # Homepage review — 2026-10-06
 
+This records the earlier portrait-video implementation. The current ring header and category/search corrections supersede its hero and route observations; see [RING-SCROLL-AUDIT.md](RING-SCROLL-AUDIT.md).
+
 The live temporary site was inspected at `https://mediumvioletred-pelican-869652.hostingersite.com/`, alongside the owner's mobile screenshot. Its header and footer displayed the temporary hostname as the wordmark. The long header wrapped, and image captions distracted from the editorial photography. The existing ring-only scroll sequence and catalogue links worked.
 
 The storefront now uses a compact generated wordmark, with the short public brand derived from the centralized store identity. A Hostinger preview hostname falls back to the store brand; deliberately configured custom names and uploaded admin logos still take precedence. This presentation adapter does not rewrite database identity or change shared admin machinery.

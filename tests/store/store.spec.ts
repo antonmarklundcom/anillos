@@ -26,15 +26,14 @@ test("editorial home, accessible navigation, and paused motion", async ({
     page.getByRole("button", { name: "Pausar movimiento" })
   ).toBeVisible();
   await page.getByRole("button", { name: "Pausar movimiento" }).click();
-  const frame = await page
-    .locator("canvas")
-    .evaluate((node) => (node as HTMLCanvasElement).toDataURL());
+  const photo = page.locator(".cinematic-media img");
+  const frame = await photo.evaluate(
+    (node) => (node as HTMLElement).style.transform
+  );
   await page.mouse.wheel(0, 350);
   await page.waitForTimeout(150);
   expect(
-    await page
-      .locator("canvas")
-      .evaluate((node) => (node as HTMLCanvasElement).toDataURL())
+    await photo.evaluate((node) => (node as HTMLElement).style.transform)
   ).toBe(frame);
   await page.goto("/");
   await page.waitForTimeout(1200);
@@ -66,7 +65,9 @@ test("reduced motion keeps the static poster without sequence downloads", async 
   await page.emulateMedia({ reducedMotion: "reduce" });
   const frames: string[] = [];
   page.on("request", (request) => {
-    if (/^\/media\/(?:portrait-)?frames\//.test(new URL(request.url()).pathname))
+    if (
+      /^\/media\/(?:portrait-)?frames\//.test(new URL(request.url()).pathname)
+    )
       frames.push(request.url());
   });
   await page.goto("/");
@@ -178,7 +179,9 @@ test.describe("server-rendered storefront", () => {
       page.getByRole("link", { name: "Explorá opciones accesibles" })
     ).toBeVisible();
     await expect(page.locator(".cinematic-media img")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Pausar movimiento" })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Pausar movimiento" })
+    ).toHaveCount(0);
     for (const route of [
       "/producto/does-not-exist-home-review",
       "/categoria/does-not-exist-home-review",

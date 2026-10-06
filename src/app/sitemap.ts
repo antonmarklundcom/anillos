@@ -3,6 +3,7 @@ import { conceptFor } from "@/config/ring-store";
 import { GUIDES } from "@/content/guides";
 
 import { getSitemapEntries } from "@/db/queries";
+import { getStoreCategories } from "@/store/catalog";
 import { paginasActivas } from "@/lib/paginas";
 import { buildSitemap } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
@@ -34,17 +35,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "como-funciona",
     ...GUIDES.map((guide) => `guias/${guide.slug}`),
   ];
+  const categories = await getStoreCategories();
 
   try {
     const entries = await getSitemapEntries();
     return buildSitemap(origin, {
       ...entries,
+      categories,
       products: entries.products.filter((product) => !conceptFor(product.slug)),
       pages,
     });
   } catch {
     // La base caída no puede tumbar el sitio: al menos la home se publica, y
     // el crawler vuelve en el próximo revalidate.
-    return buildSitemap(origin, { categories: [], products: [], pages });
+    return buildSitemap(origin, { categories, products: [], pages });
   }
 }

@@ -2,7 +2,7 @@
 
 Vidriera paraguaya de anillos, con español/voseo, guaraníes enteros y una experiencia editorial pensada para el celular. Acero y plata tienen prioridad; las alianzas se distinguen como pares de dos anillos.
 
-**Estado:** implementación para revisión. Sin inventario propio, acuerdos de proveedores, precios mayoristas, plazos ni cobros habilitados. No está desplegada. Las fotografías y el video iniciales son ilustraciones generadas con IA; los productos conceptuales sólo se siembran en una base local descartable, nunca en producción.
+**Estado:** los cambios de esta rama están para revisión; la web pública conserva su versión anterior hasta un despliegue autorizado. Sin inventario propio, acuerdos de proveedores, precios mayoristas, plazos ni cobros habilitados. Las fotografías y el video iniciales son ilustraciones generadas con IA; los productos conceptuales sólo se siembran en una base local descartable, nunca en producción.
 
 Base: [ecom, PR 144](https://github.com/antonmarklundcom/ecom/pull/144), commit `c5422e3c9184f0c4e4575da3db2774329d063214`. El historial original y origin de este repositorio se conservaron; `.template-baseline` registra esa versión.
 
@@ -34,6 +34,7 @@ La capa de presentación vive en `src/config/ring-store.ts`, `src/content/guides
 
 - [Implementación y separación de datos](docs/STORE-IMPLEMENTATION.md)
 - [Verificación, skips y preview](docs/VERIFICATION.md)
+- [Animación del anillo, categorías y diagnóstico](docs/RING-SCROLL-AUDIT.md)
 - [Configuración pendiente para lanzar](docs/LAUNCH-CHECKLIST.md)
 - [Investigación pública de competidores](docs/COMPETITOR-RESEARCH.md)
 - [Proveniencia de medios](docs/MEDIA-PROVENANCE.json)

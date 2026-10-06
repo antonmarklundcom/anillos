@@ -10,6 +10,15 @@ vi.mock("@/db/queries", () => ({
   getCategoryProducts: vi.fn(),
   isCatalogSort: vi.fn(),
 }));
+vi.mock("@/store/catalog", () => ({
+  getStoreCategory: async () => ({
+    slug: "rings",
+    name: "Rings",
+    description: null,
+    catalogAvailable: true,
+  }),
+  getStoreCategories: async () => [],
+}));
 import { generateMetadata } from "@/app/categoria/[slug]/page";
 describe("category pagination canonicals", () => {
   afterEach(() => vi.unstubAllEnvs());
