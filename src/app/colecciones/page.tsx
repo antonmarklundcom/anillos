@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { COLLECTIONS } from "@/config/ring-store";
 import { EditorialImage } from "@/components/editorial-image";
+import { getStoreCategories } from "@/store/catalog";
 export const metadata: Metadata = {
   title: "Colecciones de acero, plata y alianzas",
   description:
     "Explorá anillos de acero, plata 925, pares de alianzas y compromiso en Paraguay. Diseños conceptuales e información para elegir.",
   alternates: { canonical: "/colecciones" },
 };
-export default function CollectionsPage() {
+export default async function CollectionsPage() {
+  const available = new Set(
+    (await getStoreCategories()).map((item) => item.slug)
+  );
   return (
     <main className="store-section">
       <p className="eyebrow">Tu punto de partida</p>
@@ -19,7 +23,7 @@ export default function CollectionsPage() {
         no están a la venta.
       </p>
       <div className="collection-grid">
-        {COLLECTIONS.map((item) => (
+        {COLLECTIONS.filter((item) => available.has(item.slug)).map((item) => (
           <Link
             href={`/categoria/${item.slug}`}
             key={item.slug}

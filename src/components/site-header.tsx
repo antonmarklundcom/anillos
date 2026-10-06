@@ -4,22 +4,18 @@ import { CartButton } from "@/components/cart-button";
 import { CuentaHeaderEntry } from "@/components/cuenta/header-entry";
 import { SearchBox } from "@/components/search-box";
 import { WishlistHeaderLink } from "@/components/wishlist-header-link";
-import { getCategories } from "@/db/queries";
+import { getStoreCategories } from "@/store/catalog";
 import { getStoreSettings } from "@/domain/store-settings";
-import { COLLECTIONS } from "@/config/ring-store";
 import { TIENDA, logoPredeterminado } from "@/config/tienda";
 import { storeIdentity } from "@/store/identity";
 import { TESTIDS } from "@/lib/testids";
 
 export async function SiteHeader() {
-  const [dbCategories, marca, settings] = await Promise.all([
-    getCategories().catch(() => []),
+  const [categories, marca, settings] = await Promise.all([
+    getStoreCategories(),
     storeIdentity(),
     getStoreSettings(),
   ]);
-  const categories = dbCategories.length
-    ? dbCategories
-    : COLLECTIONS.map((item, id) => ({ id, slug: item.slug, name: item.name }));
   return (
     <header className="store-header bg-background/95 border-border sticky top-0 z-30 border-b backdrop-blur">
       <div className="border-border text-muted-foreground border-b py-2 text-center text-[9px] tracking-[.15em] uppercase">
@@ -54,7 +50,7 @@ export async function SiteHeader() {
         </div>
       </div>
       <nav aria-label="Colecciones y guías" className="border-border border-t">
-        <div className="mx-auto flex max-w-[1240px] gap-6 overflow-x-auto px-5 py-3 text-[11px]">
+        <div className="mx-auto flex max-w-[1240px] gap-6 overflow-x-auto px-5 text-[11px]">
           {categories.map((category) => (
             <Link
               key={category.slug}

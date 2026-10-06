@@ -51,10 +51,7 @@
     "width": 1280,
     "height": 720,
     "frames": 48,
-    "variants": [
-      "desktop 960x540",
-      "mobile 480x270"
-    ],
+    "variants": ["desktop 960x540", "mobile 480x270"],
     "inspection": "Opening, middle and final frames inspected; slow camera motion and intact ring forms.",
     "sourceVideo": "public/media/header-concept-720p.mp4"
   },
@@ -97,10 +94,7 @@
       "desktop": 48,
       "mobile": 28
     },
-    "variants": [
-      "desktop 720x960",
-      "mobile 480x640"
-    ],
+    "variants": ["desktop 720x960", "mobile 480x640"],
     "inspection": "Eight sampled frames inspected for stable adult identity, hand anatomy, the single ring and continuous motion. Fictional adult editorial; not a product endorsement.",
     "mobileEdit": "First 28 frames retain the hand and ring in the shorter mobile crop; the final face close-up is desktop-only."
   },
@@ -122,6 +116,29 @@
     "header": "public/media/logo-wordmark.webp",
     "derivatives": "Transparent source cropped and resized for the master PNG, header wordmark WebP and ring-symbol favicon. Artwork and alpha preserved.",
     "inspection": "ANILLOS / PARAGUAY spelling, ring symbol, transparent alpha and contrast on warm ivory inspected."
+  },
+  "ringStillScroll": {
+    "date": "2026-10-06",
+    "tool": "OpenAI image_gen.imagegen",
+    "direction": "One complete polished silver-tone band, oblique macro photograph, intact circular geometry, transparent background, generous clearance around the silhouette, no hands, gems, logos, text or material claims.",
+    "source": "exec-aca243c2-0120-4d36-a030-9e3648863ac8.png",
+    "variants": [
+      "public/media/ring-detail-desktop.webp: 1254x1254, alpha",
+      "public/media/ring-detail-mobile.webp: 800x800, alpha"
+    ],
+    "motion": "Deterministic scroll transform of one still; all geometry remains fixed. Complete ring bounds checked on desktop/mobile through forward and reverse scrolling.",
+    "inspection": "Complete band, inner opening, stable metal reflections and transparency inspected on the actual ivory background. Illustrative concept, not a verified product."
+  },
+  "ringOnHandStill": {
+    "date": "2026-10-06",
+    "tool": "OpenAI image_gen.imagegen",
+    "direction": "Retain the established fictional adult Paraguayan woman, age 24, ivory linen and warm Asuncion courtyard; anatomically natural stationary hand with one visible thin ring, face and hand framed together, no text, branding or endorsements.",
+    "source": "exec-57862a2c-95bc-4dcc-a69b-7c8e1c0f8aad.png",
+    "variants": [
+      "public/media/ring-on-hand-desktop.webp: 1086x1448",
+      "public/media/ring-on-hand-mobile.webp: 1080x1440"
+    ],
+    "inspection": "Adult identity, relaxed hand anatomy and one ring inspected. Lifestyle image and optional still-photo comparison; no AI-generated moving fingers."
   },
   "overlayPolicy": "Image, hero and social-card AI captions removed at owner request on 2026-10-06. Concept status and image provenance remain in page copy, footer and this record."
 }

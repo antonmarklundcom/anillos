@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense, cache } from "react";
 
 import { CatalogFilters } from "@/components/catalog-filters";
+import { CatalogUnavailable } from "@/components/catalog-unavailable";
 import { ProductCard } from "@/components/product-card";
 import { ProductDescription } from "@/components/product-description";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,9 @@ import { markdownToText } from "@/lib/markdown";
 import { parsePriceRange } from "@/lib/price-ranges";
 import { breadcrumbJsonLd, itemListJsonLd, jsonLdScript } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
-import {
-  getBrands,
-  getCategories,
-  getCategoryBySlug,
-  getCategoryProducts,
-  isCatalogSort,
-} from "@/db/queries";
+import { log } from "@/lib/log";
+import { getStoreCategory, getStoreCategories } from "@/store/catalog";
+import { getBrands, getCategoryProducts, isCatalogSort } from "@/db/queries";
 
 export const revalidate = 300;
 
@@ -30,11 +27,11 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 type Params = Promise<{ slug: string }>;
 
 /** `cache()` memoiza por request: metadata y página comparten una consulta. */
-const loadCategory = cache(async (slug: string) => getCategoryBySlug(slug));
+const loadCategory = cache(getStoreCategory);
 
 export async function generateStaticParams() {
   try {
-    const categories = await getCategories();
+    const categories = await getStoreCategories();
     return categories.map((category) => ({ slug: category.slug }));
   } catch {
     return [];
@@ -116,17 +113,28 @@ export default async function CategoryPage({
       : 1;
 
   const { vidriera } = await getStoreSettings();
-  const [result, brands] = await Promise.all([
-    getCategoryProducts({
-      categorySlug: slug,
-      brand: first(query.marca),
-      minPricePyg: min,
-      maxPricePyg: max,
-      sort: isCatalogSort(sortParam) ? sortParam : "relevancia",
-      page,
-    }),
-    getBrands(slug),
-  ]);
+  let catalogAvailable = category.catalogAvailable;
+  const empty = { products: [], total: 0, page: 1, perPage: 12, totalPages: 0 };
+  const [result, brands] = category.catalogAvailable
+    ? await Promise.all([
+        getCategoryProducts({
+          categorySlug: slug,
+          brand: first(query.marca),
+          minPricePyg: min,
+          maxPricePyg: max,
+          sort: isCatalogSort(sortParam) ? sortParam : "relevancia",
+          page,
+        }),
+        getBrands(slug).catch((error) => {
+          log.error("store.category.brands_unavailable", { slug, error });
+          return [];
+        }),
+      ]).catch((error) => {
+        log.error("store.category.products_unavailable", { slug, error });
+        catalogAvailable = false;
+        return [empty, []] as const;
+      })
+    : ([empty, []] as const);
 
   const buildPageHref = (target: number) => {
     const next = new URLSearchParams();
@@ -173,9 +181,11 @@ export default async function CategoryPage({
       <h1 className="mt-2 text-2xl font-semibold tracking-tight">
         {category.name}
       </h1>
-      <p className="text-muted-foreground mt-1 text-sm">
-        {tPlural("catalogo.productos", result.total)} · {priceUnit(slug)}
-      </p>
+      {catalogAvailable ? (
+        <p className="text-muted-foreground mt-1 text-sm">
+          {tPlural("catalogo.productos", result.total)} · {priceUnit(slug)}
+        </p>
+      ) : null}
       {collectionFor(slug) ? (
         <p className="text-muted-foreground mt-4 text-sm">
           Las piezas actuales son conceptos ilustrativos sin precio ni
@@ -215,13 +225,17 @@ export default async function CategoryPage({
         </div>
       ) : null}
 
-      <div className="mt-5">
-        <Suspense fallback={null}>
-          <CatalogFilters brands={brands} />
-        </Suspense>
-      </div>
+      {catalogAvailable ? (
+        <div className="mt-5">
+          <Suspense fallback={null}>
+            <CatalogFilters brands={[...brands]} />
+          </Suspense>
+        </div>
+      ) : null}
 
-      {result.products.length === 0 ? (
+      {!catalogAvailable ? (
+        <CatalogUnavailable guide={collectionFor(slug)?.guide} />
+      ) : result.products.length === 0 ? (
         <div className="border-border mt-8 rounded-xl border border-dashed p-10 text-center">
           <p className="font-medium">{t("categoria.sinResultados")}</p>
           <p className="text-muted-foreground mt-1 text-sm">
