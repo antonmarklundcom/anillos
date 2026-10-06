@@ -3,12 +3,12 @@ import Link from "next/link";
 
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { searchProducts } from "@/db/queries";
 import { getStoreCategories } from "@/store/catalog";
 import { CatalogUnavailable } from "@/components/catalog-unavailable";
 import { log } from "@/lib/log";
 import { getStoreSettings } from "@/domain/store-settings";
 import { t, tPlural } from "@/i18n";
+import { matchingRingInformation, searchStoreProducts } from "@/store/search";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +31,14 @@ export default async function SearchPage({
   let unavailable = false;
   const results =
     term.length >= 2
-      ? await searchProducts(term).catch((error) => {
+      ? await searchStoreProducts(term).catch((error) => {
           log.error("store.search.unavailable", { error });
           unavailable = true;
           return [];
         })
       : [];
   const categories = results.length === 0 ? await getStoreCategories() : [];
+  const information = matchingRingInformation(term, categories);
   const { vidriera } = await getStoreSettings();
 
   return (
@@ -56,6 +57,33 @@ export default async function SearchPage({
         <p className="text-muted-foreground mt-1 text-sm">
           {tPlural("catalogo.productos", results.length)}
         </p>
+      ) : null}
+      {information.categories.length > 0 || information.guides.length > 0 ? (
+        <section
+          className="mt-10"
+          aria-label="Colecciones y guías relacionadas"
+        >
+          <h2 className="text-lg font-medium">Información para tu elección</h2>
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+            {information.categories.map((category) => (
+              <li key={category.slug}>
+                <Link
+                  className="text-link"
+                  href={`/categoria/${category.slug}`}
+                >
+                  {category.name} →
+                </Link>
+              </li>
+            ))}
+            {information.guides.map((guide) => (
+              <li key={guide.slug}>
+                <Link className="text-link" href={`/guias/${guide.slug}`}>
+                  {guide.title} →
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       {unavailable ? (

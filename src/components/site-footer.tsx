@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { TIENDA } from "@/config/tienda";
-import { COLLECTIONS } from "@/config/ring-store";
+import { getStoreCategories } from "@/store/catalog";
 import { getStoreSettings } from "@/domain/store-settings";
 import { contactoPublico } from "@/lib/comercio";
 import { storeIdentity } from "@/store/identity";
 import { paginasActivas } from "@/lib/paginas";
 
 export async function SiteFooter() {
-  const [settings, contact, pages, brand] = await Promise.all([
+  const [settings, contact, pages, brand, categories] = await Promise.all([
     getStoreSettings(),
     contactoPublico(),
     paginasActivas(),
     storeIdentity(),
+    getStoreCategories(),
   ]);
   return (
     <footer className="border-border border-t bg-[#eae8df]">
@@ -31,7 +32,7 @@ export async function SiteFooter() {
         <div>
           <p className="eyebrow">Colecciones</p>
           <ul className="text-muted-foreground mt-5 space-y-3">
-            {COLLECTIONS.map((item) => (
+            {categories.map((item) => (
               <li key={item.slug}>
                 <Link prefetch={false} href={`/categoria/${item.slug}`}>
                   {item.name}

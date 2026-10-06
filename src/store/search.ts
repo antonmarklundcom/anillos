@@ -1,0 +1,60 @@
+import { GUIDES } from "@/content/guides";
+import { searchProducts, suggestProducts } from "@/db/queries";
+
+export async function searchStoreProducts(term: string) {
+  const results = await searchProducts(term);
+  const normalized = normalizedRingSearch(term);
+  return results.length > 0 || normalized === term.toLowerCase()
+    ? results
+    : searchProducts(normalized);
+}
+
+export async function suggestStoreProducts(term: string) {
+  const results = await suggestProducts(term);
+  const normalized = normalizedRingSearch(term);
+  return results.length > 0 || normalized === term.toLowerCase()
+    ? results
+    : suggestProducts(normalized);
+}
+
+export function normalizedRingSearch(term: string) {
+  return term
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\bargollas?\b/g, "alianzas")
+    .replace(/\btallas?\b/g, "talle")
+    .replace(/\btalles\b/g, "talle");
+}
+
+/** Discoverable information stays useful even while product queries are unavailable. */
+export function matchingRingInformation(
+  term: string,
+  categories: { slug: string; name: string }[]
+) {
+  const words = normalizedRingSearch(term)
+    .split(/\W+/)
+    .filter(
+      (word) =>
+        word.length >= 3 &&
+        ![
+          "anillo",
+          "anillos",
+          "para",
+          "como",
+          "con",
+          "los",
+          "las",
+          "una",
+        ].includes(word)
+    );
+  const matches = (text: string) =>
+    words.length > 0 &&
+    words.some((word) => normalizedRingSearch(text).includes(word));
+  return {
+    categories: categories.filter((category) => matches(category.name)),
+    guides: GUIDES.filter((guide) =>
+      matches(`${guide.title} ${guide.description}`)
+    ).slice(0, 3),
+  };
+}

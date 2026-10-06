@@ -501,10 +501,17 @@ el logger los redacta por nombre de campo.
 curl -fsS https://TU-DOMINIO/api/health
 ```
 
-Tiene que devolver `{"ok":true,"db":true,"cron":true}`. `db:false` significa
+Tiene que devolver `{"ok":true,"db":true,"cron":true,"catalog":true}`. `db:false` significa
 que la app levantó pero no llega a MySQL — volvé al punto 3 con `pnpm
 db:check`. `cron:false` es que `vencer-pedidos` todavía no corrió (o no corre
 desde hace 2 h): revisá el punto 5 — recién configurado, esperá 15 minutos.
+
+`db:true` con `catalog:false` significa que conectar funciona pero falla la
+consulta real del catálogo. Corré `pnpm exec tsx scripts/check-store-catalog.ts`
+en el entorno desplegado: verifica categorías, productos, búsqueda, feed,
+preparación de pagos e índice FULLTEXT sin escribir datos. Devuelve sólo códigos
+sanitizados. Respaldá y confirmá la causa antes de aplicar migraciones; no cambies
+el host de `DATABASE_URL` por este síntoma solamente.
 
 Y desde tu máquina, apuntando al entorno real:
 

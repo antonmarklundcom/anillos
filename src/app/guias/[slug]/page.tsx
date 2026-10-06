@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { GUIDES } from "@/content/guides";
 import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
+import { RingMeasurement } from "@/components/ring-measurement";
+import { getStoreCategories } from "@/store/catalog";
 type Props = { params: Promise<{ slug: string }> };
 // Render per request so Next's script nonces match the template's CSP.
 export const dynamic = "force-dynamic";
@@ -27,6 +29,9 @@ export default async function GuidePage({ params }: Props) {
   const { slug } = await params;
   const guide = GUIDES.find((item) => item.slug === slug);
   if (!guide) notFound();
+  const available = new Set(
+    (await getStoreCategories()).map((category) => category.slug)
+  );
   return (
     <main className="store-section">
       <nav
@@ -71,9 +76,24 @@ export default async function GuidePage({ params }: Props) {
       />
       <h1 className="article-heading mt-4 max-w-4xl">{guide.title}</h1>
       <p className="section-intro">{guide.description}</p>
+      <nav className="guide-contents" aria-label="Contenido de la guía">
+        <p className="mb-4 font-medium">En esta guía</p>
+        <ol>
+          {guide.sections.map((section, index) => (
+            <li key={section.title}>
+              <a href={`#seccion-${index + 1}`}>{section.title}</a>
+            </li>
+          ))}
+          {slug === "talles" ? (
+            <li>
+              <a href="#medida">Calculá tu medida</a>
+            </li>
+          ) : null}
+        </ol>
+      </nav>
       <article className="store-prose">
-        {guide.sections.map((section) => (
-          <section key={section.title}>
+        {guide.sections.map((section, index) => (
+          <section key={section.title} id={`seccion-${index + 1}`}>
             <h2>{section.title}</h2>
             {section.paragraphs.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
@@ -82,6 +102,9 @@ export default async function GuidePage({ params }: Props) {
         ))}
         {slug === "talles" ? (
           <>
+            <div id="medida">
+              <RingMeasurement />
+            </div>
             <h2>Ejemplos de diámetro y contorno</h2>
             <table>
               <caption>
@@ -131,9 +154,13 @@ export default async function GuidePage({ params }: Props) {
         <aside className="mt-10 border-t pt-6">
           <h2>Tu próximo paso</h2>
           <p>
-            <Link href={`/categoria/${guide.collection}`}>
-              Explorá la colección relacionada
-            </Link>{" "}
+            {available.has(guide.collection) ? (
+              <Link href={`/categoria/${guide.collection}`}>
+                Explorá la colección relacionada
+              </Link>
+            ) : (
+              <Link href="/colecciones">Explorá las colecciones</Link>
+            )}{" "}
             o <Link href="/contacto">conocé cómo preparar una consulta</Link>.
             Las piezas actuales son conceptos ilustrativos y no se venden.
           </p>

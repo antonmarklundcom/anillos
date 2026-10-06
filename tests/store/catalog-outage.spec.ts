@@ -41,4 +41,16 @@ test("collections, search and sitemap remain useful without catalog tables", asy
   expect(
     (await request.get(`${origin}/categoria/unknown-collection`)).status()
   ).toBe(404);
+  const checkout = await page.goto(`${origin}/checkout`);
+  expect(checkout?.status()).toBe(200);
+  await expect(page.locator("main h1")).toHaveText(
+    "La compra no está disponible."
+  );
+  await expect(page.locator("main form")).toHaveCount(0);
+  const feed = await request.get(`${origin}/feed.xml`);
+  expect(feed.status()).toBe(503);
+  expect(feed.headers()["retry-after"]).toBe("300");
+  expect(
+    (await (await request.get(`${origin}/api/health`)).json()).catalog
+  ).toBe(false);
 });

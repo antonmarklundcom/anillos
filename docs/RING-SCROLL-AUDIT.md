@@ -39,7 +39,7 @@ No new variable is required. `NEXT_PUBLIC_SITE_URL=https://anillos.com.py/` and 
 
 The owner pasted a database credential and three secrets into chat. Rotate the database password and its URL-encoded value in `DATABASE_URL`, replace `SESSION_SECRET`, `SETUP_SECRET` and `CRON_SECRET`, update cron authorization to match, and redeploy. Session rotation invalidates existing sessions. No secrets are included in tracked files.
 
-The live health check also reported `cron: false`; verify scheduled jobs and authorization on Hostinger. No production database writes, environment edits, deployment, merge or provider contact were performed. These page fallbacks restore public browsing when deployed but do not repair the production schema or establish inventory.
+The live health check also reported `cron: false`; verify scheduled jobs and authorization on Hostinger. The initial audit made no production mutations. The owner then authorized PR creation and a conflict-free merge: [PR 6](https://github.com/antonmarklundcom/anillos/pull/6) was merged and automatically deployed. No production database write, environment edit or provider contact was made. The fallbacks restore public browsing but do not repair the production schema or establish inventory. Follow-up code fixes and their current validation are in [SITE-IMPROVEMENTS.md](SITE-IMPROVEMENTS.md).
 
 ## Validation
 

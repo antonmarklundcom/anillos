@@ -8,7 +8,7 @@ import { getStoreCategories } from "@/store/catalog";
 import { getStoreSettings } from "@/domain/store-settings";
 import { TIENDA, logoPredeterminado } from "@/config/tienda";
 import { storeIdentity } from "@/store/identity";
-import { TESTIDS } from "@/lib/testids";
+import { CollectionNavigation } from "@/components/collection-navigation";
 
 export async function SiteHeader() {
   const [categories, marca, settings] = await Promise.all([
@@ -49,31 +49,10 @@ export async function SiteHeader() {
           <CartButton />
         </div>
       </div>
-      <nav aria-label="Colecciones y guías" className="border-border border-t">
-        <div className="mx-auto flex max-w-[1240px] gap-6 overflow-x-auto px-5 text-[11px]">
-          {categories.map((category) => (
-            <Link
-              key={category.slug}
-              href={`/categoria/${category.slug}`}
-              prefetch={false}
-              data-testid={TESTIDS.headerCategoryLink}
-              data-slug={category.slug}
-              className="text-muted-foreground hover:text-foreground shrink-0"
-            >
-              {category.name}
-            </Link>
-          ))}
-          <Link href="/guias" prefetch={false} className="shrink-0">
-            Guías
-          </Link>
-          <Link href="/contacto" prefetch={false} className="shrink-0">
-            Contacto
-          </Link>
-        </div>
-      </nav>
-      <div className="border-border border-t px-5 py-2 sm:hidden">
+      <div className="header-toolbar border-border border-t">
+        <CollectionNavigation categories={categories} />
         <Suspense fallback={null}>
-          <SearchBox />
+          <SearchBox className="mobile-search sm:hidden" />
         </Suspense>
       </div>
     </header>
