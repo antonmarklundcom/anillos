@@ -26,6 +26,8 @@ export type Tienda = {
   lang: string;
   /** `locale` de Open Graph. */
   ogLocale: string;
+  /** Public contact fallback; panel and integration configuration take priority. */
+  whatsapp?: string;
 
   /**
    * ¿Esta tienda ofrece cuentas de cliente? (PLAN.md FASE 2, PR E)
@@ -102,6 +104,7 @@ export const TIENDA: Tienda = {
   tagline: "Para cada día. Para tu historia.",
   lang: "es-PY",
   ogLocale: "es_PY",
+  whatsapp: "+595992279599",
   cuentasClientes: false,
   hero: null,
 };

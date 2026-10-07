@@ -15,6 +15,16 @@ import {
 } from "drizzle-orm";
 
 import { getDb } from "@/db";
+import type {
+  ProductSpecifications,
+  VariantAttributes,
+  VerifiedIdentifiers,
+} from "@/lib/product-attributes";
+import {
+  publicSpecifications,
+  publicVariantAttributes,
+  publicIdentifiers,
+} from "@/lib/public-product-facts";
 import {
   categories,
   orderItems,
@@ -28,11 +38,17 @@ import type { Executor } from "@/domain/executor";
 import { getRatingSummaries, type RatingSummary } from "@/domain/reviews";
 import { heldQtyMap } from "@/domain/stock";
 import {
+  catalogueAttributePredicate,
+  type CatalogueAttributeFilters,
+} from "@/domain/catalogue-facets";
+import {
   CONCEPT_PRODUCT_PREFIX,
   isConceptProduct,
 } from "@/lib/concept-products";
 
 export type CatalogVariant = {
+  attributes?: VariantAttributes;
+  identifiers?: VerifiedIdentifiers;
   id: number;
   sku: string;
   label: string;
@@ -48,6 +64,9 @@ export type CatalogImage = {
 };
 
 export type CatalogProduct = {
+  verifiedSpecifications?: ProductSpecifications;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
   saleMode?: "stock" | "enquiry" | "showcase";
   showPrice?: boolean;
   id: number;
@@ -112,6 +131,9 @@ export function isCatalogSort(value: string | undefined): value is CatalogSort {
 const minPriceSql = sql<number>`MIN(CASE WHEN ${products.showPrice} AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} THEN ${variants.pricePyg} ELSE NULL END)`;
 
 type ProductRow = {
+  specifications?: unknown;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
   saleMode: "stock" | "enquiry" | "showcase";
   showPrice: boolean;
   id: number;
@@ -145,6 +167,8 @@ async function hydrate(
       pricePyg: variants.pricePyg,
       compareAtPyg: variants.compareAtPyg,
       onHand: variants.onHand,
+      attributes: variants.attributes,
+      identifiers: variants.identifiers,
     })
     .from(variants)
     .where(
@@ -181,6 +205,8 @@ async function hydrate(
       pricePyg: row.pricePyg,
       compareAtPyg: row.compareAtPyg,
       available: Math.max(0, row.onHand - (held.get(row.id) ?? 0)),
+      attributes: publicVariantAttributes(row.attributes, true),
+      identifiers: publicIdentifiers(row.identifiers, ""),
     });
     variantsByProduct.set(row.productId, list);
   }
@@ -197,6 +223,9 @@ async function hydrate(
   }
 
   return rows.map((row) => ({
+    verifiedSpecifications: publicSpecifications(row.specifications, row.slug),
+    seoTitle: row.seoTitle,
+    seoDescription: row.seoDescription,
     saleMode: isConceptProduct(row.slug) ? "enquiry" : row.saleMode,
     showPrice: !isConceptProduct(row.slug) && row.showPrice,
     id: row.id,
@@ -207,18 +236,28 @@ async function hydrate(
     categoryName: row.categoryName,
     categorySlug: row.categorySlug,
     image: imagesByProduct.get(row.id)?.[0] ?? null,
-    variants: (variantsByProduct.get(row.id) ?? []).map((variant) =>
-      isConceptProduct(row.slug)
-        ? { ...variant, pricePyg: 0, compareAtPyg: null, available: 0 }
+    variants: (variantsByProduct.get(row.id) ?? []).map((variant) => {
+      return isConceptProduct(row.slug)
+        ? {
+            ...variant,
+            attributes: undefined,
+            identifiers: undefined,
+            pricePyg: 0,
+            compareAtPyg: null,
+            available: 0,
+          }
         : row.showPrice
           ? variant
-          : { ...variant, pricePyg: 0, compareAtPyg: null }
-    ),
+          : { ...variant, pricePyg: 0, compareAtPyg: null };
+    }),
     ...(ratings.has(row.id) ? { rating: ratings.get(row.id) } : {}),
   }));
 }
 
 const PRODUCT_COLUMNS = {
+  specifications: products.specifications,
+  seoTitle: products.seoTitle,
+  seoDescription: products.seoDescription,
   saleMode: products.saleMode,
   showPrice: products.showPrice,
   id: products.id,
@@ -288,7 +327,7 @@ export async function getFeaturedProducts(
   return getCatalog({ limit }, executor);
 }
 
-export type CategoryQuery = {
+export type CategoryQuery = CatalogueAttributeFilters & {
   categorySlug: string;
   brand?: string;
   minPricePyg?: number;
@@ -322,7 +361,8 @@ export async function getCategoryProducts(
   const filters = and(
     PUBLISHED(),
     eq(categories.slug, query.categorySlug),
-    query.brand ? eq(products.brand, query.brand) : undefined
+    query.brand ? eq(products.brand, query.brand) : undefined,
+    catalogueAttributePredicate(query)
   );
 
   const havingParts = [

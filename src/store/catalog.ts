@@ -13,6 +13,8 @@ export type StoreCategory = {
   imageCloudinaryId: string | null;
   imageAlt: string | null;
   catalogAvailable: boolean;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
 };
 
 const summary = {

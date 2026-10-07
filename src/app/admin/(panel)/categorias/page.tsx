@@ -22,7 +22,9 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">{t("panel.categorias.titulo")}</h1>
+      <h1 className="text-xl font-semibold tracking-tight">
+        {t("panel.categorias.titulo")}
+      </h1>
       <p className="text-muted-foreground mt-1 text-sm">
         {t("panel.categorias.bajada")}
       </p>
@@ -39,6 +41,8 @@ export default async function AdminCategoriesPage() {
             esPrimera: index === 0,
             esUltima: index === categories.length - 1,
             description: category.description,
+            seoTitle: category.seoTitle,
+            seoDescription: category.seoDescription,
             imageCloudinaryId: category.imageCloudinaryId,
             imageAlt: category.imageAlt,
           }))}

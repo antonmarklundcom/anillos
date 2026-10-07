@@ -419,3 +419,15 @@ STORE_ADMIN_E2E=""
 `STORE_ADMIN_E2E=1` enables the guarded fixture script and browser admin tests. Use it only locally with matching `DATABASE_URL` and `TEST_DATABASE_URL` pointing to loopback database `anillos_admin_workspace_test`, and `STORE_BASE_URL` pointing to its separately started local server. The fixture refuses a nonempty database, leaves providers unconfigured and writes synthetic IDs into ignored `playwright/.cache/admin-workspace-fixture.json`. Do not add this flag to production; see `docs/ADMIN-WORKSPACE.md`.
 
 `STORE_CHROME_E2E=1` optionally adds an installed Google Chrome project to `playwright.store.config.ts`. It is a local browser-test option, not a store launch setting; ordinary runs keep the two bundled Chromium projects.
+# Política de pago por tienda
+
+Anillos inicia sólo con transferencia. No hace falta agregar variables para ese perfil: `src/config/checkout.ts` define el valor inicial y **Ajustes → Checkout** permite modificarlo. Habilitar un medio no reemplaza su configuración: transferencia requiere los cinco datos completos de Banco; tarjeta requiere Pagopar configurado y probado. Sin datos bancarios no se ofrece transferencia, y sin medios listos no se aceptan pedidos.
+
+`STORE_PAYMENT_METHODS` es una opción de despliegue, no un secreto: lista separada por comas de `transferencia`, `contra_entrega`, `tarjeta`. Un ajuste explícito del panel tiene prioridad. Vacío pausa los medios; un valor desconocido también los deshabilita. No habilitar tarjeta ni contra entrega para el lanzamiento actual de Anillos.
+
+```dotenv
+# Omitir para usar el perfil de la tienda. Vacío explícito pausa el checkout.
+STORE_PAYMENT_METHODS=""
+```
+
+El contacto público confirmado de Anillos está en `TIENDA.whatsapp`. Prioridad: Ajustes → Contacto, integración/`WHATSAPP_NUMBER`, configuración de la tienda. Los avisos automáticos internos siguen requiriendo el número y las credenciales de la integración; publicar un contacto no activa envíos de WhatsApp Cloud.

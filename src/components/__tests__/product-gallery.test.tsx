@@ -49,9 +49,30 @@ it("falls back to the first new photo if the selected photo is removed", () => {
     screen.getByRole("button", { name: "Ver imagen 1: Vista frontal" })
   ).toHaveAttribute("aria-pressed", "true");
 });
-it("renders no controls for an absent or single photo", () => {
+it("renders no gallery for absent photos and only zoom for a single photo", () => {
   const view = render(<ProductGallery images={[]} />);
   expect(screen.queryByRole("figure")).not.toBeInTheDocument();
   view.rerender(<ProductGallery images={images.slice(0, 1)} />);
-  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /Ampliar imagen/ })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: /Ver imagen/ })
+  ).not.toBeInTheDocument();
+});
+it("opens an accessible zoom dialog, changes photos with arrows, and closes it", () => {
+  render(<ProductGallery images={images} />);
+  fireEvent.click(screen.getByRole("button", { name: /Ampliar imagen 1/ }));
+  const dialog = screen.getByRole("dialog", { name: "Imagen 1 de 3" });
+  expect(dialog).toHaveAccessibleDescription(/Imagen ilustrativa/);
+  fireEvent.keyDown(dialog, { key: "ArrowRight" });
+  expect(
+    screen.getByRole("dialog", { name: "Imagen 2 de 3" })
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Imagen siguiente" }));
+  expect(
+    screen.getByRole("dialog", { name: "Imagen 3 de 3" })
+  ).toHaveAccessibleDescription("Detalle real");
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });

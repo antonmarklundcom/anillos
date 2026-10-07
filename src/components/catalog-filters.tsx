@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { BrandFacet } from "@/db/queries";
+import type { CatalogueFacets } from "@/domain/catalogue-facets";
 import { t } from "@/i18n/client";
 import { PRICE_RANGES } from "@/lib/price-ranges";
 
@@ -29,7 +30,13 @@ const ALL = "__todas__";
  * Component cacheable y el comprador puede compartir el link filtrado por
  * WhatsApp, que es como se comparte todo acá.
  */
-export function CatalogFilters({ brands }: { brands: BrandFacet[] }) {
+export function CatalogFilters({
+  brands,
+  facets,
+}: {
+  brands: BrandFacet[];
+  facets?: CatalogueFacets;
+}) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -53,7 +60,33 @@ export function CatalogFilters({ brands }: { brands: BrandFacet[] }) {
   */
   // `orden` no entra: ordenar no achica el resultado, así que un chip con ✕
   // ahí prometería devolver productos que nunca se fueron.
-  const activos: Array<{ key: "marca" | "precio"; label: string }> = [];
+  const activos: Array<{ key: string; label: string }> = [];
+  const attributeFilters = [
+    {
+      key: "material",
+      label: "Material verificado",
+      options: facets?.material ?? [],
+    },
+    { key: "piedra", label: "Piedra verificada", options: facets?.stone ?? [] },
+    { key: "unidad", label: "Unidad incluida", options: facets?.unit ?? [] },
+  ];
+  const facetLabel = (key: string, value: string) =>
+    key === "unidad"
+      ? value === "pair"
+        ? "Par de dos anillos"
+        : value === "individual"
+          ? "Un anillo"
+          : value
+      : value;
+  for (const filter of attributeFilters) {
+    const value = params.get(filter.key);
+    if (value)
+      activos.push({
+        key: filter.key,
+        label: `${filter.label}: ${facetLabel(filter.key, value)}`,
+      });
+  }
+  if (params.get("stock")) activos.push({ key: "stock", label: "Con stock" });
   if (marca) activos.push({ key: "marca", label: marca });
   if (precio) {
     const range = PRICE_RANGES.find((item) => item.id === precio);
@@ -63,6 +96,47 @@ export function CatalogFilters({ brands }: { brands: BrandFacet[] }) {
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap items-center gap-2">
+        {attributeFilters.map((filter) =>
+          filter.options.length || params.get(filter.key) ? (
+            <Select
+              key={filter.key}
+              value={params.get(filter.key) ?? ALL}
+              onValueChange={(value) => update(filter.key, value)}
+            >
+              <SelectTrigger className="w-[200px]" aria-label={filter.label}>
+                <SelectValue placeholder={filter.label} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{filter.label}: todas</SelectItem>
+                {params.get(filter.key) &&
+                !filter.options.some(
+                  (option) => option.value === params.get(filter.key)
+                ) ? (
+                  <SelectItem value={params.get(filter.key)!}>
+                    {facetLabel(filter.key, params.get(filter.key)!)} (0)
+                  </SelectItem>
+                ) : null}
+                {filter.options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {facetLabel(filter.key, option.value)} ({option.total})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null
+        )}
+        {facets ? (
+          <label className="flex min-h-10 cursor-pointer items-center gap-2 px-2 text-sm">
+            <input
+              type="checkbox"
+              checked={params.get("stock") === "1"}
+              onChange={(event) =>
+                update("stock", event.target.checked ? "1" : null)
+              }
+            />
+            Con stock ({facets.inStock})
+          </label>
+        ) : null}
         {brands.length > 0 ? (
           <Select
             value={marca ?? ALL}

@@ -4,15 +4,27 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { adjustVariantStock, saveProductVariant } from "@/app/actions/admin-products";
+import {
+  adjustVariantStock,
+  saveProductVariant,
+} from "@/app/actions/admin-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatGs } from "@/lib/money";
 import { TESTIDS } from "@/lib/testids";
 import { t } from "@/i18n";
+import { VariantAttributeFields } from "./product-attribute-fields";
+import {
+  attributeFormData,
+  verificationDate,
+  type VariantAttributes,
+  type VerifiedIdentifiers,
+} from "@/lib/product-attributes";
 
 export type VariantCard = {
+  attributes?: VariantAttributes | null;
+  identifiers?: VerifiedIdentifiers | null;
   id: number;
   sku: string;
   label: string;
@@ -50,13 +62,21 @@ export function VariantEditor({
       )}
 
       {variants.length === 0 && !adding ? (
-        <p className="text-muted-foreground text-sm">{t("panel.variante.vacio")}</p>
+        <p className="text-muted-foreground text-sm">
+          {t("panel.variante.vacio")}
+        </p>
       ) : null}
     </div>
   );
 }
 
-function VariantRow({ productId, variant }: { productId: number; variant: VariantCard }) {
+function VariantRow({
+  productId,
+  variant,
+}: {
+  productId: number;
+  variant: VariantCard;
+}) {
   const [editing, setEditing] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
 
@@ -65,7 +85,10 @@ function VariantRow({ productId, variant }: { productId: number; variant: Varian
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-medium">
           {variant.label}
-          <span className="text-muted-foreground font-normal"> · {variant.sku}</span>
+          <span className="text-muted-foreground font-normal">
+            {" "}
+            · {variant.sku}
+          </span>
         </span>
         <span className="tabular-nums">{formatGs(variant.pricePyg)}</span>
       </div>
@@ -80,11 +103,23 @@ function VariantRow({ productId, variant }: { productId: number; variant: Varian
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button type="button" size="sm" variant="outline" onClick={() => setEditing((v) => !v)}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setEditing((v) => !v)}
+        >
           {editing ? t("panel.variante.cancelar") : t("panel.variante.editar")}
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => setAdjusting((v) => !v)}>
-          {adjusting ? t("panel.variante.cancelar") : t("panel.variante.ajustarStock")}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setAdjusting((v) => !v)}
+        >
+          {adjusting
+            ? t("panel.variante.cancelar")
+            : t("panel.variante.ajustarStock")}
         </Button>
       </div>
 
@@ -134,9 +169,37 @@ function VariantFields({
         const compareAt = String(data.get("compareAtPyg") ?? "").trim();
 
         const reorderPointRaw = String(data.get("reorderPoint") ?? "").trim();
+        const attributes = attributeFormData(data, [
+          "interiorMm",
+          "interiorMmSecond",
+          "sizeSystem",
+          "sizeLabel",
+        ]);
+        const identifiers = attributeFormData(data, ["gtin", "mpn"]);
+        const attributesVerified = verificationDate(data, "attributesVerified");
+        const identifiersVerified = verificationDate(
+          data,
+          "identifiersVerified"
+        );
 
         startTransition(async () => {
           const result = await saveProductVariant({
+            attributes: Object.keys(attributes).length
+              ? {
+                  ...attributes,
+                  ...(attributesVerified
+                    ? { verifiedAt: attributesVerified }
+                    : {}),
+                }
+              : null,
+            identifiers: Object.keys(identifiers).length
+              ? {
+                  ...identifiers,
+                  ...(identifiersVerified
+                    ? { verifiedAt: identifiersVerified }
+                    : {}),
+                }
+              : null,
             productId,
             variantId: variant?.id,
             sku: String(data.get("sku") ?? ""),
@@ -144,7 +207,8 @@ function VariantFields({
             pricePyg: Number(data.get("pricePyg")),
             compareAtPyg: compareAt === "" ? null : Number(compareAt),
             isActive: data.get("isActive") === "on",
-            reorderPoint: reorderPointRaw === "" ? null : Number(reorderPointRaw),
+            reorderPoint:
+              reorderPointRaw === "" ? null : Number(reorderPointRaw),
           });
 
           if (!result.ok) {
@@ -157,6 +221,11 @@ function VariantFields({
         });
       }}
     >
+      <VariantAttributeFields
+        attributes={variant?.attributes}
+        identifiers={variant?.identifiers}
+        suffix={`-${variant?.id ?? "new"}`}
+      />
       {error ? (
         <p
           role="alert"
@@ -168,7 +237,9 @@ function VariantFields({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-1.5">
-          <Label htmlFor={`label-${variant?.id ?? "new"}`}>{t("panel.variante.etiqueta")}</Label>
+          <Label htmlFor={`label-${variant?.id ?? "new"}`}>
+            {t("panel.variante.etiqueta")}
+          </Label>
           <Input
             id={`label-${variant?.id ?? "new"}`}
             name="label"
@@ -178,7 +249,9 @@ function VariantFields({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor={`sku-${variant?.id ?? "new"}`}>{t("panel.variante.sku")}</Label>
+          <Label htmlFor={`sku-${variant?.id ?? "new"}`}>
+            {t("panel.variante.sku")}
+          </Label>
           <Input
             id={`sku-${variant?.id ?? "new"}`}
             name="sku"
@@ -188,7 +261,9 @@ function VariantFields({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor={`price-${variant?.id ?? "new"}`}>{t("panel.variante.precio")}</Label>
+          <Label htmlFor={`price-${variant?.id ?? "new"}`}>
+            {t("panel.variante.precio")}
+          </Label>
           <Input
             id={`price-${variant?.id ?? "new"}`}
             name="pricePyg"
@@ -203,7 +278,9 @@ function VariantFields({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor={`compare-${variant?.id ?? "new"}`}>{t("panel.variante.precioTachado")}</Label>
+          <Label htmlFor={`compare-${variant?.id ?? "new"}`}>
+            {t("panel.variante.precioTachado")}
+          </Label>
           <Input
             id={`compare-${variant?.id ?? "new"}`}
             name="compareAtPyg"
@@ -215,7 +292,9 @@ function VariantFields({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor={`reorder-${variant?.id ?? "new"}`}>{t("panel.variante.puntoReposicion")}</Label>
+          <Label htmlFor={`reorder-${variant?.id ?? "new"}`}>
+            {t("panel.variante.puntoReposicion")}
+          </Label>
           <Input
             id={`reorder-${variant?.id ?? "new"}`}
             name="reorderPoint"
@@ -235,19 +314,33 @@ function VariantFields({
       </div>
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="isActive" defaultChecked={variant?.isActive ?? true} />
+        <input
+          type="checkbox"
+          name="isActive"
+          defaultChecked={variant?.isActive ?? true}
+        />
         {t("panel.variante.activa")}
       </label>
 
       {variant === undefined ? (
-        <p className="text-muted-foreground text-xs">{t("panel.variante.arrancaEnCero")}</p>
+        <p className="text-muted-foreground text-xs">
+          {t("panel.variante.arrancaEnCero")}
+        </p>
       ) : null}
 
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={isPending}>
-          {isPending ? t("panel.acciones.guardando") : t("panel.variante.guardar")}
+          {isPending
+            ? t("panel.acciones.guardando")
+            : t("panel.variante.guardar")}
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={onDone} disabled={isPending}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onDone}
+          disabled={isPending}
+        >
           {t("panel.variante.cancelar")}
         </Button>
       </div>
@@ -357,9 +450,17 @@ function StockAdjustForm({
 
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={isPending}>
-          {isPending ? t("panel.acciones.guardando") : t("panel.variante.ajustarStock")}
+          {isPending
+            ? t("panel.acciones.guardando")
+            : t("panel.variante.ajustarStock")}
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={onDone} disabled={isPending}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onDone}
+          disabled={isPending}
+        >
           {t("panel.variante.cancelar")}
         </Button>
       </div>

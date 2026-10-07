@@ -13,6 +13,7 @@
 @import "../styles/temas/calido.css";
 @import "../styles/catalogue-editorial.css";
 @import "../styles/product-editorial.css";
+@import "../components/catalogue-interactions.css";
 
 html {
   --font-geist-sans: "Segoe UI", Arial, sans-serif;

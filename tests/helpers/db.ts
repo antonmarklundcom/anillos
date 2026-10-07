@@ -13,6 +13,9 @@ export const hasTestDb = Boolean(TEST_DATABASE_URL);
 // construye recién en el primer getDb(), así que alcanza con apuntarlo acá.
 if (TEST_DATABASE_URL) {
   process.env.DATABASE_URL = TEST_DATABASE_URL;
+  // Generic checkout fixtures explicitly exercise every method. Individual
+  // policy tests set owner choices or override this deployment configuration.
+  process.env.STORE_PAYMENT_METHODS ??= "transferencia,contra_entrega,tarjeta";
 }
 
 export function getTestDb() {
@@ -50,6 +53,7 @@ const TABLES = [
   "stock_adjustments",
   "variants",
   "product_images",
+  "product_slug_redirects",
   "products",
   "categories",
   "shipping_zones",
@@ -112,14 +116,12 @@ export async function seedPaymentReadiness(): Promise<void> {
   const { vi } = await import("vitest");
   vi.stubEnv("PAGOPAR_MODE", "mock");
   const { bankDetails } = await import("@/db/schema");
-  await getTestDb()
-    .insert(bankDetails)
-    .values({
-      id: 1,
-      banco: "Disposable Test Bank",
-      titular: "Test Store",
-      ruc: "80000000-0",
-      cuenta: "12345",
-      tipoCuenta: "corriente",
-    });
+  await getTestDb().insert(bankDetails).values({
+    id: 1,
+    banco: "Disposable Test Bank",
+    titular: "Test Store",
+    ruc: "80000000-0",
+    cuenta: "12345",
+    tipoCuenta: "corriente",
+  });
 }

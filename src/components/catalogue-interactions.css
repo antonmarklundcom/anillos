@@ -1,0 +1,46 @@
+.product-gallery-zoom-trigger {
+  display: block;
+  width: 100%;
+  text-align: inherit;
+  cursor: zoom-in;
+}
+.product-gallery-zoom-label {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--background);
+  font-size: 0.75rem;
+}
+.product-gallery-zoom {
+  width: min(96vw, 1100px);
+  max-width: min(96vw, 1100px);
+  padding: 1rem;
+}
+.product-gallery-zoom-image {
+  position: relative;
+  height: min(68dvh, 800px);
+  min-height: 180px;
+}
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.comparison-table th,
+.comparison-table td {
+  min-width: 190px;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.comparison-table th:first-child {
+  min-width: 140px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="dialog-overlay"],
+  .product-gallery-zoom {
+    animation: none !important;
+    transition: none !important;
+  }
+}

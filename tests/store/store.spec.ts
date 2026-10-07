@@ -1,9 +1,23 @@
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { TESTIDS } from "../../src/lib/testids";
+import { TIENDA } from "../../src/config/tienda";
 
 const shotDir =
   process.env.STORE_SCREENSHOT_DIR ?? "test-results/store-preview";
+
+async function expectPublicWhatsApp(page: Page) {
+  const links = page.locator('a[href*="wa.me"]');
+  await expect(links.first()).toBeVisible();
+  const number = TIENDA.whatsapp?.replace(/\D/g, "");
+  expect(number).toBeTruthy();
+  for (const link of await links.all())
+    await expect(link).toHaveAttribute(
+      "href",
+      new RegExp(`^https://wa\\.me/${number}(?:\\?|$)`)
+    );
+  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+}
 test("editorial home, accessible navigation, and paused motion", async ({
   page,
 }, info) => {
@@ -19,9 +33,7 @@ test("editorial home, accessible navigation, and paused motion", async ({
   ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#contenido")).toBeFocused();
-  await expect(
-    page.locator('a[href*="wa.me"], a[href^="mailto:"]')
-  ).toHaveCount(0);
+  await expectPublicWhatsApp(page);
   await expect(
     page.getByRole("button", { name: "Pausar movimiento" })
   ).toBeVisible();
@@ -95,7 +107,7 @@ test("pair variants stay unpurchasable and individual units remain explicit", as
   await variants.nth(1).click();
   await expect(variants.nth(1)).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId(TESTIDS.productAddToCart)).toHaveCount(0);
-  await expect(page.locator('a[href*="wa.me"]')).toHaveCount(0);
+  await expectPublicWhatsApp(page);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     "content",
     /noindex/
@@ -155,9 +167,7 @@ test("crawlable guides, search, sitemap and empty checkout gating", async ({
   await page.goto("/contacto");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("main")).toContainText("confirm");
-  await expect(
-    page.locator('a[href*="wa.me"], a[href^="mailto:"]')
-  ).toHaveCount(0);
+  await expectPublicWhatsApp(page);
   for (const route of [
     "/colecciones",
     "/guias",

@@ -796,6 +796,9 @@ export const esPY = {
 
   "adminError.producto.noPude": "No pude crear el producto.",
   "adminError.producto.noExiste": "Ese producto no existe.",
+  "adminError.producto.atributosInvalidos": "Revisá los atributos, la fuente y los identificadores verificados del producto.",
+  "adminError.producto.slugConcepto": "Un concepto ilustrativo no puede convertirse en una pieza real cambiando su URL, ni al revés. Creá una ficha nueva para el producto real.",
+  "adminError.producto.slugHistorico": "La URL {slug} ya está reservada por el catálogo o su historial. Elegí otra URL.",
   "adminError.producto.slugRepetido":
     'Ya hay un producto con el slug "{slug}".',
   "adminError.producto.skuRepetido":

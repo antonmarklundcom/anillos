@@ -110,6 +110,8 @@ describe("robots.txt", () => {
     // tienda, sin datos de nadie, y justamente lo que Google tiene que leer.
     const publicas = new Set([
       "colecciones",
+      // Public comparison uses only catalogue facts and declares noindex itself.
+      "comparar",
       "guias",
       "contacto",
       "como-funciona",
