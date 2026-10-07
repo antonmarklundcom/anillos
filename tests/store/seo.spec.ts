@@ -287,7 +287,7 @@ test("the placeholder gallery works with keyboard selection and stays out of mer
     );
   }
   await expect(gallery.locator("figcaption")).toContainText(
-    "No representa este producto"
+    "no es una foto del producto real"
   );
   await expect(gallery.locator("img").first()).toHaveAttribute("alt", /mano/);
   const data = (

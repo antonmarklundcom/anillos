@@ -55,6 +55,23 @@ afterEach(() => {
   window.localStorage.clear();
   window.history.replaceState(null, "", "/");
 });
+
+it("cannot buy or display a price for a concept with accidentally enabled stock settings", () => {
+  render(
+    <AddToCart
+      product={{
+        ...product,
+        slug: "concepto-prueba",
+        saleMode: "stock",
+        showPrice: true,
+      }}
+    />
+  );
+  expect(screen.queryByTestId("product-add-to-cart")).toBeNull();
+  expect(screen.queryByText("producto.agregar")).toBeNull();
+  expect(screen.queryByText(/120\.000/)).toBeNull();
+  expect(screen.queryByText("producto.precioOrientativo")).toBeNull();
+});
 it("selects a valid shared SKU ahead of local memory and keeps selection shareable", () => {
   window.localStorage.setItem(
     "tienda-py-variante",

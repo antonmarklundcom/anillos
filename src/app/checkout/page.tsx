@@ -3,6 +3,7 @@ import Link from "next/link";
 import { log } from "@/lib/log";
 
 import { CheckoutForm } from "@/components/checkout-form";
+import { CheckoutEnquiry } from "@/components/checkout-enquiry";
 import { CheckoutTrust } from "@/components/checkout-trust";
 import type { PaymentMethod } from "@/db/schema";
 import { BeginCheckoutEvent } from "@/components/funnel-event";
@@ -56,13 +57,16 @@ export default async function CheckoutPage() {
 }
 
 async function AvailableCheckout() {
+  const readyPayments = await readyPaymentMethods();
+  const contactHref = await waLinkPublico(t("checkout.confianza.waMensaje"));
+  if (readyPayments.length === 0) {
+    return <CheckoutEnquiry contactHref={contactHref} />;
+  }
   const zones = await listShippingZones().catch(() => []);
   const cities = zones
     .flatMap((zone) => zone.cities)
     .sort((a, b) => a.localeCompare(b, "es"));
   const pagoparEnabled = isPagoparConfigured();
-  const readyPayments = await readyPaymentMethods();
-  const contactHref = await waLinkPublico(t("checkout.confianza.waMensaje"));
   // Sin cupones cargados el campo de descuento no se dibuja.
   const hayCupones = await hasUsableCoupons().catch(() => false);
 

@@ -287,9 +287,15 @@ export default async function ProductPage({
           {
             src,
             thumbnailSrc: productImageUrl(image.cloudinaryId, "thumb") ?? src,
-            alt: image.alt ?? product.name,
-            illustrative: !verifiedProductImage(image),
+            alt:
+              isConceptProduct(product.slug) ||
+              image.provenance === "illustrative"
+                ? `Diseño ilustrativo: ${product.name}. No es una foto del producto real.`
+                : image.alt ?? product.name,
+            illustrative:
+              isConceptProduct(product.slug) || !verifiedProductImage(image),
             evidencePending:
+              !isConceptProduct(product.slug) &&
               !verifiedProductImage(image) &&
               image.provenance !== "illustrative",
           },

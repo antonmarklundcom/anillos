@@ -1,5 +1,7 @@
 # Anillos coding session and PR handoff — 7 October 2026
 
+Status update: PR #14 is merged/live at `3e94939`; Anton confirms production `0023` and `0024` are already applied. The open-PR and pending-rollout statements below record the earlier session, not current work to repeat. See [DEMAND-TEST-REVIEW-2026-10.md](DEMAND-TEST-REVIEW-2026-10.md) for the current enquiry-only scope.
+
 This report accompanies Anton's `anillos-claude-handoff-2026-10-08.md`. Anillos is the store; `antonmarklundcom/ecom` is the template and was not modified. The user authorized implementation after the independent read-only review, then explicitly requested an open PR for manual merging. This session did not merge, deploy, migrate production, change hosting/DNS/accounts, contact suppliers or purchase media.
 
 ## PR and review boundary

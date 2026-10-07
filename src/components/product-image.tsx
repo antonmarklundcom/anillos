@@ -67,6 +67,7 @@ export function ProductImage({
   concept?: boolean;
 }) {
   const url = productImageUrl(image?.cloudinaryId, size);
+  const illustrative = concept || image?.provenance === "illustrative";
   const wrapper = cn(
     "bg-muted relative aspect-square overflow-hidden rounded-lg",
     className
@@ -146,7 +147,11 @@ export function ProductImage({
     <div className={wrapper}>
       <Image
         src={url}
-        alt={image?.alt ?? alt}
+        alt={
+          illustrative
+            ? `Imagen ilustrativa para ${alt}; no es una fotografía del producto`
+            : image?.alt ?? alt
+        }
         fill
         unoptimized
         priority={priority}
@@ -155,11 +160,9 @@ export function ProductImage({
         placeholder={image?.blurDataUrl ? "blur" : "empty"}
         blurDataURL={image?.blurDataUrl ?? undefined}
       />
-      {image && !verifiedProductImage(image) ? (
+      {image && (illustrative || !verifiedProductImage(image)) ? (
         <span className="text-muted-foreground bg-background/95 absolute inset-x-3 bottom-3 rounded px-2 py-1 text-center text-xs">
-          {image.provenance === "illustrative"
-            ? "Imagen ilustrativa"
-            : "Imagen por verificar"}
+          {illustrative ? "Imagen ilustrativa" : "Imagen por verificar"}
         </span>
       ) : null}
     </div>

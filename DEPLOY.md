@@ -7,6 +7,14 @@ mismo hPanel.
 
 El orden importa. Cada sección de acá abajo salió de algo que ya rompió una vez.
 
+**Anillos ya está desplegado:** Anton confirmó PR #14 live y migraciones
+`0023`/`0024` aplicadas el 7 de octubre. Para el test de demanda actual, seguí
+[DEMAND-TEST-REVIEW-2026-10.md](docs/DEMAND-TEST-REVIEW-2026-10.md): sólo consultas,
+sin pagos. No repitas inicialización, migraciones ni seeds. Los ejemplos de
+tienda nueva de abajo no son pasos para este sitio existente. `db:push`,
+`db:seed`, `demo` y `seed-store --with-concepts` se limitan a bases loopback
+descartables de prueba.
+
 ---
 
 ## 1. Conectar el repo (git deploy)
@@ -317,6 +325,11 @@ automatizarlo).
 5. **Sacá `SETUP_SECRET`** de las Environment variables y apretá **Redeploy**.
    La ruta vuelve a responder 503 y ahí queda para siempre.
 
+El formulario intenta autenticar la cuenta por el login normal y abre
+`/admin/bienvenida`. Si falla ese login, la cuenta creada sigue creada: usá
+`/admin/login`, no repitas la inicialización para entrar. Sin secreto válido,
+`/setup` es 404 y el POST de inicialización es 503.
+
 **Trampa:** el paso 5 no es opcional y no se hace solo. Guardar la variable
 —o borrarla— no reinicia nada: hasta el Redeploy, el proceso viejo sigue con el
 secreto en memoria y la ruta viva. `pnpm preflight` avisa si `SETUP_SECRET`
@@ -348,7 +361,7 @@ Sigue funcionando, contra la base remota (Remote MySQL habilitado, punto 3):
 pnpm db:check      # ¿la URL de la base es la correcta?
 pnpm db:push       # schema + FULLTEXT + FK + contador
 pnpm db:seed       # catálogo de ejemplo — reemplazalo por el real
-pnpm create-owner  # única forma de crear usuario del panel
+pnpm create-owner  # alternativa al setup protegido para crear el dueño
 ```
 
 **Trampa:** `db:push` compara contra `schema.ts` y decide él solo qué ALTER
@@ -536,8 +549,11 @@ pnpm preflight
 ```
 
 Lista qué falta para cobrar plata de verdad (datos bancarios, `CRON_SECRET`,
-modo de la pasarela, Cloudinary) y sale con código 1 si algo bloquea. No toca la
-base ni la red, así que se puede correr todas las veces que quieras.
+modo de la pasarela, Cloudinary) y sale con código 1 si algo bloquea. El control
+puro `preflight()` no toca red/base; la CLI `pnpm preflight` sí lee integraciones,
+ajustes, medios de pago/Banco y envíos en la base. Es sólo lectura. Un checkout
+pausado bloquea el cobro intencionalmente; no exige habilitar pagos para un test
+de consultas.
 
 Después, a mano: entrar a la tienda, agregar algo al carrito, llegar al
 checkout, y entrar a `/admin` con la cuenta del dueño.

@@ -4,6 +4,8 @@ Bootstrapped into the existing repository with `NEW-STORE.md §1b` and `pnpm boo
 
 No source environments, credentials, databases, builds or Git metadata were copied. The store wizard generated distinct session, cron and setup secrets privately in ignored `.env.local`. Contact, bank, payments, suppliers, street address, hours and delivery conditions remain unset.
 
+Later status: the owner confirmed the public WhatsApp fallback documented in SUPPLIER-READY-IMPLEMENTATION.md; the other business facts above are not thereby confirmed. PR #14 is now merged/live and Anton confirms migrations `0023`/`0024` applied. Current demand-test configuration and remaining owner actions are in [DEMAND-TEST-REVIEW-2026-10.md](DEMAND-TEST-REVIEW-2026-10.md).
+
 ## Presentation and content
 
 Store-only merchandising lives in `src/config/ring-store.ts`, prose in `src/content/guides.ts`, generated media in `public/media`, and the brand in `src/config/tienda.ts`. The effective admin identity still takes precedence. Shared domain, actions, inventory, payment readiness, integer PYG calculations, transitionOrder, SQL casts, outbox, account security and migrations remain the pinned template implementations. Existing test IDs remain in place.

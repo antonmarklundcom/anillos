@@ -186,7 +186,7 @@ export const esPY = {
   "producto.agregar": "Agregar al carrito",
   "producto.agregado": "Agregado al carrito",
   "producto.consultaWhatsApp":
-    '¡Hola! Me interesa "{nombre}". ¿Está disponible?',
+    '¡Hola! Quiero consultar por "{nombre}". ¿Podemos evaluar un modelo real, su material, talle, precio y entrega? Es una consulta, sin pedido, reserva ni pago.',
   "producto.dudaWhatsApp": "¿Tenés una duda? Consultanos por WhatsApp",
   "producto.descripcion": "Descripción",
   "producto.iva": "IVA",
@@ -1805,7 +1805,7 @@ export const esPY = {
   // ir adentro de la clave: así una tienda que no configuró esa variable
   // manda el mismo mensaje sin un hueco vacío al final.
   "producto.consultaVariante":
-    'Hola, quiero consultar por "{producto}" ({variante}, SKU {sku})',
+    'Hola, quiero consultar por "{producto}" ({variante}, SKU {sku}). ¿Podemos evaluar un modelo real, material, medidas, precio y entrega? Las opciones mostradas quedan por confirmar. Es una consulta, sin pedido, reserva ni pago.',
   "producto.consultarWhatsApp": "Consultar por WhatsApp",
 
   // -------------------------------------------------------------------------
@@ -2196,11 +2196,11 @@ export const esPY = {
   "checkout.confianza.titulo": "Comprá tranquilo",
   "checkout.confianza.linea1": "Precios en guaraníes, IVA incluido",
   "checkout.confianza.linea2": "Seguí tu pedido con su enlace privado",
-  "checkout.confianza.linea3": "Envíos a todo el país",
+  "checkout.confianza.linea3": "Confirmá las condiciones de entrega antes de pagar",
   "checkout.confianza.medios": "Podés pagar con:",
   "checkout.confianza.whatsapp": "¿Dudas? Escribinos por WhatsApp",
   "checkout.confianza.waMensaje":
-    "¡Hola! Tengo una duda antes de terminar mi compra.",
+    "¡Hola! Quiero consultar por un diseño de anillo. Diseño o enlace: __. Medidas aproximadas (dos para un par): __. Presupuesto en guaraníes: __. Ciudad y fecha deseada: __. Modelo real, material, precio y entrega por confirmar. Es una consulta, sin pedido, reserva ni pago.",
   "paginas.dias.uno": "{n} día",
   "paginas.dias.varios": "{n} días",
   "paginas.y": "y",

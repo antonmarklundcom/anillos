@@ -19,13 +19,13 @@ import type { PaginaSlug } from "@/domain/store-settings-schema";
 export const PAGINAS_DEFAULT: Readonly<Record<PaginaSlug, { titulo: string; cuerpo: string }>> = {
   envios: {
     titulo: "Envíos",
-    cuerpo: `Enviamos a todo el país. El costo del envío depende de tu ciudad y lo ves antes de confirmar el pedido, en el checkout.
+    cuerpo: `Estamos evaluando el interés en los diseños del catálogo. No tenemos cobertura, retiro, costos ni plazos de entrega confirmados.
 
-**Cuándo sale tu pedido**
-Preparamos el pedido cuando se confirma el pago. Si pagás contra entrega, lo confirmamos con vos por WhatsApp antes de despacharlo.
+**Antes de acordar una entrega**
+Deberán confirmarse el modelo real, proveedor, ciudad, responsable del despacho, costo y plazo. Una fecha deseada en una consulta no es una fecha de entrega prometida.
 
-**Seguimiento**
-Cuando tu pedido sale, te avisamos. También podés ver en qué estado está desde el link que te llega al comprar.
+**Consultas**
+Esta etapa no acepta pedidos, reservas ni pagos. Consultar por una pieza a pedido no confirma que podamos conseguirla.
 
 **¿Dudas con tu envío?**
 - WhatsApp: {{whatsapp}}
@@ -34,35 +34,34 @@ Cuando tu pedido sale, te avisamos. También podés ver en qué estado está des
   },
   devoluciones: {
     titulo: "Cambios y devoluciones",
-    cuerpo: `Queremos que te guste lo que compraste en {{tienda}}. Si algo no es lo que esperabas, avisanos dentro de {{diasDevolucion}} de recibido el pedido y lo resolvemos.
+    cuerpo: `{{tienda}} está en etapa de consultas. Todavía no acepta pedidos ni pagos por los diseños conceptuales.
 
-**Cómo pedir un cambio o una devolución**
-- Escribinos por WhatsApp ({{whatsapp}}) con tu número de pedido.
-- Contanos qué producto querés cambiar o devolver y por qué.
-- Te decimos cómo hacernos llegar el producto.
+**Condiciones por confirmar**
+Antes de vender una pieza real deberán definirse los plazos, costos, procedimiento de cambios y devoluciones y la atención de defectos. No hay un punto de retiro o devolución confirmado.
 
-**Qué necesitamos**
-El producto sin uso, con sus etiquetas y en su empaque original. Si llegó fallado o no es lo que pediste, lo resolvemos nosotros.
+**Talles y grabado**
+La posibilidad y el costo de ajustar un talle o grabar una pieza dependen del modelo y proveedor. También deberán aclararse las condiciones de las piezas personalizadas antes de aceptar un pedido. No hay servicio de grabado confirmado.
 
-**Dónde**
-Punto de entrega o retiro: {{direccion}}.`,
+**Contacto**
+- WhatsApp: {{whatsapp}}
+- Email: {{email}}`,
   },
   "preguntas-frecuentes": {
     titulo: "Preguntas frecuentes",
     cuerpo: `**¿Cómo compro?**
-Elegí tus productos, sumalos al carrito y completá tus datos en el checkout. No hace falta crear una cuenta.
+Por ahora podés explorar y consultar por WhatsApp. La consulta no crea un pedido ni una reserva.
 
 **¿Cómo puedo pagar?**
-Aceptamos {{mediosDePago}}.
+No solicitamos pagos en esta etapa de consultas.
 
 **¿Los precios incluyen IVA?**
-Sí, todos los precios están en guaraníes con IVA incluido.
+Los conceptos no tienen precio de venta. El precio final y su tratamiento fiscal deberán confirmarse para una pieza real.
 
 **¿Hacen envíos?**
-Sí, a todo el país. El costo lo ves en el checkout antes de confirmar.
+Cobertura, costos, retiro y plazos quedan por confirmar. No prometemos envío a todo el país.
 
 **¿Cómo sigo mi pedido?**
-Con el link que te llega al comprar, o desde "Seguí tu pedido" al pie de {{url}}.
+En esta etapa no se generan pedidos para seguir.
 
 **¿Dónde están?**
 - Dirección: {{direccion}}
@@ -74,19 +73,19 @@ Con el link que te llega al comprar, o desde "Seguí tu pedido" al pie de {{url}
   },
   terminos: {
     titulo: "Términos y condiciones",
-    cuerpo: `Estos términos explican cómo funcionan las compras en {{tienda}} ({{url}}). Al hacer un pedido, los aceptás.
+    cuerpo: `{{tienda}} ({{url}}) está en etapa de consultas para evaluar el interés en diseños de anillos.
 
 **Precios**
-Los precios están en guaraníes, con IVA incluido. El precio que vale es el que ves al confirmar el pedido.
+Los conceptos no tienen precio de venta. Modelo real, material, talles, unidad, precio final y tratamiento fiscal deberán confirmarse antes de cualquier futura venta.
 
 **Pedidos y stock**
-Un pedido queda confirmado cuando se acredita el pago o, si pagás contra entrega, cuando lo confirmamos con vos. Si un producto se agota antes de eso, te avisamos y te ofrecemos otra opción o la devolución de lo que hayas pagado.
+Las imágenes ilustrativas no acreditan mercadería disponible. Una consulta no confirma suministro, no crea un pedido y no reserva stock.
 
 **Pagos**
-Aceptamos {{mediosDePago}}.
+No solicitamos pagos en esta etapa.
 
 **Envíos, cambios y devoluciones**
-Los plazos y costos están en las páginas de envíos y de cambios y devoluciones.
+Cobertura, plazos, costos, ajustes, grabado, cambios y devoluciones siguen por definir. Se deberán publicar las condiciones verificadas antes de aceptar pedidos.
 
 **Contacto**
 - WhatsApp: {{whatsapp}}

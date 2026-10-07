@@ -2,6 +2,8 @@
 
 Implementation reviewed on 6 October 2026. This is code and local verification, not a production launch, supplier agreement or upstream template contribution.
 
+Current status (7 October): PRs #13 and #14 are merged; Anton confirms `0023` and `0024` are applied and #14 is live. The current demand test supersedes the transfer-first launch profile described below: checkout defaults to no payment methods. Saved owner settings and deployment policy retain precedence, so Anton must explicitly pause payments in `/admin/ajustes#checkout`. See [DEMAND-TEST-REVIEW-2026-10.md](DEMAND-TEST-REVIEW-2026-10.md). The original implementation and validation record below is historical.
+
 ## What the store gains
 
 - Public WhatsApp fallback: **+595 992 279599**, confirmed by the owner. Saved public contact/integration configuration retains precedence. Internal order-alert recipients still require their own private integration configuration.
