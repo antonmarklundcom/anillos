@@ -1,6 +1,6 @@
 # Supplier catalogue preparation batch — 7 October 2026
 
-This batch branches from PR #15 (`e6ffc163`) and preserves its paused payment defaults and concept safeguards. It is separate catalogue work, intended as a stacked PR targeting `codex/demand-test-enquiry-copy` while #15 remains open. No merge, deployment, production database access or supplier contact is authorised here.
+This batch branches from PR #15 (`e6ffc163`) and preserves its paused payment defaults and concept safeguards. It originally targeted `codex/demand-test-enquiry-copy`. On 7 October, #15 was merged outside this session; PR #16 now targets `main`. The subsequent sales batch is documented in [SALES-ENQUIRY-TOOLS-2026-10.md](SALES-ENQUIRY-TOOLS-2026-10.md). No merge, deployment, production database access or supplier contact is authorised here.
 
 ## What this batch implements
 
@@ -30,7 +30,7 @@ Public categories/guides provide useful information. A private research draft is
 
 ## Safe owner sequence
 
-1. Review #15 and this dependent batch; do not deploy either automatically. Continue with no enabled payment methods saved in admin for the demand test.
+1. Review this catalogue batch against the already merged #15; do not deploy it automatically. Continue with no enabled payment methods saved in admin for the demand test.
 2. Review the private twelve-reference manifest and coverage CSV. Choose real models to pursue; do not approve historical or conflicting facts just because a draft exists.
 3. For AJ440, obtain/confirm an original of the exact physical model and the right to edit/publish it with AI. For AJ19, additionally obtain an isolated complete reference. Additional views are required before a gallery/hand shot.
 4. Once those inputs are ready, decide whether to approve the 3-credit AJ440 A/B. Requote immediately before generation. Reject an attractive but altered ring; do not spend on a catalogue batch until this pilot passes.
@@ -47,18 +47,18 @@ The ecom template is untouched. A pure catalogue-preparation pattern or enquiry 
 
 Fresh checks for this batch, with private production environment removed:
 
-| Check | Result / evidence |
-| --- | --- |
-| Frozen install | PASS, Node 24.19.0 and pinned pnpm 11.22.0; lockfile unchanged. |
-| Typecheck and lint | PASS. Initial narrowing errors in the new test were fixed; final explicit runs exited 0. |
-| Unit/UI | PASS, 127 files, 1,176 tests; 2 conditional skips: template account defaults in this customised store, and absent template-only `tiendas.json`. |
-| Focused catalogue tests | PASS, 6 tests, including portable CSV newline reproduction, all twelve unpriced/private references and truthful enquiry copy. |
-| MySQL 8.4.11 | PASS, 90 files, 898 tests; 1 external Pagopar sandbox skip. |
-| MariaDB 10.11.19 | PASS, 90 files, 898 tests; same external sandbox skip. |
-| Final Webpack build | PASS after the mobile guide links were enlarged to 44 px; includes TypeScript validation. With DB intentionally absent during build, expected catalogue/settings fallback warnings appeared. |
-| Chromium | PASS at 1440 and 390 px after the final build: all ten tailored category comparisons and 44 px guide targets, no overflow, canonical/filter controls, no private supplier HTML, concept noindex/no Offers/no cart, truthful WhatsApp URL/copy, paused checkout and draft 404. Sitemap excludes concepts/drafts. Orders/payments/reservations stayed 0/0/0; no external link was followed. Screenshots inspected. |
-| Preflight | Expected FAIL in the unconfigured snapshot: 7 payment/setup blockers; DB-dependent delivery check unavailable. This is not live configuration evidence or payment readiness. |
-| Hosted CI | Actions confirmed disabled on 7 October; no hosted CI success claimed. Initial API TLS failure recovered on retry. |
+| Check                   | Result / evidence                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frozen install          | PASS, Node 24.19.0 and pinned pnpm 11.22.0; lockfile unchanged.                                                                                                                                                                                                                                                                                                                                                  |
+| Typecheck and lint      | PASS. Initial narrowing errors in the new test were fixed; final explicit runs exited 0.                                                                                                                                                                                                                                                                                                                         |
+| Unit/UI                 | PASS, 127 files, 1,176 tests; 2 conditional skips: template account defaults in this customised store, and absent template-only `tiendas.json`.                                                                                                                                                                                                                                                                  |
+| Focused catalogue tests | PASS, 6 tests, including portable CSV newline reproduction, all twelve unpriced/private references and truthful enquiry copy.                                                                                                                                                                                                                                                                                    |
+| MySQL 8.4.11            | PASS, 90 files, 898 tests; 1 external Pagopar sandbox skip.                                                                                                                                                                                                                                                                                                                                                      |
+| MariaDB 10.11.19        | PASS, 90 files, 898 tests; same external sandbox skip.                                                                                                                                                                                                                                                                                                                                                           |
+| Final Webpack build     | PASS after the mobile guide links were enlarged to 44 px; includes TypeScript validation. With DB intentionally absent during build, expected catalogue/settings fallback warnings appeared.                                                                                                                                                                                                                     |
+| Chromium                | PASS at 1440 and 390 px after the final build: all ten tailored category comparisons and 44 px guide targets, no overflow, canonical/filter controls, no private supplier HTML, concept noindex/no Offers/no cart, truthful WhatsApp URL/copy, paused checkout and draft 404. Sitemap excludes concepts/drafts. Orders/payments/reservations stayed 0/0/0; no external link was followed. Screenshots inspected. |
+| Preflight               | Expected FAIL in the unconfigured snapshot: 7 payment/setup blockers; DB-dependent delivery check unavailable. This is not live configuration evidence or payment readiness.                                                                                                                                                                                                                                     |
+| Hosted CI               | Actions confirmed disabled on 7 October; no hosted CI success claimed. Initial API TLS failure recovered on retry.                                                                                                                                                                                                                                                                                               |
 
 Initial parallel integration attempts hit local timeout failures and were interrupted. Both complete suites were rerun sequentially on the disposable loopback servers with 120-second test/hook allowances; their final results above supersede those attempts. Test-only runtime durability settings were adjusted only after verifying our own datadirs. Initial Chromium's 30-second navigation timed out; the successful checks used a 120-second allowance. No repository timeout/configuration or production setting was changed to mask these attempts.
 

@@ -1,0 +1,173 @@
+.ring-finder {
+  margin-top: 2rem;
+}
+.ring-finder form {
+  display: grid;
+  gap: 2rem;
+  max-width: 850px;
+}
+.ring-finder legend {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.ring-finder-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.ring-finder-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.ring-finder-options label:has(:checked) {
+  background: var(--foreground);
+  color: var(--background);
+}
+.ring-finder-options input {
+  accent-color: currentColor;
+}
+.ring-finder-options label:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.ring-finder-result,
+.ring-finder-next {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  margin-top: 2rem;
+}
+.ring-finder-result h2,
+.ring-finder-next h2 {
+  font-size: 1.5rem;
+}
+.ring-finder-result p,
+.ring-finder-next p {
+  margin: 1rem 0;
+  line-height: 1.7;
+}
+.ring-finder-result ul,
+.ring-finder-next > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.ring-finder-result li a,
+.ring-finder-next a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.35rem;
+}
+.ring-print-guide {
+  margin-top: 1rem;
+  overflow: auto;
+}
+.ring-print-calibration {
+  width: 50mm;
+  height: 5mm;
+  border-left: 1px solid;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+  margin: 5mm 0;
+}
+.ring-print-circles {
+  display: grid;
+  grid-template-columns: repeat(6, 25mm);
+  gap: 3mm;
+}
+.ring-print-circle-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2mm;
+}
+.ring-print-circle-cell svg {
+  flex: none;
+  max-width: none;
+}
+.ring-print-guide h4 {
+  margin-top: 4mm;
+}
+.comparison-table th:first-child,
+.comparison-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--background);
+  z-index: 1;
+}
+.comparison-table thead th:first-child {
+  z-index: 2;
+}
+@media (max-width: 640px) {
+  .ring-finder-options label {
+    width: 100%;
+  }
+  .comparison-table th,
+  .comparison-table td {
+    min-width: 155px;
+    padding: 0.8rem;
+  }
+  .comparison-table th:first-child {
+    min-width: 105px;
+    max-width: 110px;
+  }
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body:has(.ring-print-guide) {
+    background: white !important;
+    color: black !important;
+  }
+  body:has(.ring-print-guide) * {
+    visibility: hidden !important;
+  }
+  body:has(.ring-print-guide)
+    *:not(:has(.ring-print-guide)):not(.ring-print-guide):not(
+      .ring-print-guide *
+    ) {
+    display: none !important;
+  }
+  body:has(.ring-print-guide) *:has(.ring-print-guide) {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    display: block !important;
+    min-height: 0 !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  body:has(.ring-print-guide) .ring-print-guide,
+  body:has(.ring-print-guide) .ring-print-guide * {
+    visibility: visible !important;
+  }
+  body:has(.ring-print-guide) .ring-print-guide {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    width: 185mm;
+    overflow: visible;
+    background: white;
+    color: black;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+  .ring-print-guide svg {
+    display: block;
+  }
+  .ring-print-guide h3 {
+    font-size: 16pt;
+  }
+}

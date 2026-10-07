@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { CONCEPT_LABEL, priceUnit } from "@/config/ring-display";
+import {
+  CONCEPT_LABEL,
+  displayProductName,
+  priceUnit,
+} from "@/config/ring-display";
 import { isConceptProduct } from "@/lib/concept-products";
 
 import { PriceTag } from "@/components/price-tag";
@@ -27,6 +31,7 @@ export function ProductCard({
   showRating?: boolean;
 }) {
   const concept = isConceptProduct(product.slug);
+  const displayName = displayProductName(product.name, product.slug);
   const showPrice = !concept && product.showPrice !== false;
   // El precio "desde" es el de la variante más barata disponible; si no hay
   // ninguna con stock, igual mostramos el más barato para no dejar el card mudo.
@@ -62,7 +67,7 @@ export function ProductCard({
         <div className="product-card-photo relative">
           <ProductImage
             image={product.image}
-            alt={product.name}
+            alt={displayName}
             categorySlug={product.categorySlug}
             concept={isConceptProduct(product.slug)}
             priority={priority}
@@ -74,7 +79,7 @@ export function ProductCard({
             {product.brand ?? product.categoryName}
           </p>
           <h3 className="product-card-title group-hover:text-foreground line-clamp-2 font-medium">
-            {product.name}
+            {displayName}
           </h3>
           <p
             className="text-muted-foreground text-xs"
@@ -90,7 +95,7 @@ export function ProductCard({
           </p>
           {concept ? (
             <p className="product-card-note text-muted-foreground text-xs">
-              {CONCEPT_LABEL} · sin compra ni reserva
+              {CONCEPT_LABEL}
             </p>
           ) : null}
           {showRating && product.rating && product.rating.count >= 1 ? (
@@ -137,7 +142,7 @@ export function ProductCard({
       </Link>
       <WishlistButton
         slug={product.slug}
-        name={product.name}
+        name={displayName}
         sku={shown?.sku}
         pricePyg={showPrice ? shown?.pricePyg : undefined}
       />

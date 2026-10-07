@@ -79,6 +79,9 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
             <span>Colecciones</span>
           </nav>
           <p className="eyebrow">Una elección que se siente tuya</p>
+          <Link href="/elegir" className="text-link">
+            Ayudame a elegir ↗
+          </Link>
           <h1>
             Colecciones de anillos <em>en Paraguay.</em>
           </h1>
