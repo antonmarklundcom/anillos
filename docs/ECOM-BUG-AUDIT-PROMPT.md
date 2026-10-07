@@ -7,6 +7,8 @@ Anillos (antonmarklundcom/anillos) is a separate store created from ecom at its
 to investigate, not patches to copy blindly. Do not change Anillos in this
 session. Read ecom's AGENTS.md, CLAUDE.md, ARCH.md, NEW-STORE.md, deployment,
 backup, template-distribution instructions and current Git status first.
+Reference PR: https://github.com/antonmarklundcom/anillos/pull/14
+Reference handoff: Anillos docs/CODING-HANDOFF-2026-10.md
 
 Goal: make ecom reliable, accessible and easy to initialize and maintain for
 multiple independent stores. Verify each suspected defect in current code;

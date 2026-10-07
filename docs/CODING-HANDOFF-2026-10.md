@@ -5,7 +5,7 @@ This report accompanies Anton's `anillos-claude-handoff-2026-10-08.md`. Anillos 
 ## PR and review boundary
 
 - Baseline: `a1fd64f8f6539118444eedbac0837bd66d0d51fe` (main after PR #13).
-- Branch: `codex/review-fixes-catalogue`. PR link and final mergeability are recorded below when verification finishes.
+- Branch: `codex/review-fixes-catalogue`. [PR #14 — Fix catalogue failures, imports and verified product SEO](https://github.com/antonmarklundcom/anillos/pull/14) is open and unmerged.
 - The user requested one reviewable PR. Batches A–H are combined on this branch; this intentionally differs from the attached handoff's proposed PR stack.
 - The complete 30-idea reconciliation, priorities, narrow remedies and remaining enhancements are in [IMPROVEMENT-PLAN-2026-10.md](IMPROVEMENT-PLAN-2026-10.md). No claim that every original enhancement acceptance criterion is complete.
 - The best-five dependency order stays #1, #6, #4, #5, #2; schema diagnostics #7 and migration collision protection #28 accompany #6 before adoption of new schema.
@@ -56,6 +56,7 @@ Databases were disposable loopback MySQL 8.4.11 at port 54427 and MariaDB 10.11.
 | Older-schema backup/restore | PASS on both engines: real 0022 source dumped, inspected, restored/upgraded to 0024; five synthetic rows preserved, signed/integer price and stock intact, new metadata NULL, reconciliation/key check true. Modules exercised directly. |
 | `pnpm backup:verify -- <file> --restore` | PASS end to end with one in-memory key: 134 synthetic preview rows inspected and restored into a new empty loopback `test_restore_check` database. |
 | Chrome store specs | PASS: 13 passed, 1 mobile-only skip; public destinations, SEO HTML, galleries, comparison and hero motion. Mobile interactions are checked separately. |
+| Chrome mobile-emulation specs | PASS: 6 passed, 2 desktop-only skips; catalogue navigation, category anchors, 320 px product layout, gallery keyboard/zoom, hero copy/motion and guide FAQ. |
 | axe + mobile layout | PASS: home/category/product/guide at 360 and 1366 px, all eight HTTP 200, zero WCAG 2 A/AA + 2.1 AA violations and no horizontal overflow; screenshots visually reviewed. |
 | Chrome admin smoke | PASS with a synthetic preview-only owner: login, all 17 menu/detail routes HTTP 200 with H1 and isolated admin workspace; 360 px product list had no overflow. No real account credentials used. |
 | `git diff --check` | PASS. Final PR conflict/mergeability recorded below. |
@@ -105,8 +106,12 @@ The copyable **ecom template audit/fix prompt** is [ECOM-BUG-AUDIT-PROMPT.md](EC
 
 ## Final verification / PR record
 
-Code verification is complete: frozen install, typecheck, lint, unit/component, both full database suites, build, no migration drift, local migration/schema CLI, backup/restore rehearsals, Chrome desktop, axe and admin smoke checks. The final mobile result and open PR URL/mergeability are appended before delivery. The local preview is at `http://127.0.0.1:3043`, bound to loopback; category example `/categoria/plata-925`, product example `/producto/concepto-par-plata`.
+Code verification is complete: frozen install, typecheck, lint, unit/component, both full database suites, build, no migration drift, local migration/schema CLI, backup/restore rehearsals, Chrome desktop/mobile, axe and admin smoke checks. Source implementation commit: `948db0463d7f65af4fd3194a979b20ed140508fc`; the following documentation commit records final results and the PR link.
+
+[PR #14](https://github.com/antonmarklundcom/anillos/pull/14) targets `main`, is OPEN (not draft), and GitHub reported `MERGEABLE` / `CLEAN` on 7 October. The latest fetched main remained `a1fd64f8f6539118444eedbac0837bd66d0d51fe`; no base changes or rebase were needed. Hosted status-check list is empty because Actions is disabled. No merge or deployment was performed. The desktop PR attachment request did not return, so UI attachment is not confirmed; the GitHub PR itself is verified.
+
+The local preview is at [collections](http://127.0.0.1:3043/colecciones), [silver category](http://127.0.0.1:3043/categoria/plata-925) and [product concept](http://127.0.0.1:3043/producto/concepto-par-plata), bound to loopback. Both example detail routes returned HTTP 200; the concept remains noindex with one H1. The user's existing port-3042 server was not stopped or replaced.
 
 Git Bash's hook dispatcher had failed at branch creation (`dirname` unavailable). Commit/push hooks are disabled for this session only; their typecheck/lint/unit commands were run explicitly and passed above. Hook files were not changed.
 
-Resume prompt: `Read docs/CODING-HANDOFF-2026-10.md and docs/IMPROVEMENT-PLAN-2026-10.md in Anillos; verify the open PR and remaining items against code, keep ecom read-only, and do not merge, deploy or touch production without my authorization.`
+Resume prompt: `Read docs/CODING-HANDOFF-2026-10.md and docs/IMPROVEMENT-PLAN-2026-10.md in Anillos, reconcile PR #14 against code and my attached Claude handoff, then prioritize the remaining work; keep ecom read-only, and do not merge, deploy or touch production without my authorization.`
