@@ -12,7 +12,7 @@ Este lote mejora la elección, la calidad de las consultas y la organización de
 
 ## Cambios para compradores
 
-1. Los títulos visibles de conceptos dejan de repetir `· concepto`, también si la DB conserva el nombre antiguo. No se reescriben filas. Las imágenes conservan `Imagen ilustrativa`; la tarjeta usa solamente `Solo consulta`.
+1. Los títulos visibles de conceptos dejan de repetir `· concepto`, también en autocomplete y si la DB conserva el nombre antiguo. No se reescriben filas. Las imágenes conservan `Imagen ilustrativa`; la tarjeta usa solamente `Solo consulta`. El historial de vistos descarta conceptos reservados incluso si conserva un precio antiguo.
 2. `/elegir` pregunta ocasión y estilo, sugiere hasta tres colecciones existentes y enlaza guías existentes, favoritos y comparación. Las respuestas nunca se convierten en hechos del producto.
 3. La ficha permite preparar una consulta opcional con cantidad, diámetro, segundo diámetro cuando corresponde, ciudad, fecha deseada, preferencia de presupuesto y detalles del estilo. Se puede revisar el mensaje antes de abrir WhatsApp o copiarlo.
 4. Favoritos permite consultar hasta cinco diseños en un solo mensaje. Cambiar los diseños seleccionados conserva los datos todavía no guardados. Las fichas en modo showcase quedan fuera de esta selección de consulta.
@@ -68,7 +68,7 @@ Las verificaciones usan una copia de fuentes visibles sin `.env.local` y únicam
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm install --frozen-lockfile`                           | PASS; sin cambios de dependencias ni lockfile                                                                                                                        |
 | `pnpm typecheck` y `pnpm lint`                             | PASS                                                                                                                                                                 |
-| Unit/UI, 2 workers, límite local 15 s                      | PASS: 133 archivos, 1.223 tests; 2 skips existentes                                                                                                                  |
+| Unit/UI, 2 workers, límite local 15 s                      | PASS: 133 archivos, 1.224 tests; 2 skips existentes                                                                                                                  |
 | MySQL 8.4.11 loopback descartable                          | PASS: 90 archivos, 898 tests; 1 skip existente                                                                                                                       |
 | MariaDB 10.11.19 loopback descartable                      | PASS: 90 archivos, 898 tests; 1 skip existente                                                                                                                       |
 | `pnpm build:webpack` con URL explícita de preview loopback | PASS                                                                                                                                                                 |

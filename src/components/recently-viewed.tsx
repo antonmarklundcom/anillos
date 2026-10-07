@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { CART_STORAGE_KEY } from "@/lib/cart-store";
+import { isConceptProduct } from "@/lib/concept-products";
 import { t } from "@/i18n/client";
 import { productImageUrl } from "@/lib/images";
 import {
@@ -52,6 +53,7 @@ function isItem(value: unknown): value is RecentlyViewedItem {
   return (
     typeof item.slug === "string" &&
     item.slug !== "" &&
+    !isConceptProduct(item.slug) &&
     typeof item.name === "string" &&
     Number.isSafeInteger(item.pricePyg) &&
     (item.pricePyg ?? 0) > 0 &&

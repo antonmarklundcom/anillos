@@ -8,6 +8,7 @@ import { sugerirProductos } from "@/app/actions/search-suggest";
 import type { SearchSuggestion } from "@/db/queries";
 import { t } from "@/i18n/client";
 import { Input } from "@/components/ui/input";
+import { displayProductName } from "@/config/ring-display";
 
 /** Lo que se espera a que la persona deje de tipear antes de consultar. */
 const DEBOUNCE_MS = 250;
@@ -174,7 +175,7 @@ export function SearchBox({ className }: { className?: string }) {
                       index === highlighted ? "bg-muted" : ""
                     }`}
                   >
-                    <span>{item.name}</span>
+                    <span>{displayProductName(item.name, item.slug)}</span>
                     {item.brand ? (
                       <span className="text-muted-foreground text-xs">
                         {item.brand}
