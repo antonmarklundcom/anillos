@@ -13,6 +13,23 @@ afterEach(() => {
   cleanup();
   navigation.push.mockReset();
 });
+it("keeps price controls available on an empty page when the category has prices", () => {
+  render(
+    <CatalogFilters
+      brands={[]}
+      facets={{
+        material: [],
+        stone: [],
+        unit: [],
+        inStock: 0,
+        hasPrices: true,
+      }}
+      hasPrices
+      resultCount={0}
+    />
+  );
+  expect(screen.getByLabelText("Filtrar por precio")).toBeInTheDocument();
+});
 it("renders verified facets and changes stock in the URL while preserving other filters and resetting page", () => {
   render(
     <CatalogFilters
@@ -25,15 +42,9 @@ it("renders verified facets and changes stock in the URL while preserving other 
       }}
     />
   );
-  expect(
-    screen.getByLabelText("Material verificado")
-  ).toBeInTheDocument();
-  expect(
-    screen.getByLabelText("Piedra verificada")
-  ).toBeInTheDocument();
-  expect(
-    screen.getByLabelText("Unidad incluida")
-  ).toBeInTheDocument();
+  expect(screen.getByLabelText("Material verificado")).toBeInTheDocument();
+  expect(screen.getByLabelText("Piedra verificada")).toBeInTheDocument();
+  expect(screen.getByLabelText("Unidad incluida")).toBeInTheDocument();
   fireEvent.click(screen.getByLabelText("Con stock (1)"));
   expect(navigation.push).toHaveBeenCalledWith(
     "?material=Plata+925&piedra=Circonia&stock=1",

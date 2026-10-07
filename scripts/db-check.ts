@@ -1,6 +1,9 @@
 import '@/lib/load-env';
 
 import mysql from 'mysql2/promise';
+import { compareMigrations } from '../src/db/migration-status';
+import { readMigrationFiles } from 'drizzle-orm/migrator';
+import journal from '../drizzle/meta/_journal.json';
 
 /**
  * `pnpm db:check` — ¿la `DATABASE_URL` que tengo es la que creo que tengo?
@@ -148,6 +151,13 @@ async function main(): Promise<void> {
       | undefined;
 
     console.log('✓ conecta');
+    const [applied] = await connection.query('SELECT hash, created_at FROM __drizzle_migrations ORDER BY id ASC');
+    const expected = readMigrationFiles({ migrationsFolder: 'drizzle' }).map((file, index) => ({
+      tag: journal.entries[index]!.tag, hash: file.hash, timestamp: file.folderMillis,
+    }));
+    const status = compareMigrations(expected, applied as { hash: string; created_at: number | string }[]);
+    console.log(status.current ? '✓ esquema al día' : `! esquema pendiente o incompatible: ${status.pending.join(', ') || 'historial no reconocido'}`);
+    if (!status.current) process.exitCode = 1;
     // CURRENT_USER() es con quién quedaste autenticado de verdad, que no
     // siempre es el que pediste (MySQL puede resolver a un usuario anónimo).
     console.log(`  autenticado como   ${fila?.usuario ?? '?'}`);

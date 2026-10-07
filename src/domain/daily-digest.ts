@@ -20,6 +20,8 @@ import { resolveMessageSender, type MessageSender } from "./messaging";
 import { withTimeout } from "./notify-timing";
 import { log, mensajeDe } from "@/lib/log";
 import { valorIntegracion } from "@/lib/integraciones";
+import { backupsEnabled } from "./backup";
+import { backupAtrasado, getJobRun } from "./job-runs";
 
 /**
  * El resumen de la mañana que el dueño recibe por WhatsApp (plan-operacion
@@ -103,6 +105,7 @@ export type DailyDigest = {
   ayer: { totalPyg: number; orders: number };
   /** `true` cuando las cuatro secciones están vacías. */
   sinNovedades: boolean;
+  backupAtrasado?: boolean;
 };
 
 /** Estados que cuentan como "todavía no entró la plata" para el resumen. */
@@ -180,6 +183,7 @@ export async function buildDailyDigest(
   ]);
 
   const comprobantesPendientes = comprobantes[0]?.n ?? 0;
+  const overdueBackup = backupsEnabled() && backupAtrasado(await getJobRun("backup", tx), now);
   const sinPagar: StaleOrder[] = viejos.map((row) => ({
     orderNumber: row.orderNumber,
     horas: Math.floor((now.getTime() - row.createdAt.getTime()) / 3600_000),
@@ -195,10 +199,11 @@ export async function buildDailyDigest(
     sinPagar,
     stockBajo,
     ayer,
+    ...(overdueBackup ? { backupAtrasado: true } : {}),
     // Las ventas de ayer **no** cuentan para "sin novedades": un día sin
     // ventas es una novedad, y de las importantes.
     sinNovedades:
-      comprobantesPendientes === 0 &&
+      !overdueBackup && comprobantesPendientes === 0 &&
       sinPagar.length === 0 &&
       stockBajo.length === 0 &&
       ayer.orders === 0,
@@ -215,6 +220,7 @@ export async function buildDailyDigest(
  */
 export function digestBody(digest: DailyDigest): string {
   const lineas: string[] = [t("wa.resumen.titulo")];
+  if (digest.backupAtrasado) lineas.push(t("wa.resumen.backupAtrasado"));
 
   if (digest.sinNovedades) {
     lineas.push(t("wa.resumen.sinNovedades"));

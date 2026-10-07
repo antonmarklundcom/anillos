@@ -5,6 +5,7 @@ import {
   orderEvents,
   orderItems,
   orders,
+  receipts,
   stockReservations,
   variants,
   type OrderStatus,
@@ -59,6 +60,7 @@ export const PRE_PAYMENT_STATUSES: readonly OrderStatus[] = [
 const CONSUMES_STOCK: readonly OrderStatus[] = ["pagado"];
 /** Al entrar acá las reservas se sueltan. */
 const RELEASES_STOCK: readonly OrderStatus[] = ["vencido", "cancelado"];
+export const RECEIPT_VERIFICATION_HOURS = 48;
 
 /**
  * A qué destino le corresponde avisarle a la compradora (fase O3).
@@ -256,6 +258,18 @@ export async function transitionOrder(
       throw new InvalidTransitionError(orderId, from, to);
     }
 
+    let verificationExpiry: Date | undefined;
+    if (to === "esperando_verificacion") {
+      const first = await tx.select({ uploadedAt: receipts.uploadedAt }).from(receipts)
+        .where(eq(receipts.orderId, orderId)).orderBy(receipts.uploadedAt, receipts.id).limit(1).for("update");
+      // Anchor to the first receipt: retries/rejections cannot renew stock forever.
+      verificationExpiry = new Date((first[0]?.uploadedAt.getTime() ?? Date.now()) + RECEIPT_VERIFICATION_HOURS * 3600_000);
+      if (verificationExpiry.getTime() <= Date.now()) throw new InvalidTransitionError(orderId, from, to);
+      await secureStockForPayment(tx, orderId, verificationExpiry);
+      await tx.update(stockReservations).set({ expiresAt: verificationExpiry })
+        .where(and(eq(stockReservations.orderId, orderId), eq(stockReservations.state, "held")));
+    }
+
     if (CONSUMES_STOCK.includes(to)) {
       // Antes de descontar: comprobar que la mercadería siga estando. Va acá
       // adentro y no en quien llama a propósito — es la única forma de que
@@ -283,6 +297,7 @@ export async function transitionOrder(
       .update(orders)
       .set({
         status: to,
+        ...(verificationExpiry ? { reservedUntil: verificationExpiry } : {}),
         ...(to === "pagado" ? { paidAt: new Date() } : {}),
         // El seguimiento viaja en este mismo UPDATE, dentro de la misma
         // transacción: o el pedido queda despachado con su guía, o no queda
@@ -348,7 +363,8 @@ export async function transitionOrder(
  */
 async function secureStockForPayment(
   tx: Executor,
-  orderId: number
+  orderId: number,
+  holdExpiry = new Date(Date.now() + RECOVERY_HOLD_MINUTES * 60_000)
 ): Promise<void> {
   // Una reserva pasada de hora no reserva nada. Soltarla acá deja el conteo
   // de `held` vigentes igual a lo que ve la vidriera.
@@ -435,7 +451,7 @@ async function secureStockForPayment(
   // siguiente en esta misma transacción, así que el `expires_at` no llega a
   // significar nada — se pone en el futuro sólo para que ninguna consulta de
   // disponibilidad las ignore mientras tanto.
-  const expiresAt = new Date(Date.now() + RECOVERY_HOLD_MINUTES * 60_000);
+  const expiresAt = holdExpiry;
   for (const item of missing) {
     await tx.insert(stockReservations).values({
       variantId: item.variantId,

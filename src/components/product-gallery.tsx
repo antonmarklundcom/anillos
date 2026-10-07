@@ -11,7 +11,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export type GalleryImage = { src: string; alt: string; illustrative?: boolean };
+export type GalleryImage = {
+  src: string;
+  alt: string;
+  illustrative?: boolean;
+  evidencePending?: boolean;
+  thumbnailSrc?: string;
+};
 
 export function ProductGallery({
   images,
@@ -77,9 +83,11 @@ export function ProductGallery({
             </DialogClose>
           </div>
           <DialogDescription>
-            {current.illustrative
-              ? "Imagen ilustrativa: no confirma materiales ni disponibilidad."
-              : current.alt}
+            {current.evidencePending
+              ? "Imagen con origen o permiso de uso pendiente de verificación."
+              : current.illustrative
+                ? "Imagen ilustrativa: no confirma materiales ni disponibilidad."
+                : current.alt}
           </DialogDescription>
           <div className="product-gallery-zoom-image">
             <Image
@@ -123,7 +131,7 @@ export function ProductGallery({
               className="product-gallery-thumbnail"
             >
               <Image
-                src={item.src}
+                src={item.thumbnailSrc ?? item.src}
                 alt=""
                 fill
                 sizes="(max-width: 640px) 20vw, 110px"
@@ -134,7 +142,12 @@ export function ProductGallery({
           ))}
         </div>
       ) : null}
-      {current.illustrative ? (
+      {current.evidencePending ? (
+        <figcaption className="product-gallery-caption">
+          Imagen con origen o permiso de uso pendiente de verificación. No
+          acredita las características del producto.
+        </figcaption>
+      ) : current.illustrative ? (
         <figcaption className="product-gallery-caption">
           Imagen ilustrativa para preparar la galería. No representa este
           producto ni confirma su material, piedra o disponibilidad.

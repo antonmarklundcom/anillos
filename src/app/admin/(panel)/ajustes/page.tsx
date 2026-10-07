@@ -713,6 +713,7 @@ function CheckoutSection({ settings }: { settings: StoreSettings }) {
     >
       <SettingsSectionForm
         seccion="checkout"
+        key={JSON.stringify(c)}
         campos={{
           metodosPago: "lista",
           confianzaActiva: "booleano",

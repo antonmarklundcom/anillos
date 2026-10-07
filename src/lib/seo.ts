@@ -54,10 +54,11 @@ export type SitemapEntry = {
 };
 
 export type SitemapInput = {
-  categories: { slug: string }[];
+  categories: { slug: string; reviewedAt?: string }[];
   products: { slug: string; updatedAt: Date | null }[];
   /** Las páginas de políticas prendidas (`/envios`, `/terminos`…), por slug. */
   pages?: string[];
+  pageDates?: Record<string, string | undefined>;
 };
 
 /**
@@ -97,6 +98,9 @@ export function buildSitemap(origin: URL, input: SitemapInput): SitemapEntry[] {
     { url: `${base}/`, changeFrequency: "daily", priority: 1 },
     ...input.categories.map((category) => ({
       url: `${base}/categoria/${category.slug}`,
+      ...(editorialDate(category.reviewedAt)
+        ? { lastModified: editorialDate(category.reviewedAt)! }
+        : {}),
       changeFrequency: "daily" as const,
       priority: 0.8,
     })),
@@ -108,10 +112,28 @@ export function buildSitemap(origin: URL, input: SitemapInput): SitemapEntry[] {
     })),
     ...(input.pages ?? []).map((slug) => ({
       url: `${base}/${slug}`,
+      ...(editorialDate(input.pageDates?.[slug])
+        ? { lastModified: editorialDate(input.pageDates?.[slug])! }
+        : {}),
       changeFrequency: "monthly" as const,
       priority: 0.3,
     })),
   ];
+}
+
+/** Never manufacture content freshness from request or build time. */
+export function editorialDate(value?: string): Date | undefined {
+  if (!value || !/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value)) return undefined;
+  const day = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  if (
+    !Number.isFinite(day.getTime()) ||
+    day.toISOString().slice(0, 10) !== value.slice(0, 10)
+  )
+    return undefined;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) && date.getTime() <= Date.now()
+    ? date
+    : undefined;
 }
 
 type JsonLd = Record<string, unknown>;
@@ -274,21 +296,28 @@ export function productJsonLd(input: {
       !isConceptProduct(input.slug) &&
       (input.saleMode === undefined || input.saleMode === "stock") &&
       input.showPrice !== false
-        ? input.variants.map((variant) => ({
-            "@type": "Offer",
-            sku: variant.sku,
-            name: variant.label,
-            price: variant.pricePyg,
-            priceCurrency: "PYG",
-            itemCondition: "https://schema.org/NewCondition",
-            url,
-            availability:
-              variant.available > 0
-                ? "https://schema.org/InStock"
-                : "https://schema.org/OutOfStock",
-            ...(shippingDetails ? { shippingDetails } : {}),
-            ...(returnPolicy ? { hasMerchantReturnPolicy: returnPolicy } : {}),
-          }))
+        ? input.variants
+            .filter(
+              (variant) =>
+                Number.isSafeInteger(variant.pricePyg) && variant.pricePyg > 0
+            )
+            .map((variant) => ({
+              "@type": "Offer",
+              sku: variant.sku,
+              name: variant.label,
+              price: variant.pricePyg,
+              priceCurrency: "PYG",
+              itemCondition: "https://schema.org/NewCondition",
+              url: url ? variantUrl(url, variant.sku) : undefined,
+              availability:
+                variant.available > 0
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+              ...(shippingDetails ? { shippingDetails } : {}),
+              ...(returnPolicy
+                ? { hasMerchantReturnPolicy: returnPolicy }
+                : {}),
+            }))
         : undefined,
     ...(conResenas && input.rating
       ? {
@@ -317,7 +346,10 @@ export function productJsonLd(input: {
     url &&
     input.images.length &&
     input.variants.length > 1 &&
-    input.variants.every((variant) => variant.available > 0) &&
+    input.variants.every(
+      (variant) =>
+        Number.isSafeInteger(variant.pricePyg) && variant.pricePyg > 0
+    ) &&
     sizes.every(Boolean) &&
     new Set(sizes).size === sizes.length
   ) {

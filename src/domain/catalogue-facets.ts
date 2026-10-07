@@ -13,12 +13,14 @@ export type CatalogueAttributeFilters = {
 };
 export type CatalogueFacet = { value: string; total: number };
 export type CatalogueFacets = {
+  hasPrices?: boolean;
   material: CatalogueFacet[];
   stone: CatalogueFacet[];
   unit: CatalogueFacet[];
   inStock: number;
 };
 export const EMPTY_CATALOGUE_FACETS: CatalogueFacets = {
+  hasPrices: false,
   material: [],
   stone: [],
   unit: [],
@@ -56,6 +58,13 @@ export function parseCatalogueFilters(
 function attribute(field: "material" | "stone" | "unit") {
   return sql<string>`JSON_UNQUOTE(JSON_EXTRACT(${products.specifications}, ${`$.${field}`}))`;
 }
+/** Equivalent spelling only: no inferred alloy, gemstone or purity mapping. */
+export function normalizeFacetLabel(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("es-PY");
+}
+function normalizedAttribute(field: "material" | "stone" | "unit") {
+  return sql<string>`LOWER(REGEXP_REPLACE(TRIM(${attribute(field)}), '[[:space:]]+', ' '))`;
+}
 const verified = () => {
   const stamp = sql<string>`JSON_UNQUOTE(JSON_EXTRACT(${products.specifications}, ${"$.verifiedAt"}))`;
   // Writes normalize to UTC ISO. CASE guards parsing so malformed persisted data
@@ -76,9 +85,16 @@ const verified = () => {
 /** Same live hold predicate as stock domain; signed casts protect MySQL UNSIGNED subtraction. */
 export function catalogueStockPredicate(): SQL {
   return sql`LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} AND ${products.saleMode} = 'stock' AND ${products.showPrice} = TRUE AND EXISTS (
-    SELECT 1 FROM ${variants} WHERE ${variants.productId} = ${products.id} AND ${variants.isActive} = TRUE
+    SELECT 1 FROM ${variants} WHERE ${variants.productId} = ${products.id} AND ${variants.isActive} = TRUE AND ${variants.pricePyg} > 0
     AND CAST(${variants.onHand} AS SIGNED) - CAST(COALESCE((SELECT SUM(${stockReservations.qty}) FROM ${stockReservations}
       WHERE ${stockReservations.variantId} = ${variants.id} AND ${stockReservations.state} = 'held' AND ${stockReservations.expiresAt} > NOW()), 0) AS SIGNED) > 0
+  )`;
+}
+
+/** Price controls apply to the whole category, including out-of-stock prices. */
+export function cataloguePricePredicate(): SQL {
+  return sql`${products.showPrice} = TRUE AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} AND EXISTS (
+    SELECT 1 FROM ${variants} WHERE ${variants.productId} = ${products.id} AND ${variants.isActive} = TRUE AND ${variants.pricePyg} > 0
   )`;
 }
 export function catalogueAttributePredicate(
@@ -88,7 +104,12 @@ export function catalogueAttributePredicate(
   const parts: (SQL | undefined)[] = [];
   for (const field of ["material", "stone", "unit"] as const) {
     if (filters[field] !== undefined)
-      parts.push(and(verified(), eq(attribute(field), filters[field]!)));
+      parts.push(
+        and(
+          verified(),
+          eq(normalizedAttribute(field), normalizeFacetLabel(filters[field]!))
+        )
+      );
   }
   if (filters.inStock) parts.push(catalogueStockPredicate());
   return parts.length ? and(...parts) : undefined;
@@ -97,7 +118,8 @@ export function catalogueAttributePredicate(
 /** Independent category counts, bounded at 100 distinct values; no full catalogue hydration. */
 export async function getCatalogueFacets(
   categorySlug: string,
-  executor?: Executor
+  executor?: Executor,
+  filters: CatalogueAttributeFilters = {}
 ): Promise<CatalogueFacets> {
   const tx = executor ?? getDb();
   const base = and(
@@ -110,7 +132,7 @@ export async function getCatalogueFacets(
   async function facet(
     field: "material" | "stone" | "unit"
   ): Promise<CatalogueFacet[]> {
-    const value = attribute(field);
+    const value = sql<string>`MIN(REGEXP_REPLACE(TRIM(${attribute(field)}), '[[:space:]]+', ' '))`;
     const rows = await tx
       .select({ value, total: count(products.id) })
       .from(products)
@@ -119,12 +141,15 @@ export async function getCatalogueFacets(
         and(
           base,
           verified(),
+          catalogueAttributePredicate({ ...filters, [field]: undefined }),
           sql`JSON_TYPE(JSON_EXTRACT(${products.specifications}, ${`$.${field}`})) = 'STRING'`,
-          sql`${value} <> ''`,
-          field === "unit" ? sql`${value} IN ('individual', 'pair')` : undefined
+          sql`${attribute(field)} <> ''`,
+          field === "unit"
+            ? sql`${attribute(field)} IN ('individual', 'pair')`
+            : undefined
         )
       )
-      .groupBy(value)
+      .groupBy(normalizedAttribute(field))
       .orderBy(asc(value))
       .limit(100);
     return rows.map((row) => ({ value: row.value, total: Number(row.total) }));
@@ -134,10 +159,19 @@ export async function getCatalogueFacets(
     facet("stone"),
     facet("unit"),
     tx
-      .select({ total: count(products.id) })
+      .select({
+        total: sql<number>`COALESCE(SUM(CASE WHEN ${catalogueStockPredicate()} AND ${catalogueAttributePredicate({ ...filters, inStock: undefined }) ?? sql`TRUE`} THEN 1 ELSE 0 END), 0)`,
+        hasPrices: sql<number>`COALESCE(MAX(CASE WHEN ${cataloguePricePredicate()} THEN 1 ELSE 0 END), 0)`,
+      })
       .from(products)
       .innerJoin(categories, eq(products.categoryId, categories.id))
-      .where(and(base, catalogueStockPredicate())),
+      .where(base),
   ]);
-  return { material, stone, unit, inStock: Number(stock[0]?.total ?? 0) };
+  return {
+    material,
+    stone,
+    unit,
+    inStock: Number(stock[0]?.total ?? 0),
+    hasPrices: Number(stock[0]?.hasPrices ?? 0) > 0,
+  };
 }

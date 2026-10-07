@@ -2443,4 +2443,10 @@ export const esPY = {
     "Esta tienda ya fue inicializada. Tu cuenta no se creó ni se cambió en este intento. Si ya tenés acceso, entrá al panel. Para una recuperación intencional, abrí la opción de recuperar o actualizar la cuenta.",
   "setup.error.sinSecreto": "SETUP_SECRET no está configurado en el hosting.",
   "setup.error.generico": "No se pudo inicializar. Mirá el log del hPanel.",
+  "panel.resumen.backupAtrasado": "La copia de seguridad no está al día",
+  "panel.resumen.backupAyuda": "No hay una copia completada en las últimas 26 horas. Revisá el cron de backup y ensayá una restauración antes de depender de él.",
+  "panel.resumen.esquemaPendiente": "Las migraciones no coinciden con esta aplicación",
+  "panel.resumen.esquemaAyuda": "Coordiná la migración versionada y el despliegue antes de aceptar pedidos. El monitor de salud debe comprobar schema y catalog.",
+  "wa.resumen.backupAtrasado": "Atención: no hay una copia de seguridad completada en las últimas 26 horas.",
+  "pedido.comprobante.sinAlmacenamiento": "La carga de comprobantes no está disponible. Contactá con la tienda para verificar tu transferencia.",
 } as const satisfies Record<string, string>;

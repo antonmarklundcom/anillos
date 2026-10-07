@@ -21,7 +21,8 @@ export async function claimProductSlug(
     .select()
     .from(productSlugRedirects)
     .where(eq(productSlugRedirects.slug, slug))
-    .limit(1);
+    .limit(1)
+    .for("update");
   if (record) {
     if (record.productId !== productId) slugConflict(slug);
     return;
@@ -32,23 +33,24 @@ export async function claimProductSlug(
 export async function assertProductSlugAvailable(
   tx: Executor,
   slug: string,
-  productId: number | null,
-  currentSlug?: string
+  productId: number | null
 ) {
   const [product] = await tx
     .select({ id: products.id })
     .from(products)
     .where(eq(products.slug, slug))
-    .limit(1);
+    .limit(1)
+    .for("update");
   if (product && product.id !== productId) slugConflict(slug);
   const [alias] = await tx
     .select()
     .from(productSlugRedirects)
     .where(eq(productSlugRedirects.slug, slug))
-    .limit(1);
-  // Reusing one's own old URL would erase history. Reject it instead of creating cycles.
-  if (alias && (alias.productId !== productId || slug !== currentSlug))
-    slugConflict(slug);
+    .limit(1)
+    .for("update");
+  // A reservation belongs to a product, not to a redirect chain. Reclaiming
+  // our own URL retains every reservation and resolves aliases directly to current.
+  if (alias && alias.productId !== productId) slugConflict(slug);
 }
 
 export function assertConceptSlugBoundary(previous: string, next: string) {
@@ -65,6 +67,26 @@ export async function getProductSlugRedirect(
   executor?: Executor
 ): Promise<string | null> {
   const tx = executor ?? getDb();
+  // Legacy products may not have an alias row for their current URL. Database
+  // equality also finds requests differing only in collation (e.g. uppercase).
+  const [current] = await tx
+    .select({ slug: products.slug })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        eq(products.slug, slug),
+        eq(products.isActive, true),
+        isNotNull(products.publishedAt),
+        eq(categories.isActive, true)
+      )
+    )
+    .limit(1);
+  if (current)
+    return current.slug === slug ||
+      isConceptProduct(current.slug) !== isConceptProduct(slug)
+      ? null
+      : current.slug;
   const [target] = await tx
     .select({ slug: products.slug })
     .from(productSlugRedirects)

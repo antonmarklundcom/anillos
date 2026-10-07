@@ -80,3 +80,21 @@ The launch checklist remains separate from an upstream patch: verified supplier 
 The original merged-fix evidence lives in `docs/SITE-IMPROVEMENTS.md` and `docs/ADMIN-WORKSPACE.md`. Combined type/lint/build, unit/component, disposable MySQL/MariaDB, browser and visual evidence is recorded in [the implementation report](SUPPLIER-READY-IMPLEMENTATION.md), including reruns, conditional skips and the unavailable in-app browser connection. These checks establish local implementation status, not production readiness or upstream adoption.
 
 For a future authorized upstream contribution, first compare each generic mechanism with the current upstream/base to avoid duplicating a fix. Then propose small neutral changes in priority order: catalogue/checkout/health/feed failure handling; optional attribute/provenance validation and migration; URL/gallery/permission contracts; optional editorial/dashboard widgets. Keep each patch independent of ring config, KWP data, phones, bank policies, supplier research and assets. Preserve the store's history/origin/baseline and never synchronize store content or private configuration into the template. No upstream edits, commits, PRs or deployment are part of this document.
+
+## October independent review fixes: new upstream candidates
+
+See [the reconciled 30-item plan](IMPROVEMENT-PLAN-2026-10.md), [session evidence](CODING-HANDOFF-2026-10.md) and [copyable template audit prompt](ECOM-BUG-AUDIT-PROMPT.md). These remain Anillos fixes and proposed generic mechanisms, not changes made to ecom.
+
+- Positive purchasable-price validation at write/cart/schema/feed boundaries, preserving zero-price unpublished quotation drafts.
+- Atomic imports with absent-field preservation, exportable stable slugs/facts, collation-aware SKU ownership under locks, draft defaults and audited price/stock changes.
+- Authenticated server verification with unchanged audit preservation; private supplier/verifier projections; per-image genuine-photo provenance and server confirmation. The nullable image migration must be adapted to ecom's current journal, never copied at a colliding index.
+- Effective payment preflight, inherited-versus-explicit policy, malformed persisted list fail-closed behaviour and missing-storage upload fallback.
+- Atomic receipt finalization with current-state/quota rechecks, consistent order/receipt/variant locks and bounded review holds; ambiguous commits must not delete a recorded private asset.
+- Migration-versioned backup inventory/restore validation, schema health and deadlines, pending-tag diagnostics, backup freshness and local integrity/restore rehearsal tooling.
+- Template synchronization guards before writes for migration index/time/hash/snapshot collision or rewritten history.
+- Stable sold-out variant schema/deep links, own-alias reclaim without releasing ownership, canonical redirects preserving selected SKU, explicit sharing-image fallback and privacy-limited client DTOs.
+- Accessible product-card controls, admin error/focus helpers, mobile disclosures with conditioned facets, neutral real-product photo fallback and bounded comparison queries/crawl directives.
+
+The old implementation rows above describe the earlier delivery. This branch now keeps ProductGroup stable across sold-out sizes, uses per-image photo evidence and corrects own-alias reclaim; alias listing/release UI and a separate SEO/supplier capability remain follow-ups. Vocabulary normalization here merges case/spacing only. Template adoption must provide neutral store hooks rather than ring material lists or consultation copy.
+
+Keep ring editorials, Paraguay KWP groups, suppliers and quotes, conceptual product fixtures/assets, public phone and ueno policy outside ecom. Review current ecom before porting anything, then test generated-store setup/import/payment/admin and later template sync across two independent stores.

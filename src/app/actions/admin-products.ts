@@ -12,15 +12,15 @@ import {
   deleteProductImage,
   saveVariant,
   updateProduct,
+  updateProductImageDetails,
 } from "@/domain/admin-products";
 import {
   applyCatalogFotos,
   buildCatalogImportPlan,
-  ensureCatalogCategories,
+  applyCatalogImportPlan,
   type CatalogFotoFallida,
   type CatalogImportPlan,
 } from "@/domain/catalog-import-plan";
-import { type CatalogoProducto } from "@/domain/catalog-import";
 import {
   BULK_MAX_IDS,
   BULK_MIN_REASON,
@@ -35,7 +35,6 @@ import {
 import { sweepBackInStock } from "@/domain/stock-alerts";
 import { validateProductImage } from "@/domain/product-images";
 import { carpetaProductos, cloudinary } from "@/lib/cloudinary";
-import { slugify } from "@/lib/slug";
 import {
   spreadsheetToCsvText,
   UnsupportedSpreadsheetError,
@@ -47,24 +46,12 @@ import {
   requireStaffSession,
   type AdminActionResult,
 } from "@/lib/admin-guard";
+import { validationFailure } from "@/lib/admin-validation";
 import { t } from "@/i18n";
-import {
-  ProductSpecificationsSchema,
-  SupplierDetailsSchema,
-  VariantAttributesSchema,
-  VerifiedIdentifiersSchema,
-} from "@/lib/product-attributes";
 
 function revalidarVidriera() {
   revalidatePath("/", "layout");
 }
-
-// Import directo del script de seed: mismo `upsertCatalogProducts` que usa
-// `pnpm importar:productos`, no una reimplementación para el panel.
-import {
-  upsertCatalogProducts,
-  type CatalogProductUpsert,
-} from "../../../scripts/seed";
 
 /**
  * Alta y edición del catálogo (PLAN.md 4.6).
@@ -74,8 +61,8 @@ import {
  */
 
 const ProductSchema = z.object({
-  specifications: ProductSpecificationsSchema.nullable().optional(),
-  supplierDetails: SupplierDetailsSchema.nullable().optional(),
+  specifications: z.unknown().optional(),
+  supplierDetails: z.unknown().optional(),
   seoTitle: z.string().trim().max(200).nullable().optional(),
   seoDescription: z.string().trim().max(500).nullable().optional(),
   saleMode: z.enum(["stock", "enquiry", "showcase"]).optional(),
@@ -114,17 +101,15 @@ export async function saveProduct(
   input: unknown
 ): Promise<AdminActionResult<{ productId: number }>> {
   try {
-    await requireStaffSession();
+    const session = await requireStaffSession();
 
     const parsed = ProductSchema.safeParse(input);
     if (!parsed.success) {
-      return {
-        ok: false,
-        error: parsed.error.issues[0]?.message ?? "Revisá los datos.",
-      };
+      return validationFailure(parsed.error);
     }
 
     const write = {
+      verificationActor: { userId: session.userId, label: actorLabel(session) },
       specifications: parsed.data.specifications,
       supplierDetails: parsed.data.supplierDetails,
       seoTitle: parsed.data.seoTitle,
@@ -161,8 +146,8 @@ export async function saveProduct(
 }
 
 const VariantSchema = z.object({
-  attributes: VariantAttributesSchema.nullable().optional(),
-  identifiers: VerifiedIdentifiersSchema.nullable().optional(),
+  attributes: z.unknown().optional(),
+  identifiers: z.unknown().optional(),
   productId: z.number().int().positive(),
   variantId: z.number().int().positive().optional(),
   sku: z.string().trim().min(1, t("adminForm.sku")).max(64),
@@ -191,17 +176,15 @@ export async function saveProductVariant(
   input: unknown
 ): Promise<AdminActionResult> {
   try {
-    await requireStaffSession();
+    const session = await requireStaffSession();
 
     const parsed = VariantSchema.safeParse(input);
     if (!parsed.success) {
-      return {
-        ok: false,
-        error: parsed.error.issues[0]?.message ?? "Revisá los datos.",
-      };
+      return validationFailure(parsed.error);
     }
 
     await saveVariant(parsed.data.productId, {
+      verificationActor: { userId: session.userId, label: actorLabel(session) },
       attributes: parsed.data.attributes,
       identifiers: parsed.data.identifiers,
       id: parsed.data.variantId,
@@ -289,6 +272,12 @@ export async function uploadProductImage(
     if (!(file instanceof File)) {
       return { ok: false, error: t("adminError.elegiFoto") };
     }
+    const metadata = ImageMetadataSchema.safeParse({
+      provenance: String(formData.get("provenance") ?? "") || null,
+      verified: formData.get("verified") === "on",
+    });
+    if (!metadata.success)
+      return { ok: false, error: "Revisá la procedencia de la imagen." };
 
     const content = Buffer.from(await file.arrayBuffer());
     const { mime } = validateProductImage({
@@ -306,6 +295,7 @@ export async function uploadProductImage(
       productId,
       cloudinaryId: uploaded.public_id,
       alt: alt === "" ? null : alt.slice(0, 255),
+      ...metadata.data,
     });
 
     revalidatePath(`/admin/productos/${productId}`);
@@ -313,6 +303,37 @@ export async function uploadProductImage(
     return { ok: true };
   } catch (error) {
     return adminActionError("uploadProductImage", error);
+  }
+}
+
+const ImageMetadataSchema = z.object({
+  provenance: z
+    .enum(["owned-photo", "supplier-authorized", "illustrative"])
+    .nullable(),
+  verified: z.boolean(),
+});
+
+export async function saveProductImageDetails(
+  input: unknown
+): Promise<AdminActionResult> {
+  try {
+    await requireStaffSession();
+    const parsed = ImageMetadataSchema.extend({
+      productId: z.number().int().positive(),
+      imageId: z.number().int().positive(),
+      alt: z.string().trim().max(255).nullable(),
+    }).safeParse(input);
+    if (!parsed.success)
+      return {
+        ok: false,
+        error: "Revisá los datos y la procedencia de la imagen.",
+      };
+    await updateProductImageDetails(parsed.data);
+    revalidatePath(`/admin/productos/${parsed.data.productId}`);
+    revalidarVidriera();
+    return { ok: true };
+  } catch (error) {
+    return adminActionError("saveProductImageDetails", error);
   }
 }
 
@@ -453,7 +474,7 @@ export async function applyCatalogImport(
   formData: FormData
 ): Promise<CatalogImportApplyResult> {
   try {
-    await requireStaffSession();
+    const session = await requireStaffSession();
 
     const leido = await readCatalogFile(formData);
     if (!leido.ok) return { ok: false, errores: leido.errores };
@@ -462,33 +483,11 @@ export async function applyCatalogImport(
     const plan = await buildCatalogImportPlan(leido.csvText);
     if (plan.errores.length > 0) return { ok: false, errores: plan.errores };
 
-    const categoriaPorSlug = await ensureCatalogCategories(plan);
-
-    const items: CatalogProductUpsert[] = plan.productos.map(
-      (producto: CatalogoProducto) => {
-        const categoryId = categoriaPorSlug.get(slugify(producto.categoryName));
-        if (!categoryId)
-          throw new Error(`Categoría sin id: ${producto.categoryName}`);
-        return {
-          specifications: producto.specifications,
-          supplierDetails: producto.supplierDetails,
-          seoTitle: producto.seoTitle,
-          seoDescription: producto.seoDescription,
-          saleMode: producto.saleMode,
-          showPrice: producto.showPrice,
-          slug: producto.slug,
-          name: producto.name,
-          description: producto.description,
-          categoryId,
-          brand: producto.brand,
-          ivaRate: producto.ivaRate,
-          variants: producto.variants,
-        };
-      }
-    );
-
-    const variantesEscritas = await upsertCatalogProducts(items, {
+    const variantesEscritas = await applyCatalogImportPlan(plan, {
       resetStock: pisaStock,
+      actor: actorLabel(session),
+      actorUserId: session.userId,
+      verifiedImport: session.role === "owner",
     });
 
     // "Avisame cuando haya stock" (O6): una importación con `pisarStock` es la

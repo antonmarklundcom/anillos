@@ -1,6 +1,8 @@
 import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { validationFailure } from "@/lib/admin-validation";
+import { assertGs } from "@/lib/money";
 import { getDb } from "@/db";
 import {
   categories,
@@ -21,14 +23,11 @@ import { getAvailability, heldQtyMap } from "./stock";
 import { notifyBackInStock } from "./stock-alerts";
 import { log, mensajeDe } from "@/lib/log";
 import {
+  stampVerification,
   ProductSpecificationsSchema,
   SupplierDetailsSchema,
   VariantAttributesSchema,
   VerifiedIdentifiersSchema,
-  type ProductSpecifications,
-  type SupplierDetails,
-  type VariantAttributes,
-  type VerifiedIdentifiers,
 } from "@/lib/product-attributes";
 import {
   assertConceptSlugBoundary,
@@ -44,9 +43,15 @@ import {
  */
 
 export class AdminInputError extends DomainError {
-  constructor(code: MessageKey, params?: Params) {
+  fieldErrors?: Record<string, string>;
+  constructor(
+    code: MessageKey,
+    params?: Params,
+    fieldErrors?: Record<string, string>
+  ) {
     super(code, params);
     this.name = "AdminInputError";
+    this.fieldErrors = fieldErrors;
   }
 }
 
@@ -197,6 +202,11 @@ function productWhere(options: AdminProductFilters) {
 }
 
 export type ExportVariantRow = {
+  slug: string;
+  description: string | null;
+  brand: string | null;
+  ivaRate: number;
+  compareAtPyg: number | null;
   saleMode: "stock" | "enquiry" | "showcase";
   showPrice: boolean;
   sku: string;
@@ -224,6 +234,11 @@ export async function listVariantsForExport(
 
   return tx
     .select({
+      slug: products.slug,
+      description: products.description,
+      brand: products.brand,
+      ivaRate: products.ivaRate,
+      compareAtPyg: variants.compareAtPyg,
       sku: variants.sku,
       saleMode: products.saleMode,
       showPrice: products.showPrice,
@@ -295,12 +310,34 @@ export async function listCategories(executor?: Executor) {
 
 function validateOptional<T>(
   schema: z.ZodType<T>,
-  value: T | null | undefined
+  value: unknown,
+  field = ""
 ): T | null | undefined {
   if (value === undefined || value === null) return value;
+  if (
+    typeof value === "object" &&
+    "verified" in value &&
+    typeof value.verified !== "boolean"
+  )
+    throw new AdminInputError(
+      "adminError.producto.atributosInvalidos",
+      undefined,
+      { [field + ".verified"]: "Confirmá la verificación con sí o no." }
+    );
   const result = schema.safeParse(value);
-  if (!result.success)
-    throw new AdminInputError("adminError.producto.atributosInvalidos");
+  if (!result.success) {
+    const details = validationFailure(result.error).fieldErrors;
+    throw new AdminInputError(
+      "adminError.producto.atributosInvalidos",
+      undefined,
+      Object.fromEntries(
+        Object.entries(details).map(([key, value]) => [
+          [field, key].filter(Boolean).join("."),
+          value,
+        ])
+      )
+    );
+  }
   return result.data;
 }
 
@@ -308,11 +345,13 @@ function validateProductAttributes(input: ProductWrite) {
   return {
     specifications: validateOptional(
       ProductSpecificationsSchema,
-      input.specifications
+      input.specifications,
+      "specifications"
     ),
     supplierDetails: validateOptional(
       SupplierDetailsSchema,
-      input.supplierDetails
+      input.supplierDetails,
+      "supplierDetails"
     ),
     seoTitle: validateOptional(z.string().trim().max(200), input.seoTitle),
     seoDescription: validateOptional(
@@ -323,8 +362,9 @@ function validateProductAttributes(input: ProductWrite) {
 }
 
 export type ProductWrite = {
-  specifications?: ProductSpecifications | null;
-  supplierDetails?: SupplierDetails | null;
+  verificationActor?: { userId: number; label: string };
+  specifications?: unknown;
+  supplierDetails?: unknown;
   seoTitle?: string | null;
   seoDescription?: string | null;
   saleMode?: "stock" | "enquiry" | "showcase";
@@ -353,7 +393,15 @@ export async function createProduct(
   const tx = executor ?? getDb();
   await assertSlugFree(tx, input.slug, null);
   await assertProductSlugAvailable(tx, input.slug, null);
-  const attributes = validateProductAttributes(input);
+  const attributes = validateProductAttributes({
+    ...input,
+    specifications: input.verificationActor
+      ? stampVerification(input.specifications, null, input.verificationActor)
+      : input.specifications,
+    supplierDetails: input.verificationActor
+      ? stampVerification(input.supplierDetails, null, input.verificationActor)
+      : input.supplierDetails,
+  });
 
   await tx.insert(products).values({
     ...attributes,
@@ -395,6 +443,8 @@ export async function updateProduct(
       slug: products.slug,
       publishedAt: products.publishedAt,
       saleMode: products.saleMode,
+      specifications: products.specifications,
+      supplierDetails: products.supplierDetails,
     })
     .from(products)
     .where(eq(products.id, productId))
@@ -404,8 +454,30 @@ export async function updateProduct(
   if (!current) throw new AdminInputError("adminError.producto.noExiste");
   assertConceptSlugBoundary(current.slug, input.slug);
   await assertSlugFree(tx, input.slug, productId);
-  await assertProductSlugAvailable(tx, input.slug, productId, current.slug);
+  await assertProductSlugAvailable(tx, input.slug, productId);
   const attributes = validateProductAttributes(input);
+  if (
+    input.isActive &&
+    input.published &&
+    (input.saleMode ?? current.saleMode) === "stock"
+  ) {
+    const active = await tx
+      .select({ price: variants.pricePyg })
+      .from(variants)
+      .where(
+        and(eq(variants.productId, productId), eq(variants.isActive, true))
+      )
+      .for("update");
+    if (active.some((v) => !Number.isSafeInteger(v.price) || v.price <= 0))
+      throw new AdminInputError(
+        "adminError.producto.atributosInvalidos",
+        undefined,
+        {
+          pricePyg:
+            "Cada variante activa requiere un precio positivo antes de publicar.",
+        }
+      );
+  }
   await claimProductSlug(tx, current.slug, productId);
   await claimProductSlug(tx, input.slug, productId);
 
@@ -455,8 +527,9 @@ async function assertSlugFree(
 }
 
 export type VariantWrite = {
-  attributes?: VariantAttributes | null;
-  identifiers?: VerifiedIdentifiers | null;
+  verificationActor?: { userId: number; label: string };
+  attributes?: unknown;
+  identifiers?: unknown;
   id?: number;
   sku: string;
   label: string;
@@ -482,14 +555,68 @@ export async function saveVariant(
   input: VariantWrite,
   executor?: Executor
 ): Promise<void> {
-  const tx = executor ?? getDb();
+  if (!executor)
+    return getDb().transaction((tx) => saveVariant(productId, input, tx));
+  const tx = executor;
+  const [product] = await tx
+    .select()
+    .from(products)
+    .where(eq(products.id, productId))
+    .limit(1)
+    .for("update");
+  if (!product) throw new AdminInputError("adminError.producto.noExiste");
+  const [current] =
+    input.id === undefined
+      ? []
+      : await tx
+          .select()
+          .from(variants)
+          .where(
+            and(eq(variants.id, input.id), eq(variants.productId, productId))
+          )
+          .limit(1)
+          .for("update");
+  if (input.id !== undefined && !current)
+    throw new AdminInputError("adminError.producto.varianteNoExiste");
+  assertGs(input.pricePyg);
+  if (
+    input.pricePyg < 0 ||
+    (input.isActive &&
+      product.isActive &&
+      product.publishedAt &&
+      product.saleMode === "stock" &&
+      input.pricePyg <= 0)
+  )
+    throw new AdminInputError(
+      "adminError.producto.atributosInvalidos",
+      undefined,
+      { pricePyg: "Compra con stock requiere un precio positivo." }
+    );
+  if (input.compareAtPyg !== null) {
+    assertGs(input.compareAtPyg);
+    if (input.compareAtPyg < 0) throw new Error("Precio anterior inválido.");
+  }
   const attributes = validateOptional(
     VariantAttributesSchema,
-    input.attributes
+    input.verificationActor
+      ? stampVerification(
+          input.attributes,
+          current?.attributes,
+          input.verificationActor
+        )
+      : input.attributes,
+    "attributes"
   );
   const identifiers = validateOptional(
     VerifiedIdentifiersSchema,
-    input.identifiers
+    input.verificationActor
+      ? stampVerification(
+          input.identifiers,
+          current?.identifiers,
+          input.verificationActor
+        )
+      : input.identifiers,
+    "identifiers"
   );
 
   const clash = await tx
@@ -665,7 +792,13 @@ export async function listStockAdjustments(
 }
 
 export async function addProductImage(
-  input: { productId: number; cloudinaryId: string; alt: string | null },
+  input: {
+    productId: number;
+    cloudinaryId: string;
+    alt: string | null;
+    provenance?: "owned-photo" | "supplier-authorized" | "illustrative" | null;
+    verified?: boolean;
+  },
   executor?: Executor
 ): Promise<void> {
   const tx = executor ?? getDb();
@@ -678,7 +811,49 @@ export async function addProductImage(
     productId: input.productId,
     cloudinaryId: input.cloudinaryId,
     alt: input.alt,
+    provenance: input.provenance ?? null,
+    verifiedAt:
+      input.verified &&
+      ["owned-photo", "supplier-authorized"].includes(input.provenance ?? "")
+        ? new Date()
+        : null,
     position: row?.total ?? 0,
+  });
+}
+
+export async function updateProductImageDetails(input: {
+  productId: number;
+  imageId: number;
+  alt: string | null;
+  provenance: "owned-photo" | "supplier-authorized" | "illustrative" | null;
+  verified: boolean;
+}): Promise<void> {
+  await getDb().transaction(async (tx) => {
+    const condition = and(
+      eq(productImages.id, input.imageId),
+      eq(productImages.productId, input.productId)
+    );
+    const [current] = await tx
+      .select()
+      .from(productImages)
+      .where(condition)
+      .for("update");
+    if (!current) throw new AdminInputError("adminError.imagenInvalida");
+    const genuine =
+      input.verified &&
+      ["owned-photo", "supplier-authorized"].includes(input.provenance ?? "");
+    await tx
+      .update(productImages)
+      .set({
+        alt: input.alt,
+        provenance: input.provenance,
+        verifiedAt: genuine
+          ? current.provenance === input.provenance && current.verifiedAt
+            ? current.verifiedAt
+            : new Date()
+          : null,
+      })
+      .where(condition);
   });
 }
 

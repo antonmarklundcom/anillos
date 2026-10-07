@@ -46,10 +46,10 @@ export type CatalogoVariante = {
   attributes?: VariantAttributes | null;
   identifiers?: VerifiedIdentifiers | null;
   sku: string;
-  label: string;
+  label?: string;
   pricePyg: number;
-  compareAtPyg: number | null;
-  onHand: number;
+  compareAtPyg?: number | null;
+  onHand?: number;
 };
 
 export type CatalogoProducto = {
@@ -62,11 +62,11 @@ export type CatalogoProducto = {
   /** De la columna Slug, o derivado del nombre. */
   slug: string;
   name: string;
-  description: string | null;
+  description?: string | null;
   /** Tal como vino en la planilla; el script lo resuelve contra la base. */
   categoryName: string;
-  brand: string | null;
-  ivaRate: IvaRate;
+  brand?: string | null;
+  ivaRate?: IvaRate;
   variants: CatalogoVariante[];
   /**
    * Unión sin duplicados, en orden, de las URLs de la columna Fotos de todas
@@ -309,10 +309,12 @@ export function parseCatalogo(text: string): CatalogoImportado {
     }
 
     const precioAntesCrudo = celda(fila, "precioAntes");
-    let compareAtPyg: number | null = null;
+    let compareAtPyg: number | null | undefined = indice.has("precioAntes")
+      ? null
+      : undefined;
     if (precioAntesCrudo !== "") {
       compareAtPyg = parseGs(precioAntesCrudo);
-      if (compareAtPyg === null || compareAtPyg <= 0) {
+      if (compareAtPyg === null || compareAtPyg < 0) {
         errores.push(
           `Línea ${linea}: el precio antes "${precioAntesCrudo}" no es un monto válido.`
         );
@@ -340,6 +342,10 @@ export function parseCatalogo(text: string): CatalogoImportado {
 
     const slugPropio = celda(fila, "slug");
     const slug = slugPropio !== "" ? slugify(slugPropio) : slugify(nombre);
+    if (slug.startsWith("concepto-")) {
+      errores.push(`Línea ${linea}: los conceptos no se pueden importar.`);
+      continue;
+    }
     if (slug === "") {
       errores.push(
         `Línea ${linea}: de "${slugPropio || nombre}" no sale un slug usable (letras a-z o números).`
@@ -411,10 +417,10 @@ export function parseCatalogo(text: string): CatalogoImportado {
     const variante: CatalogoVariante = {
       ...variantMetadata,
       sku,
-      label: celda(fila, "variante") || "Único",
+      label: celda(fila, "variante") || undefined,
       pricePyg: precio,
       compareAtPyg,
-      onHand: stock,
+      onHand: indice.has("stock") ? stock : undefined,
     };
 
     const existente = porSlug.get(slug);
@@ -432,10 +438,12 @@ export function parseCatalogo(text: string): CatalogoImportado {
         ...(showPrice === undefined ? {} : { showPrice }),
         slug,
         name: nombre,
-        description: celda(fila, "descripcion") || null,
+        description: indice.has("descripcion")
+          ? celda(fila, "descripcion") || null
+          : undefined,
         categoryName: categoria,
-        brand: celda(fila, "marca") || null,
-        ivaRate: iva as IvaRate,
+        brand: indice.has("marca") ? celda(fila, "marca") || null : undefined,
+        ivaRate: indice.has("iva") ? (iva as IvaRate) : undefined,
         variants: [variante],
         fotos,
         primeraLinea: linea,
@@ -494,7 +502,9 @@ export function parseCatalogo(text: string): CatalogoImportado {
         `categoría ("${existente.categoryName}" vs "${categoria}")`
       );
     }
-    const marca = celda(fila, "marca") || null;
+    const marca = indice.has("marca")
+      ? celda(fila, "marca") || null
+      : undefined;
     if (
       marca !== null &&
       existente.brand !== null &&
@@ -511,9 +521,10 @@ export function parseCatalogo(text: string): CatalogoImportado {
       );
       continue;
     }
-    if (existente.description === null)
+    if (indice.has("descripcion") && existente.description === null)
       existente.description = celda(fila, "descripcion") || null;
-    if (existente.brand === null) existente.brand = marca;
+    if (indice.has("marca") && existente.brand === null)
+      existente.brand = marca;
     existente.fotos = fotosUnion;
     existente.variants.push(variante);
   }

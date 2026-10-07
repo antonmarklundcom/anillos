@@ -131,6 +131,11 @@ export async function exportProductsCsv(
 
     const csv = toCsv(
       [
+        "Slug",
+        "Descripción",
+        "Marca",
+        "IVA",
+        "Precio antes (₲)",
         t("csv.producto.sku"),
         t("csv.producto.nombre"),
         t("csv.producto.categoria"),
@@ -141,6 +146,11 @@ export async function exportProductsCsv(
         t("csv.producto.mostrarPrecio"),
       ],
       rows.map((row) => [
+        row.slug,
+        row.description,
+        row.brand,
+        row.ivaRate,
+        row.compareAtPyg,
         row.sku,
         row.productName,
         row.categoryName,

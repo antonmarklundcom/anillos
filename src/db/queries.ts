@@ -58,6 +58,8 @@ export type CatalogVariant = {
 };
 
 export type CatalogImage = {
+  provenance?: import("@/lib/product-image-provenance").ImageProvenance | null;
+  verifiedAt?: Date | null;
   cloudinaryId: string;
   blurDataUrl: string | null;
   alt: string | null;
@@ -128,7 +130,7 @@ export function isCatalogSort(value: string | undefined): value is CatalogSort {
 }
 
 /** Precio mínimo por producto — es el número por el que la gente ordena y filtra. */
-const minPriceSql = sql<number>`MIN(CASE WHEN ${products.showPrice} AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} THEN ${variants.pricePyg} ELSE NULL END)`;
+const minPriceSql = sql<number>`MIN(CASE WHEN ${products.showPrice} AND ${variants.pricePyg} > 0 AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} THEN ${variants.pricePyg} ELSE NULL END)`;
 
 type ProductRow = {
   specifications?: unknown;
@@ -180,6 +182,8 @@ async function hydrate(
     .select({
       productId: productImages.productId,
       cloudinaryId: productImages.cloudinaryId,
+      provenance: productImages.provenance,
+      verifiedAt: productImages.verifiedAt,
       blurDataUrl: productImages.blurDataUrl,
       alt: productImages.alt,
       position: productImages.position,
@@ -204,7 +208,7 @@ async function hydrate(
       label: row.label,
       pricePyg: row.pricePyg,
       compareAtPyg: row.compareAtPyg,
-      available: Math.max(0, row.onHand - (held.get(row.id) ?? 0)),
+      available: Number.isSafeInteger(row.pricePyg) && row.pricePyg > 0 ? Math.max(0, row.onHand - (held.get(row.id) ?? 0)) : 0,
       attributes: publicVariantAttributes(row.attributes, true),
       identifiers: publicIdentifiers(row.identifiers, ""),
     });
@@ -216,6 +220,8 @@ async function hydrate(
     const list = imagesByProduct.get(row.productId) ?? [];
     list.push({
       cloudinaryId: row.cloudinaryId,
+      provenance: row.provenance,
+      verifiedAt: row.verifiedAt,
       blurDataUrl: row.blurDataUrl,
       alt: row.alt,
     });
@@ -247,8 +253,8 @@ async function hydrate(
             available: 0,
           }
         : row.showPrice
-          ? variant
-          : { ...variant, pricePyg: 0, compareAtPyg: null };
+          ? row.saleMode === "stock" ? variant : { ...variant, available: 0 }
+          : { ...variant, pricePyg: 0, compareAtPyg: null, available: 0 };
     }),
     ...(ratings.has(row.id) ? { rating: ratings.get(row.id) } : {}),
   }));
@@ -295,7 +301,7 @@ export async function getCatalog(
     .orderBy(
       ...(options.featured
         ? [desc(products.publishedAt)]
-        : [asc(categories.position), asc(products.name)])
+        : [asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`), asc(categories.position), asc(products.name)])
     )
     .limit(options.limit ?? 100);
 
@@ -401,6 +407,7 @@ export async function getCategoryProducts(
 
   const rows = await (having ? grouped.having(having) : grouped)
     .orderBy(
+      ...(!query.sort || query.sort === "relevancia" ? [asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`)] : []),
       ...(query.sort?.startsWith("precio-")
         ? [sql`${minPriceSql} IS NULL`]
         : []),
@@ -451,6 +458,8 @@ export async function getProductBySlug(
   const images = await tx
     .select({
       cloudinaryId: productImages.cloudinaryId,
+      provenance: productImages.provenance,
+      verifiedAt: productImages.verifiedAt,
       blurDataUrl: productImages.blurDataUrl,
       alt: productImages.alt,
     })
@@ -806,7 +815,7 @@ async function getSameCategoryRelated(
   */
   const cercaniaDePrecio =
     input.pricePyg === undefined
-      ? sql`0`
+      ? undefined
       : sql`ABS(CAST(${minPriceSql} AS SIGNED) - ${input.pricePyg})`;
 
   const rows = await tx
@@ -827,7 +836,11 @@ async function getSameCategoryRelated(
       )
     )
     .groupBy(products.id, categories.name, categories.slug)
-    .orderBy(mismaMarca, cercaniaDePrecio, asc(products.name))
+    .orderBy(
+      mismaMarca,
+      ...(cercaniaDePrecio ? [cercaniaDePrecio] : []),
+      asc(products.name)
+    )
     .limit(limit * 3);
 
   const hydrated = await hydrate(tx, rows);
@@ -908,6 +921,14 @@ export async function getProductsBySlugs(
     .filter((product): product is CatalogProduct => product !== undefined);
 }
 
+/** Comparison picker needs neither stock holds nor image/rating hydration. */
+export async function getComparisonCandidates(excluded: string[] = [], executor?: Executor): Promise<{ slug: string; name: string }[]> {
+  const tx = executor ?? getDb();
+  return tx.select({ slug: products.slug, name: products.name }).from(products).innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(and(PUBLISHED(), excluded.length ? notInArray(products.slug, excluded.slice(0, 3)) : undefined))
+    .orderBy(asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`), asc(products.name)).limit(40);
+}
+
 /**
  * Lo publicable en el sitemap: categorías activas y productos publicados.
  *
@@ -968,6 +989,8 @@ export async function getFeedProducts(
     .select({
       productId: productImages.productId,
       cloudinaryId: productImages.cloudinaryId,
+      provenance: productImages.provenance,
+      verifiedAt: productImages.verifiedAt,
       blurDataUrl: productImages.blurDataUrl,
       alt: productImages.alt,
     })

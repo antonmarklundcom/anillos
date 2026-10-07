@@ -19,11 +19,20 @@ export async function ringMetadata(
       url: canonical,
       locale: TIENDA.ogLocale,
       siteName: await storeName(),
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: await storeName(),
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: content.title,
       description: content.description,
+      images: ["/opengraph-image"],
     },
   };
 }

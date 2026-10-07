@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { receipts, type OrderStatus } from "@/db/schema";
+import { orders, receipts, type OrderStatus } from "@/db/schema";
 import { signedReceiptUrl } from "@/lib/cloudinary";
 
 import { ReceiptError } from "./receipts";
@@ -49,7 +49,13 @@ export async function reviewReceipt(input: {
     throw new ReceiptError("error.comprobante.sinMotivo");
   }
 
+  // Resolve the immutable order id before the transaction, avoiding an old REPEATABLE READ snapshot.
+  const [candidate] = await getDb().select({ orderId: receipts.orderId }).from(receipts)
+    .where(eq(receipts.id, input.receiptId)).limit(1);
+  if (!candidate) throw new ReceiptError("error.comprobante.noExiste");
   return getDb().transaction(async (tx) => {
+    // Same lock order as buyer finalization and transitions: order, receipt, variants.
+    await tx.select({ id: orders.id }).from(orders).where(eq(orders.id, candidate.orderId)).for("update");
     // FOR UPDATE: dos pestañas abiertas en el mismo comprobante no pueden
     // aprobarlo y rechazarlo a la vez.
     const locked = await tx

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -17,10 +17,11 @@ import { t } from "@/i18n";
 import { VariantAttributeFields } from "./product-attribute-fields";
 import {
   attributeFormData,
-  verificationDate,
+  verificationIntent,
   type VariantAttributes,
   type VerifiedIdentifiers,
 } from "@/lib/product-attributes";
+import { FieldErrorsContext, focusInvalidField } from "./field-validation";
 
 export type VariantCard = {
   attributes?: VariantAttributes | null;
@@ -158,193 +159,204 @@ function VariantFields({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const formRef = useRef<HTMLFormElement>(null);
 
   return (
-    <form
-      className="border-border grid gap-3 rounded-lg border p-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setError(null);
-        const data = new FormData(event.currentTarget);
-        const compareAt = String(data.get("compareAtPyg") ?? "").trim();
+    <FieldErrorsContext.Provider value={fieldErrors}>
+      <form
+        ref={formRef}
+        className="border-border grid gap-3 rounded-lg border p-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setError(null);
+          setFieldErrors({});
+          const data = new FormData(event.currentTarget);
+          const compareAt = String(data.get("compareAtPyg") ?? "").trim();
 
-        const reorderPointRaw = String(data.get("reorderPoint") ?? "").trim();
-        const attributes = attributeFormData(data, [
-          "interiorMm",
-          "interiorMmSecond",
-          "sizeSystem",
-          "sizeLabel",
-        ]);
-        const identifiers = attributeFormData(data, ["gtin", "mpn"]);
-        const attributesVerified = verificationDate(data, "attributesVerified");
-        const identifiersVerified = verificationDate(
-          data,
-          "identifiersVerified"
-        );
+          const reorderPointRaw = String(data.get("reorderPoint") ?? "").trim();
+          const attributes = attributeFormData(data, [
+            "interiorMm",
+            "interiorMmSecond",
+            "sizeSystem",
+            "sizeLabel",
+          ]);
+          const identifiers = attributeFormData(data, ["gtin", "mpn"]);
+          const attributesVerified = verificationIntent(
+            data,
+            "attributesVerified"
+          );
+          const identifiersVerified = verificationIntent(
+            data,
+            "identifiersVerified"
+          );
 
-        startTransition(async () => {
-          const result = await saveProductVariant({
-            attributes: Object.keys(attributes).length
-              ? {
-                  ...attributes,
-                  ...(attributesVerified
-                    ? { verifiedAt: attributesVerified }
-                    : {}),
-                }
-              : null,
-            identifiers: Object.keys(identifiers).length
-              ? {
-                  ...identifiers,
-                  ...(identifiersVerified
-                    ? { verifiedAt: identifiersVerified }
-                    : {}),
-                }
-              : null,
-            productId,
-            variantId: variant?.id,
-            sku: String(data.get("sku") ?? ""),
-            label: String(data.get("label") ?? ""),
-            pricePyg: Number(data.get("pricePyg")),
-            compareAtPyg: compareAt === "" ? null : Number(compareAt),
-            isActive: data.get("isActive") === "on",
-            reorderPoint:
-              reorderPointRaw === "" ? null : Number(reorderPointRaw),
+          startTransition(async () => {
+            const result = await saveProductVariant({
+              attributes: Object.keys(attributes).length
+                ? {
+                    ...attributes,
+                    verified: attributesVerified,
+                  }
+                : null,
+              identifiers: Object.keys(identifiers).length
+                ? {
+                    ...identifiers,
+                    verified: identifiersVerified,
+                  }
+                : null,
+              productId,
+              variantId: variant?.id,
+              sku: String(data.get("sku") ?? ""),
+              label: String(data.get("label") ?? ""),
+              pricePyg: Number(data.get("pricePyg")),
+              compareAtPyg: compareAt === "" ? null : Number(compareAt),
+              isActive: data.get("isActive") === "on",
+              reorderPoint:
+                reorderPointRaw === "" ? null : Number(reorderPointRaw),
+            });
+
+            if (!result.ok) {
+              setError(result.error);
+              setFieldErrors(result.fieldErrors ?? {});
+              requestAnimationFrame(() => {
+                if (formRef.current)
+                  focusInvalidField(formRef.current, result.fieldErrors ?? {});
+              });
+              return;
+            }
+            toast.success(t("panel.variante.guardada"));
+            onDone();
+            router.refresh();
           });
-
-          if (!result.ok) {
-            setError(result.error);
-            return;
-          }
-          toast.success(t("panel.variante.guardada"));
-          onDone();
-          router.refresh();
-        });
-      }}
-    >
-      <VariantAttributeFields
-        attributes={variant?.attributes}
-        identifiers={variant?.identifiers}
-        suffix={`-${variant?.id ?? "new"}`}
-      />
-      {error ? (
-        <p
-          role="alert"
-          className="border-destructive/40 text-destructive rounded-lg border p-2 text-sm"
-        >
-          {error}
-        </p>
-      ) : null}
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5">
-          <Label htmlFor={`label-${variant?.id ?? "new"}`}>
-            {t("panel.variante.etiqueta")}
-          </Label>
-          <Input
-            id={`label-${variant?.id ?? "new"}`}
-            name="label"
-            required
-            defaultValue={variant?.label ?? ""}
-            placeholder={t("panel.variante.etiqueta.placeholder")}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor={`sku-${variant?.id ?? "new"}`}>
-            {t("panel.variante.sku")}
-          </Label>
-          <Input
-            id={`sku-${variant?.id ?? "new"}`}
-            name="sku"
-            required
-            defaultValue={variant?.sku ?? ""}
-            placeholder={t("panel.variante.sku.placeholder")}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor={`price-${variant?.id ?? "new"}`}>
-            {t("panel.variante.precio")}
-          </Label>
-          <Input
-            id={`price-${variant?.id ?? "new"}`}
-            name="pricePyg"
-            required
-            type="number"
-            min={0}
-            // step=1: guaraníes enteros. Sin esto el navegador acepta 1500.5 y
-            // el error recién aparece del lado del servidor.
-            step={1}
-            inputMode="numeric"
-            defaultValue={variant?.pricePyg ?? ""}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor={`compare-${variant?.id ?? "new"}`}>
-            {t("panel.variante.precioTachado")}
-          </Label>
-          <Input
-            id={`compare-${variant?.id ?? "new"}`}
-            name="compareAtPyg"
-            type="number"
-            min={0}
-            step={1}
-            inputMode="numeric"
-            defaultValue={variant?.compareAtPyg ?? ""}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor={`reorder-${variant?.id ?? "new"}`}>
-            {t("panel.variante.puntoReposicion")}
-          </Label>
-          <Input
-            id={`reorder-${variant?.id ?? "new"}`}
-            name="reorderPoint"
-            type="number"
-            min={0}
-            max={100_000}
-            step={1}
-            inputMode="numeric"
-            data-testid={TESTIDS.adminVariantReorderPoint}
-            placeholder={t("panel.variante.puntoReposicion.placeholder")}
-            defaultValue={variant?.reorderPoint ?? ""}
-          />
-          <p className="text-muted-foreground text-xs">
-            {t("panel.variante.puntoReposicion.ayuda")}
-          </p>
-        </div>
-      </div>
-
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="isActive"
-          defaultChecked={variant?.isActive ?? true}
+        }}
+      >
+        <VariantAttributeFields
+          attributes={variant?.attributes}
+          identifiers={variant?.identifiers}
+          suffix={`-${variant?.id ?? "new"}`}
         />
-        {t("panel.variante.activa")}
-      </label>
+        {error ? (
+          <p
+            role="alert"
+            tabIndex={-1}
+            className="border-destructive/40 text-destructive rounded-lg border p-2 text-sm"
+          >
+            {error}
+          </p>
+        ) : null}
 
-      {variant === undefined ? (
-        <p className="text-muted-foreground text-xs">
-          {t("panel.variante.arrancaEnCero")}
-        </p>
-      ) : null}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor={`label-${variant?.id ?? "new"}`}>
+              {t("panel.variante.etiqueta")}
+            </Label>
+            <Input
+              id={`label-${variant?.id ?? "new"}`}
+              name="label"
+              required
+              defaultValue={variant?.label ?? ""}
+              placeholder={t("panel.variante.etiqueta.placeholder")}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`sku-${variant?.id ?? "new"}`}>
+              {t("panel.variante.sku")}
+            </Label>
+            <Input
+              id={`sku-${variant?.id ?? "new"}`}
+              name="sku"
+              required
+              defaultValue={variant?.sku ?? ""}
+              placeholder={t("panel.variante.sku.placeholder")}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`price-${variant?.id ?? "new"}`}>
+              {t("panel.variante.precio")}
+            </Label>
+            <Input
+              id={`price-${variant?.id ?? "new"}`}
+              name="pricePyg"
+              required
+              type="number"
+              min={0}
+              // step=1: guaraníes enteros. Sin esto el navegador acepta 1500.5 y
+              // el error recién aparece del lado del servidor.
+              step={1}
+              inputMode="numeric"
+              defaultValue={variant?.pricePyg ?? ""}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`compare-${variant?.id ?? "new"}`}>
+              {t("panel.variante.precioTachado")}
+            </Label>
+            <Input
+              id={`compare-${variant?.id ?? "new"}`}
+              name="compareAtPyg"
+              type="number"
+              min={0}
+              step={1}
+              inputMode="numeric"
+              defaultValue={variant?.compareAtPyg ?? ""}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`reorder-${variant?.id ?? "new"}`}>
+              {t("panel.variante.puntoReposicion")}
+            </Label>
+            <Input
+              id={`reorder-${variant?.id ?? "new"}`}
+              name="reorderPoint"
+              type="number"
+              min={0}
+              max={100_000}
+              step={1}
+              inputMode="numeric"
+              data-testid={TESTIDS.adminVariantReorderPoint}
+              placeholder={t("panel.variante.puntoReposicion.placeholder")}
+              defaultValue={variant?.reorderPoint ?? ""}
+            />
+            <p className="text-muted-foreground text-xs">
+              {t("panel.variante.puntoReposicion.ayuda")}
+            </p>
+          </div>
+        </div>
 
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={isPending}>
-          {isPending
-            ? t("panel.acciones.guardando")
-            : t("panel.variante.guardar")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={onDone}
-          disabled={isPending}
-        >
-          {t("panel.variante.cancelar")}
-        </Button>
-      </div>
-    </form>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="isActive"
+            defaultChecked={variant?.isActive ?? true}
+          />
+          {t("panel.variante.activa")}
+        </label>
+
+        {variant === undefined ? (
+          <p className="text-muted-foreground text-xs">
+            {t("panel.variante.arrancaEnCero")}
+          </p>
+        ) : null}
+
+        <div className="flex gap-2">
+          <Button type="submit" size="sm" disabled={isPending}>
+            {isPending
+              ? t("panel.acciones.guardando")
+              : t("panel.variante.guardar")}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onDone}
+            disabled={isPending}
+          >
+            {t("panel.variante.cancelar")}
+          </Button>
+        </div>
+      </form>
+    </FieldErrorsContext.Provider>
   );
 }
 

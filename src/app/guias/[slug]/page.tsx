@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GUIDES } from "@/content/guides";
-import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo";
+import { breadcrumbJsonLd, editorialDate, jsonLdScript } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { RingMeasurement } from "@/components/ring-measurement";
 import { getStoreCategories } from "@/store/catalog";
@@ -65,6 +65,17 @@ export default async function GuidePage({ params }: Props) {
             description: guide.description,
             inLanguage: "es-PY",
             author: { "@type": "Organization", name },
+            publisher: { "@type": "Organization", name },
+            ...(editorialDate(guide.publishedAt)
+              ? {
+                  datePublished: editorialDate(
+                    guide.publishedAt
+                  )!.toISOString(),
+                }
+              : {}),
+            ...(editorialDate(guide.reviewedAt)
+              ? { dateModified: editorialDate(guide.reviewedAt)!.toISOString() }
+              : {}),
             ...(siteOrigin()
               ? {
                   mainEntityOfPage: new URL(
@@ -77,6 +88,14 @@ export default async function GuidePage({ params }: Props) {
         }}
       />
       <h1 className="article-heading mt-4 max-w-4xl">{guide.heading}</h1>
+      {editorialDate(guide.reviewedAt) ? (
+        <p className="text-muted-foreground mt-3 text-sm">
+          Revisado el{" "}
+          {editorialDate(guide.reviewedAt)!.toLocaleDateString("es-PY", {
+            timeZone: "UTC",
+          })}
+        </p>
+      ) : null}
       <p className="section-intro">{guide.description}</p>
       <RingContents sections={guide.sections} measurement={slug === "talles"} />
       <article className="store-prose">

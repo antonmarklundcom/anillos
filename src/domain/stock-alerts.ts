@@ -1,21 +1,21 @@
-import { and, eq, isNotNull, isNull, lt, sql } from 'drizzle-orm';
+import { and, eq, gt, isNotNull, isNull, lt, sql } from "drizzle-orm";
 
-import { getDb } from '@/db';
-import { products, stockAlerts, variants } from '@/db/schema';
-import { TIENDA } from '@/config/tienda';
-import { t } from '@/i18n';
-import type { MessageKey, Params } from '@/i18n';
-import { normalizePhonePY } from '@/lib/py';
-import { siteOrigin } from '@/lib/site-url';
+import { getDb } from "@/db";
+import { categories, products, stockAlerts, variants } from "@/db/schema";
+import { TIENDA } from "@/config/tienda";
+import { t } from "@/i18n";
+import type { MessageKey, Params } from "@/i18n";
+import { normalizePhonePY } from "@/lib/py";
+import { siteOrigin } from "@/lib/site-url";
 
-import { DomainError } from './errors';
-import type { Executor } from './executor';
-import { getAvailability } from './stock';
-import { resolveMessageSender, type MessageSender } from './messaging';
-import { withTimeout } from './notify-timing';
-import { log, mensajeDe } from '@/lib/log';
+import { DomainError } from "./errors";
+import type { Executor } from "./executor";
+import { getAvailability } from "./stock";
+import { resolveMessageSender, type MessageSender } from "./messaging";
+import { withTimeout } from "./notify-timing";
+import { log, mensajeDe } from "@/lib/log";
 import { valorIntegracion } from "@/lib/integraciones";
-import { nombreTienda } from '@/lib/marca';
+import { nombreTienda } from "@/lib/marca";
 
 /**
  * "Avisame cuando haya stock" (plan-operacion §5.2 E).
@@ -47,7 +47,7 @@ import { nombreTienda } from '@/lib/marca';
 export class StockAlertError extends DomainError {
   constructor(code: MessageKey, params?: Params) {
     super(code, params);
-    this.name = 'StockAlertError';
+    this.name = "StockAlertError";
   }
 }
 
@@ -65,7 +65,10 @@ export function stockAlertTemplate(): string | null {
   return valorIntegracion("whatsapp", "plantillaStockDisponible");
 }
 
-export type StockAlertNotifier = { sender: MessageSender; templateName?: string };
+export type StockAlertNotifier = {
+  sender: MessageSender;
+  templateName?: string;
+};
 
 /**
  * Con qué mandar el aviso, o `null` si esta tienda no ofrece la feature.
@@ -83,7 +86,7 @@ export function resolveStockAlertNotifier(): StockAlertNotifier | null {
   const sender = resolveMessageSender();
   if (!sender) return null;
 
-  return sender.channel === 'whatsapp' ? { sender, templateName } : { sender };
+  return sender.channel === "whatsapp" ? { sender, templateName } : { sender };
 }
 
 /** ¿Esta tienda ofrece "avisame cuando haya stock"? */
@@ -103,29 +106,21 @@ export type SubscribeInput = { variantId: number; phone: string };
  */
 export async function subscribeStockAlert(
   input: SubscribeInput,
-  options: { executor?: Executor } = {},
+  options: { executor?: Executor } = {}
 ): Promise<void> {
-  if (!stockAlertsEnabled()) throw new StockAlertError('error.avisoStock.apagado');
+  if (!stockAlertsEnabled())
+    throw new StockAlertError("error.avisoStock.apagado");
 
   const phone = normalizePhonePY(input.phone);
-  if (!phone) throw new StockAlertError('error.checkout.telefono');
+  if (!phone) throw new StockAlertError("error.checkout.telefono");
 
   const tx = options.executor ?? getDb();
 
-  const filas = await tx
-    .select({ id: variants.id, isActive: variants.isActive, productActive: products.isActive })
-    .from(variants)
-    .innerJoin(products, eq(variants.productId, products.id))
-    .where(eq(variants.id, input.variantId))
-    .limit(1);
-
-  const variante = filas[0];
-  if (!variante || !variante.isActive || !variante.productActive) {
-    throw new StockAlertError('error.avisoStock.noExiste');
-  }
+  if (!(await datosDelProducto(input.variantId, tx)))
+    throw new StockAlertError("error.avisoStock.noExiste");
 
   if ((await getAvailability(input.variantId, tx)) > 0) {
-    throw new StockAlertError('error.avisoStock.hayStock');
+    throw new StockAlertError("error.avisoStock.hayStock");
   }
 
   // `INSERT IGNORE` contra el UNIQUE: repetir el alta no es un error, es la
@@ -133,7 +128,7 @@ export async function subscribeStockAlert(
   // apretar el botón después de recibir el aviso pediría el mismo aviso otra
   // vez sin que haya pasado nada nuevo.
   await tx.execute(
-    sql`INSERT IGNORE INTO \`stock_alerts\` (\`variant_id\`, \`phone\`) VALUES (${input.variantId}, ${phone})`,
+    sql`INSERT IGNORE INTO \`stock_alerts\` (\`variant_id\`, \`phone\`) VALUES (${input.variantId}, ${phone})`
   );
 }
 
@@ -150,11 +145,13 @@ export async function subscribeStockAlert(
  */
 export async function notifyBackInStock(
   variantId: number,
-  options: { notifier?: StockAlertNotifier | null; executor?: Executor } = {},
+  options: { notifier?: StockAlertNotifier | null; executor?: Executor } = {}
 ): Promise<{ marcadas: number; enviadas: number }> {
   try {
     const notifier =
-      options.notifier === undefined ? resolveStockAlertNotifier() : options.notifier;
+      options.notifier === undefined
+        ? resolveStockAlertNotifier()
+        : options.notifier;
     if (!notifier) return { marcadas: 0, enviadas: 0 };
 
     const tx = options.executor ?? getDb();
@@ -163,7 +160,8 @@ export async function notifyBackInStock(
     // entre el commit que subió el stock y esta línea, otra compradora pudo
     // llevarse la última unidad. Avisar de un stock que ya no está es peor
     // que no avisar.
-    if ((await getAvailability(variantId, tx)) <= 0) return { marcadas: 0, enviadas: 0 };
+    if ((await getAvailability(variantId, tx)) <= 0)
+      return { marcadas: 0, enviadas: 0 };
 
     const producto = await datosDelProducto(variantId, tx);
     if (!producto) return { marcadas: 0, enviadas: 0 };
@@ -171,7 +169,12 @@ export async function notifyBackInStock(
     const pendientes = await tx
       .select({ id: stockAlerts.id, phone: stockAlerts.phone })
       .from(stockAlerts)
-      .where(and(eq(stockAlerts.variantId, variantId), isNull(stockAlerts.notifiedAt)))
+      .where(
+        and(
+          eq(stockAlerts.variantId, variantId),
+          isNull(stockAlerts.notifiedAt)
+        )
+      )
       .orderBy(stockAlerts.createdAt)
       .limit(NOTIFY_BATCH);
 
@@ -188,12 +191,22 @@ export async function notifyBackInStock(
       await tx
         .update(stockAlerts)
         .set({ notifiedAt: new Date() })
-        .where(and(eq(stockAlerts.id, suscripcion.id), isNull(stockAlerts.notifiedAt)));
+        .where(
+          and(
+            eq(stockAlerts.id, suscripcion.id),
+            isNull(stockAlerts.notifiedAt)
+          )
+        );
 
       const confirmacion = await tx
         .select({ notifiedAt: stockAlerts.notifiedAt })
         .from(stockAlerts)
-        .where(and(eq(stockAlerts.id, suscripcion.id), isNotNull(stockAlerts.notifiedAt)))
+        .where(
+          and(
+            eq(stockAlerts.id, suscripcion.id),
+            isNotNull(stockAlerts.notifiedAt)
+          )
+        )
         .limit(1);
       if (confirmacion.length === 0) continue;
 
@@ -206,26 +219,30 @@ export async function notifyBackInStock(
             body,
             templateName: notifier.templateName,
           }),
-          AVISO_TIMEOUT_MS,
+          AVISO_TIMEOUT_MS
         );
         enviadas += 1;
       } catch (error) {
         // La fila queda marcada igual: ver la regla 2. Se pierde este aviso y
         // no se reintenta — reintentar es la forma más rápida de mandarle
         // diez mensajes a la misma persona.
-        log.error(`avisoStock: no se pudo avisar de la variante ${variantId}`, { error: mensajeDe(error) });
+        log.error(`avisoStock: no se pudo avisar de la variante ${variantId}`, {
+          error: mensajeDe(error),
+        });
       }
     }
 
     if (marcadas !== enviadas) {
-      log.warn(`avisoStock: ${marcadas - enviadas} aviso(s) perdido(s) de ${variantId}`);
+      log.warn(
+        `avisoStock: ${marcadas - enviadas} aviso(s) perdido(s) de ${variantId}`
+      );
     }
 
     return { marcadas, enviadas };
   } catch (error) {
     // Último cinturón: esto corre sin `await` detrás de un ajuste de stock ya
     // commiteado, y no puede hacer ruido en quien lo disparó.
-    log.error('notifyBackInStock falló entero', { error: mensajeDe(error) });
+    log.error("notifyBackInStock falló entero", { error: mensajeDe(error) });
     return { marcadas: 0, enviadas: 0 };
   }
 }
@@ -240,9 +257,16 @@ export async function notifyBackInStock(
  * suscripciones esperan hasta el próximo ajuste manual.
  */
 export async function sweepBackInStock(
-  options: { notifier?: StockAlertNotifier | null; executor?: Executor; limit?: number } = {},
+  options: {
+    notifier?: StockAlertNotifier | null;
+    executor?: Executor;
+    limit?: number;
+  } = {}
 ): Promise<{ variantes: number; enviadas: number }> {
-  const notifier = options.notifier === undefined ? resolveStockAlertNotifier() : options.notifier;
+  const notifier =
+    options.notifier === undefined
+      ? resolveStockAlertNotifier()
+      : options.notifier;
   if (!notifier) return { variantes: 0, enviadas: 0 };
 
   const tx = options.executor ?? getDb();
@@ -256,7 +280,10 @@ export async function sweepBackInStock(
   let variantes = 0;
   let enviadas = 0;
   for (const fila of conPendientes) {
-    const resultado = await notifyBackInStock(fila.variantId, { notifier, executor: tx });
+    const resultado = await notifyBackInStock(fila.variantId, {
+      notifier,
+      executor: tx,
+    });
     if (resultado.marcadas > 0) {
       variantes += 1;
       enviadas += resultado.enviadas;
@@ -275,7 +302,7 @@ export async function sweepBackInStock(
  */
 export async function purgeNotifiedStockAlerts(
   now: Date = new Date(),
-  executor?: Executor,
+  executor?: Executor
 ): Promise<number> {
   const tx = executor ?? getDb();
   const limite = new Date(now.getTime() - PURGE_AFTER_DAYS * 24 * 3600_000);
@@ -284,18 +311,27 @@ export async function purgeNotifiedStockAlerts(
   // `affectedRows` está en el primer elemento y no en el objeto de arriba.
   const result = await tx
     .delete(stockAlerts)
-    .where(and(isNotNull(stockAlerts.notifiedAt), lt(stockAlerts.notifiedAt, limite)));
+    .where(
+      and(isNotNull(stockAlerts.notifiedAt), lt(stockAlerts.notifiedAt, limite))
+    );
 
   const header = (result as unknown as Array<{ affectedRows?: number }>)[0];
   return Number(header?.affectedRows ?? 0);
 }
 
-export type BackInStockProduct = { productName: string; label: string; slug: string };
+export type BackInStockProduct = {
+  productName: string;
+  label: string;
+  slug: string;
+};
 
 /** El texto del aviso. Separado del envío para testearlo sin red. */
-export function backInStockBody(producto: BackInStockProduct, tienda: string = TIENDA.nombre): string {
+export function backInStockBody(
+  producto: BackInStockProduct,
+  tienda: string = TIENDA.nombre
+): string {
   const lineas = [
-    t('wa.stock.disponible', {
+    t("wa.stock.disponible", {
       producto: producto.productName,
       etiqueta: producto.label,
       tienda,
@@ -306,21 +342,42 @@ export function backInStockBody(producto: BackInStockProduct, tienda: string = T
   // WhatsApp no es clickeable: sale sin la línea en vez de con una a medias.
   const origin = siteOrigin();
   if (origin) {
-    lineas.push(t('wa.stock.verProducto', { url: `${origin.origin}/producto/${producto.slug}` }));
+    lineas.push(
+      t("wa.stock.verProducto", {
+        url: `${origin.origin}/producto/${producto.slug}`,
+      })
+    );
   }
 
-  return lineas.join('\n');
+  return lineas.join("\n");
 }
 
 async function datosDelProducto(
   variantId: number,
-  tx: Executor,
+  tx: Executor
 ): Promise<BackInStockProduct | null> {
   const filas = await tx
-    .select({ productName: products.name, label: variants.label, slug: products.slug })
+    .select({
+      productName: products.name,
+      label: variants.label,
+      slug: products.slug,
+    })
     .from(variants)
     .innerJoin(products, eq(variants.productId, products.id))
-    .where(eq(variants.id, variantId))
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        eq(variants.id, variantId),
+        eq(variants.isActive, true),
+        eq(products.isActive, true),
+        isNotNull(products.publishedAt),
+        eq(categories.isActive, true),
+        eq(products.saleMode, "stock"),
+        eq(products.showPrice, true),
+        gt(variants.pricePyg, 0),
+        sql`LOWER(${products.slug}) NOT LIKE 'concepto-%'`
+      )
+    )
     .limit(1);
   return filas[0] ?? null;
 }

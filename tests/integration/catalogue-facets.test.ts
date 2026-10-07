@@ -1,6 +1,6 @@
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
-import { getCategoryProducts } from "@/db/queries";
+import { getCatalog, getCategoryProducts } from "@/db/queries";
 import {
   getCatalogueFacets,
   parseCatalogueFilters,
@@ -125,6 +125,44 @@ describe.skipIf(!hasTestDb)("verified catalogue facets", () => {
     ]);
   });
   afterAll(closeTestDb);
+  it("masks legacy zero-price stock and ignores it in minimum-price ordering/filtering", async () => {
+    const db = getTestDb();
+    const categoryId = await createCategory();
+    const slug = (
+      await db.select().from(categories).where(eq(categories.id, categoryId))
+    )[0]!.slug;
+    const zeroId = await createProduct(categoryId);
+    await createVariant({ productId: zeroId, pricePyg: 0, onHand: 10 });
+    const mixedId = await createProduct(categoryId);
+    await createVariant({ productId: mixedId, pricePyg: 0, onHand: 10 });
+    await createVariant({ productId: mixedId, pricePyg: 120000, onHand: 1 });
+    const catalog = await getCatalog({ categorySlug: slug });
+    expect(
+      catalog.find((item) => item.id === zeroId)!.variants[0]!.available
+    ).toBe(0);
+    expect(
+      catalog
+        .find((item) => item.id === mixedId)!
+        .variants.filter((variant) => variant.pricePyg === 0)
+        .every((variant) => variant.available === 0)
+    ).toBe(true);
+    const sorted = await getCategoryProducts({
+      categorySlug: slug,
+      sort: "precio-asc",
+    });
+    expect(sorted.products.map((item) => item.id)).toEqual([mixedId, zeroId]);
+    const priced = await getCategoryProducts({
+      categorySlug: slug,
+      minPricePyg: 1,
+    });
+    expect(priced.products.map((item) => item.id)).toEqual([mixedId]);
+    const stocked = await getCategoryProducts({
+      categorySlug: slug,
+      inStock: true,
+    });
+    expect(stocked.products.map((item) => item.id)).toEqual([mixedId]);
+    expect((await getCatalogueFacets(slug)).inStock).toBe(1);
+  });
   it("counts only verified facts and excludes concepts without inferring names or categories", async () => {
     const facets = await getCatalogueFacets(categorySlug);
     expect(facets.material).toEqual([

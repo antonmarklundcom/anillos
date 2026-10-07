@@ -146,7 +146,10 @@ export async function saveStoreSettingsSection(
             ...actual.paginas,
             ...definidos(parsed.data as Record<string, unknown>),
           }
-        : parsed.data;
+        : section === "checkout"
+          ? { ...parsed.data, metodosPago: values && typeof values === "object" && Object.hasOwn(values, "metodosPago")
+              ? (parsed.data as { metodosPago?: unknown }).metodosPago : actual.checkout.metodosPago }
+          : parsed.data;
 
     // Se vuelve a pasar por el schema de lectura: lo que queda en la base es
     // siempre algo que la vidriera sabe leer.

@@ -94,7 +94,8 @@ export async function requireCapabilityPage(
  * del caso exitoso (`unknown` por defecto: intersectarlo no agrega nada).
  */
 export type AdminActionResult<T = unknown> =
-  ({ ok: true } & T) | { ok: false; error: string };
+  | ({ ok: true } & T)
+  | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 /**
  * Traduce el error de una acción de admin a algo que el formulario pueda
@@ -109,7 +110,7 @@ export type AdminActionResult<T = unknown> =
 export function adminActionError(
   context: string,
   error: unknown
-): { ok: false; error: string } {
+): { ok: false; error: string; fieldErrors?: Record<string, string> } {
   if (error instanceof UnauthorizedError) {
     return { ok: false, error: t("adminError.sesionCerrada") };
   }
@@ -117,7 +118,17 @@ export function adminActionError(
     return { ok: false, error: error.message };
   }
   if (error instanceof Error && KNOWN_DOMAIN_ERRORS.includes(error.name)) {
-    return { ok: false, error: error.message };
+    const fieldErrors =
+      "fieldErrors" in error &&
+      typeof error.fieldErrors === "object" &&
+      error.fieldErrors !== null
+        ? (error.fieldErrors as Record<string, string>)
+        : undefined;
+    return {
+      ok: false,
+      error: error.message,
+      ...(fieldErrors ? { fieldErrors } : {}),
+    };
   }
   console.error(`${context} falló`, safeError(error).message);
   return { ok: false, error: t("adminError.generico") };

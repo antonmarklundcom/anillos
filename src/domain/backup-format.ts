@@ -72,8 +72,14 @@ export async function backupManifest(tx: Executor): Promise<BackupManifest> {
     migration,
     server: (versionRows as unknown as { version: string }[])[0]!.version,
     app: process.env.BUILD_SHA ?? "unknown",
-    tables: BACKUP_TABLES,
+    tables: backupTablesForMigration(migration.tag),
     keyCheck: backupKeyCheck(),
   };
+}
+export function backupTablesForMigration(tag: string) {
+  const tables = tablesForMigration(tag);
+  if (tables.some((table) => !(BACKUP_TABLES as readonly string[]).includes(table)))
+    throw new Error("El esquema contiene tablas sin soporte de backup");
+  return BACKUP_TABLES.filter((table) => tables.includes(table));
 }
 export const rowDigest = () => createHash("sha256");

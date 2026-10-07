@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCatalog, getProductsBySlugs } from "@/db/queries";
+import { getComparisonCandidates, getProductsBySlugs } from "@/db/queries";
 import { ProductComparison } from "@/components/product-comparison";
 import {
   comparisonSlugs,
@@ -20,7 +20,7 @@ export async function generateMetadata() {
       },
       "/comparar"
     )),
-    robots: { index: false, follow: true },
+    robots: { index: false, follow: false },
   };
 }
 export default async function ComparePage({
@@ -31,7 +31,7 @@ export default async function ComparePage({
   const requested = comparisonSlugs((await searchParams).producto);
   const result = await Promise.all([
     getProductsBySlugs(requested),
-    getCatalog({ limit: 100 }),
+    getComparisonCandidates(requested),
   ]).catch((error) => {
     log.error("store.comparison.unavailable", { error });
     return null;
@@ -83,6 +83,8 @@ export default async function ComparePage({
               {candidates.map((product) => (
                 <li key={product.slug}>
                   <Link
+                    rel="nofollow"
+                    prefetch={false}
                     className="block rounded border p-4 hover:underline"
                     href={comparisonUrl([...selectedSlugs, product.slug])}
                   >

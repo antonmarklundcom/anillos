@@ -7,7 +7,10 @@ import { getDashboardSummary, salesTrend, topProducts } from "@/domain/admin-das
 import { DEFAULT_REORDER_POINT, lowStockVariants } from "@/domain/admin-products";
 import { getStoreSettings } from "@/domain/store-settings";
 import { umbralStockBajo } from "@/domain/store-settings-schema";
-import { cronAtrasado, getJobRun } from "@/domain/job-runs";
+import { backupAtrasado, cronAtrasado, getJobRun } from "@/domain/job-runs";
+import { backupsEnabled } from "@/domain/backup";
+import { migrationStatus } from "@/db/migration-status";
+import { cargarIntegraciones } from "@/lib/integraciones-store";
 import { countActiveDemoProducts, countActiveShippingZones } from "@/domain/launch-checks";
 import { findUnmatchedPayments } from "@/domain/payment-recovery";
 import { getDatosBancarios } from "@/lib/comercio";
@@ -23,6 +26,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const actor = await requireCapabilityPage("dashboard");
+  await cargarIntegraciones();
+  const [backup, migrations] = await Promise.all([
+    backupsEnabled() ? getJobRun("backup") : Promise.resolve(null),
+    migrationStatus().catch(() => ({ current: false })),
+  ]);
   // El umbral global de stock bajo sale de `/admin/ajustes`; el de cada
   // variante igual gana.
   const { stock } = await getStoreSettings();
@@ -44,6 +52,14 @@ export default async function AdminDashboardPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold tracking-tight">{t("panel.resumen.titulo")}</h1>
+      {can(actor.role, "usuarios") && !migrations.current ? <section className="border-border mt-4 rounded-xl border p-4">
+        <h2 className="font-medium">{t("panel.resumen.esquemaPendiente")}</h2>
+        <p className="mt-1 text-sm">{t("panel.resumen.esquemaAyuda")}</p>
+      </section> : null}
+      {can(actor.role, "usuarios") && backupsEnabled() && backupAtrasado(backup) ? <section className="border-border mt-4 rounded-xl border p-4">
+        <h2 className="font-medium">{t("panel.resumen.backupAtrasado")}</h2>
+        <p className="mt-1 text-sm">{t("panel.resumen.backupAyuda")}</p>
+      </section> : null}
 
       {/*
         Sin datos bancarios en ninguna de las dos fuentes (tabla ni entorno),

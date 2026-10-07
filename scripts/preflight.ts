@@ -11,6 +11,8 @@ import { preflight, type PreflightCheck } from "../src/domain/preflight";
 import { listShippingZones } from "../src/domain/shipping";
 import { readStoreSettings } from "../src/domain/store-settings";
 import { leerIntegracionesDelPanel } from "../src/lib/integraciones-store";
+import { cargarIntegraciones } from "../src/lib/integraciones-store";
+import { checkEffectivePayments } from "../src/domain/payment-readiness";
 
 /**
  * `pnpm preflight` — ¿podemos cobrar plata de verdad?
@@ -118,6 +120,13 @@ async function main(): Promise<void> {
     }))
     .catch(() => ({}));
   const report = preflight(process.env, panel, ajustes);
+  await cargarIntegraciones();
+  report.checks.push(await checkEffectivePayments().catch(() => ({
+    id: "pagos_listos", severity: "bloquea" as const, title: "Medios de pago efectivos",
+    detail: "No se pudieron verificar ajustes y Banco en la base. Revisá conexión y migraciones antes de aceptar pedidos.",
+  })));
+  report.blocking = report.checks.filter((check) => check.severity === "bloquea").length;
+  report.ok = report.blocking === 0;
 
   console.log("\nPreflight — lo que falta para cobrar de verdad\n");
 

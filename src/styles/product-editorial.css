@@ -29,7 +29,7 @@
   min-width: 0;
 }
 .product-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: var(--product-wine);
@@ -147,8 +147,8 @@
   outline-offset: 4px;
 }
 .product-gallery-caption {
-  color: #777064;
-  font-size: 11px;
+  color: #686155;
+  font-size: 12px;
   line-height: 1.7;
   max-width: 58ch;
   margin-top: 16px;
@@ -173,7 +173,7 @@
   max-width: 42ch;
   font-size: 14px;
   line-height: 1.9;
-  color: #777064;
+  color: #686155;
 }
 .product-text-link {
   display: inline-flex;
@@ -205,7 +205,7 @@
   padding-block: 15px;
 }
 .product-reference-details dt {
-  color: #827a6d;
+  color: #686155;
 }
 .product-reference-details dd {
   line-height: 1.8;
@@ -248,7 +248,7 @@
   .product-breadcrumbs {
     gap: 7px;
     margin-bottom: 18px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .product-hero {
     grid-template-columns: 1fr;
@@ -287,3 +287,4 @@
     display: none;
   }
 }
+.product-photo-pending { aspect-ratio: 1; display: grid; place-content: center; gap: 1rem; text-align: center; border: 1px solid var(--product-line); background: var(--muted); padding: 2rem; color: var(--product-ink); } .product-photo-pending span { font-family: Georgia, serif; font-size: clamp(1.5rem, 4vw, 2.5rem); }

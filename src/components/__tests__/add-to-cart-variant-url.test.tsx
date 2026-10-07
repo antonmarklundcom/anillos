@@ -81,16 +81,46 @@ it("selects a valid shared SKU ahead of local memory and keeps selection shareab
     screen.getByRole("link", { name: "Enlace a esta variante" })
   ).toHaveAttribute("href", "/producto/anillo-real?variante=SKU-17");
 });
-it("does not preselect or enable unavailable stock from a shared URL", () => {
+it("selects a sold-out shared SKU while keeping purchase disabled", () => {
   window.history.replaceState(
     null,
     "",
     "/producto/anillo-real?variante=SKU-19"
   );
   render(<AddToCart product={product} initialVariantSku="SKU-19" />);
-  expect(screen.getByRole("button", { name: "17 mm" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
+  expect(
+    screen.getByRole("button", { name: "19 mm · Agotado" })
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByRole("button", { name: "19 mm · Agotado" })
+  ).not.toBeDisabled();
+  expect(screen.getByRole("button", { name: "stock.sin" })).toBeDisabled();
+});
+
+it("removes an invalid SKU query without losing other parameters", () => {
+  window.history.replaceState(
+    null,
+    "",
+    "/producto/anillo-real?variante=missing&utm_source=direct"
   );
-  expect(screen.getByRole("button", { name: "19 mm" })).toBeDisabled();
+  render(<AddToCart product={product} initialVariantSku="missing" />);
+  expect(new URLSearchParams(window.location.search).has("variante")).toBe(
+    false
+  );
+  expect(new URLSearchParams(window.location.search).get("utm_source")).toBe(
+    "direct"
+  );
+});
+
+it("keeps a legacy zero-price variant unpriced and unpurchasable", () => {
+  render(
+    <AddToCart
+      product={{
+        ...product,
+        variants: [{ ...product.variants[0]!, pricePyg: 0 }],
+      }}
+    />
+  );
+  expect(screen.getByRole("button", { name: "stock.sin" })).toBeDisabled();
+  expect(screen.queryByText(/Gs\.?\s*0/)).toBeNull();
 });

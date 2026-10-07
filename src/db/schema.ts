@@ -253,6 +253,9 @@ export const productImages = mysqlTable(
         onUpdate: "cascade",
       }),
     cloudinaryId: varchar("cloudinary_id", { length: 255 }).notNull(),
+    /** Unknown legacy images remain unverified until explicitly reviewed. */
+    provenance: mysqlEnum("provenance", ["supplier-authorized", "owned-photo", "illustrative"]),
+    verifiedAt: timestamp("verified_at", { mode: "date", fsp: 3 }),
     blurDataUrl: text("blur_data_url"),
     alt: varchar("alt", { length: 255 }),
     position: int("position").notNull().default(0),

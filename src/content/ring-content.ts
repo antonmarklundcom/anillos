@@ -7,6 +7,9 @@ export type ContentSection = {
   links?: ContentLink[];
 };
 export type RingContent = {
+  /** Editorial dates are entered only after an actual publication/review. */
+  publishedAt?: string;
+  reviewedAt?: string;
   title: string;
   heading: string;
   description: string;

@@ -165,11 +165,11 @@ body:has(.cinematic-track) .store-header {
 .hero-detail-steps {
   display: flex;
   gap: 18px;
-  color: #74766d;
+  color: #62645b;
   font-size: 11px;
 }
 .hero-detail-steps span {
-  font-size: 9px;
+  font-size: 12px;
   margin-right: 3px;
 }
 .hero-detail-steps [aria-current="step"] {
@@ -697,7 +697,7 @@ summary:focus-visible {
   .store-values {
     gap: 12px;
     flex-direction: column;
-    font-size: 9px;
+    font-size: 12px;
     padding: 18px;
   }
   .collection-grid {

@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { templateMigrationIssue } from './template-migrations';
 
 import {
   BASELINE_FILE,
@@ -584,6 +585,8 @@ export function ejecutarSync(cwd: string, opciones: Opciones): ResultadoSync {
     };
   }
 
+  const migrationIssue = templateMigrationIssue(cwd, baseline, objetivo);
+  if (migrationIssue) return { estado: 'precondicion', mensaje: migrationIssue };
   const commits = commitsClasificados(cwd, baseline, objetivo);
   const enBase = blobsDe(cwd, baseline);
   const enTienda = blobsDe(cwd, 'HEAD');
