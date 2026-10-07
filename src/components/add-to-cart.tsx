@@ -15,6 +15,7 @@ import { recallVariant, rememberVariant } from "@/lib/variant-memory";
 import { variantFromSku, variantUrl } from "@/lib/variant-url";
 import { TESTIDS } from "@/lib/testids";
 import { cn } from "@/lib/utils";
+import { isConceptProduct } from "@/lib/concept-products";
 import type { CatalogProductDetail, CatalogVariant } from "@/db/queries";
 import { t } from "@/i18n/client";
 
@@ -55,8 +56,10 @@ export function AddToCart({
   inquiryLinks?: Record<number, string>;
   initialVariantSku?: string | null;
 }) {
+  const concept = isConceptProduct(product.slug);
+  const showPrice = !concept && product.showPrice !== false;
   const purchasable =
-    (product.saleMode ?? "stock") === "stock" && product.showPrice !== false;
+    (product.saleMode ?? "stock") === "stock" && showPrice;
   const add = useCart((state) => state.add);
   const firstAvailable = product.variants.find(
     (variant) => variant.available > 0
@@ -170,7 +173,7 @@ export function AddToCart({
 
       {selected ? (
         <div className="flex flex-wrap items-center gap-3">
-          {product.showPrice !== false && validPrice ? (
+          {showPrice && validPrice ? (
             <PriceTag
               pricePyg={selected.pricePyg}
               compareAtPyg={selected.compareAtPyg}
@@ -189,7 +192,7 @@ export function AddToCart({
               )}
             </span>
           )}
-          {!purchasable && product.showPrice !== false ? (
+          {!purchasable && showPrice ? (
             <p className="text-sm">{t("producto.precioOrientativo")}</p>
           ) : null}
         </div>

@@ -1,5 +1,7 @@
 import { isConceptProduct } from "@/lib/concept-products";
 
+export const CONCEPT_LABEL = "Diseño ilustrativo / a pedido sujeto a confirmación";
+
 /** Minimal display values shared with client-rendered cards; no editorial copy. */
 const CONCEPT_IMAGES: Record<string, string> = {
   "concepto-banda-acero": "steel",

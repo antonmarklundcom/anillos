@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { conceptImageFor, priceUnit } from "@/config/ring-display";
+import { CONCEPT_LABEL, priceUnit } from "@/config/ring-display";
 import { isConceptProduct } from "@/lib/concept-products";
 
 import { PriceTag } from "@/components/price-tag";
@@ -26,6 +26,8 @@ export function ProductCard({
    */
   showRating?: boolean;
 }) {
+  const concept = isConceptProduct(product.slug);
+  const showPrice = !concept && product.showPrice !== false;
   // El precio "desde" es el de la variante más barata disponible; si no hay
   // ninguna con stock, igual mostramos el más barato para no dejar el card mudo.
   const priced = product.variants.filter(
@@ -86,9 +88,9 @@ export function ProductCard({
                   ? priceUnit(product.categorySlug)
                   : "Unidad por confirmar"}
           </p>
-          {conceptImageFor(product.slug) ? (
+          {concept ? (
             <p className="product-card-note text-muted-foreground text-xs">
-              Referencia de diseño · no disponible para compra
+              {CONCEPT_LABEL} · sin compra ni reserva
             </p>
           ) : null}
           {showRating && product.rating && product.rating.count >= 1 ? (
@@ -100,7 +102,7 @@ export function ProductCard({
           ) : null}
 
           <div className="mt-auto pt-2">
-            {shown && product.showPrice !== false ? (
+            {shown && showPrice ? (
               <PriceTag
                 pricePyg={shown.pricePyg}
                 compareAtPyg={shown.compareAtPyg}
@@ -137,7 +139,7 @@ export function ProductCard({
         slug={product.slug}
         name={product.name}
         sku={shown?.sku}
-        pricePyg={product.showPrice === false ? undefined : shown?.pricePyg}
+        pricePyg={showPrice ? shown?.pricePyg : undefined}
       />
     </div>
   );

@@ -4,9 +4,9 @@ import { SECTION_INPUT } from "@/domain/store-settings-schema";
 
 afterEach(() => vi.unstubAllEnvs());
 describe("store payment policy", () => {
-  it("starts transfer-only independently of installed card credentials", () => {
+  it("starts with payments paused independently of installed card credentials", () => {
     vi.stubEnv("STORE_PAYMENT_METHODS", undefined);
-    expect(permittedPaymentMethods(null)).toEqual(["transferencia"]);
+    expect(permittedPaymentMethods(null)).toEqual([]);
   });
   it("explicit owner choices, including pause, win over deployment policy", () => {
     expect(permittedPaymentMethods([], "tarjeta")).toEqual([]);

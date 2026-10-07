@@ -1,4 +1,4 @@
-/** Store launch profile. The reusable template can enable other methods here. */
+/** Demand test: no payment acceptance until the owner explicitly enables it. */
 export const CHECKOUT_DEFAULTS = {
-  paymentMethods: ["transferencia"] as const,
+  paymentMethods: [] as const,
 };

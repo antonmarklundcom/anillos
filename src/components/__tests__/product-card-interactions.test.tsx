@@ -15,6 +15,43 @@ vi.mock("@/components/product-image", () => ({
 }));
 afterEach(cleanup);
 
+it("hides price and stock for a reserved concept even with mistaken selling fields", () => {
+  render(
+    <ProductCard
+      product={{
+        id: 1,
+        slug: "concepto-prueba",
+        name: "Idea de anillo",
+        categoryName: "Plata",
+        categorySlug: "plata-925",
+        brand: null,
+        ivaRate: 10,
+        image: null,
+        saleMode: "stock",
+        showPrice: true,
+        variants: [
+          {
+            id: 1,
+            sku: "IDEA",
+            label: "17",
+            pricePyg: 120000,
+            compareAtPyg: null,
+            available: 10,
+          },
+        ],
+      }}
+    />
+  );
+  expect(screen.queryByText(formatGs(120000))).toBeNull();
+  expect(screen.queryByText("Sin stock")).toBeNull();
+  expect(
+    screen.getByText(/Diseño ilustrativo \/ a pedido sujeto a confirmación/)
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Guardar favorito" })
+  ).not.toHaveAttribute("data-price");
+});
+
 it("does not display a legacy zero price or count its stock, and selects a valid priced variant", () => {
   const product = {
     id: 1,

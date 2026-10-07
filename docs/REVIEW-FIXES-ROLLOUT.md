@@ -1,12 +1,12 @@
 # Rollout of the October review fixes
 
-This document is preparation, not evidence of a production operation. The PR stays open for Anton's manual merge. No production database, hosting setting or account has been changed.
+PR #14 is merged into `main` at `3e94939` and live. Anton confirmed on 7 October 2026 that production migrations `0023` and `0024` are already applied. This status is owner-provided; the demand-test review did not connect to production. The procedure below is historical rollout guidance, not a request to repeat migrations. Current launch actions are in [DEMAND-TEST-REVIEW-2026-10.md](DEMAND-TEST-REVIEW-2026-10.md).
 
 ## Database work: yes, one new versioned migration
 
 `0024_silent_star_brand` adds nullable `product_images.provenance` and `product_images.verified_at`. Its SQL, journal and snapshot were generated with Drizzle. Existing photos start with unknown provenance; do not bulk mark them verified. Fact verifier metadata lives in existing JSON columns and does not require another table or data reset.
 
-If production has not applied PR #13's `0023`, that is also pending. Inspect the real migration journal; do not guess that it was applied from a successful deployment. Existing catalogue queries require those columns, and this PR's image queries require `0024`.
+Existing catalogue queries require `0023`; image queries require `0024`. Both are already applied according to Anton. Do not rerun setup or migration work for this copy-only follow-up.
 
 1. Identify the correct production database privately. Never paste its URL or password into a report.
 2. Take and verify a recoverable backup before schema work. The current running version may have an older-schema backup gap; use the documented native/database backup path if necessary. See BACKUP-RECOVERY.md.

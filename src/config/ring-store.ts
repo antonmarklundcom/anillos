@@ -197,7 +197,7 @@ export const CONCEPTS = [
     category: "compromiso",
     image: "engagement",
     description:
-      "Una referencia de solitario para comparar la altura del engarce al elegir un anillo de compromiso. Pedí una vista lateral del modelo real y consultá cómo combina con otra banda. No se afirma un metal, una piedra ni una altura determinada; las fotografías actuales son referencias compartidas de la página.",
+      "Una referencia de solitario para comparar la altura del engarce al elegir un anillo de compromiso. Pedí una vista lateral del modelo real y consultá cómo combina con otra banda. No se afirma un metal, una piedra ni una altura determinada; las imágenes actuales son ilustraciones compartidas, no fotos de ese modelo real.",
   },
   {
     slug: "concepto-engaste-circular",
@@ -305,4 +305,4 @@ export function collectionFor(slug: string) {
 }
 export { priceUnit } from "./ring-display";
 export const CONCEPT_NOTICE =
-  "Concepto ilustrativo generado con IA. No es una pieza disponible para comprar. Precio, material y entrega sin confirmar.";
+  "Diseño ilustrativo / a pedido sujeto a confirmación. Imagen generada con IA: no es una foto de un producto real. Consultamos tu interés, sin confirmar proveedor, material, precio ni entrega. No se puede comprar ni reservar este concepto.";

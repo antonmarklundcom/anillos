@@ -86,7 +86,7 @@ export function ProductGallery({
             {current.evidencePending
               ? "Imagen con origen o permiso de uso pendiente de verificación."
               : current.illustrative
-                ? "Imagen ilustrativa: no confirma materiales ni disponibilidad."
+                ? "Imagen ilustrativa, no es una foto del producto real. Material, precio y entrega por confirmar."
                 : current.alt}
           </DialogDescription>
           <div className="product-gallery-zoom-image">
@@ -149,8 +149,8 @@ export function ProductGallery({
         </figcaption>
       ) : current.illustrative ? (
         <figcaption className="product-gallery-caption">
-          Imagen ilustrativa para preparar la galería. No representa este
-          producto ni confirma su material, piedra o disponibilidad.
+          Imagen ilustrativa, no es una foto del producto real. No confirma
+          material, piedra, disponibilidad, precio ni entrega.
         </figcaption>
       ) : (
         <figcaption className="product-gallery-caption">

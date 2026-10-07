@@ -27,12 +27,12 @@ it("selects native gallery buttons and keeps illustrative disclosures attached t
   expect(
     screen.getByRole("button", { name: "Ver imagen 1: Vista frontal" })
   ).toHaveAttribute("aria-pressed", "false");
-  expect(screen.getByText(/No representa este producto/)).toBeInTheDocument();
+  expect(screen.getByText(/no es una foto del producto real/)).toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("button", { name: "Ver imagen 3: Detalle real" })
   );
   expect(
-    screen.queryByText(/No representa este producto/)
+    screen.queryByText(/no es una foto del producto real/)
   ).not.toBeInTheDocument();
   expect(screen.getByText("Vista 3 de 3 · Detalle real")).toBeInTheDocument();
 });

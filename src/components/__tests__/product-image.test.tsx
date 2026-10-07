@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ProductImage } from "@/components/product-image";
 
@@ -11,7 +11,33 @@ import { ProductImage } from "@/components/product-image";
  * "producto genérico" para una categoría que la tienda inventó.
  */
 describe("placeholder de ProductImage", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllEnvs();
+  });
+
+  it("discloses an uploaded concept as illustrative even if someone marked it as a verified photo", () => {
+    vi.stubEnv("CLOUDINARY_CLOUD_NAME", "test-cloud");
+    render(
+      <ProductImage
+        image={{
+          cloudinaryId: "ideas/ring",
+          alt: "Foto real",
+          blurDataUrl: null,
+          provenance: "owned-photo",
+          verifiedAt: new Date("2026-01-01"),
+        }}
+        alt="Idea de anillo"
+        categorySlug="plata-925"
+        concept
+      />
+    );
+    expect(screen.getByText("Imagen ilustrativa")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /no es una fotografía del producto/ })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Foto real" })).toBeNull();
+  });
 
   it("una de las cuatro categorías del seed usa su propio dibujo", () => {
     const { container } = render(
