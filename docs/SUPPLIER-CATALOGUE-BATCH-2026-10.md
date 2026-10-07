@@ -34,7 +34,7 @@ Public categories/guides provide useful information. A private research draft is
 2. Review the private twelve-reference manifest and coverage CSV. Choose real models to pursue; do not approve historical or conflicting facts just because a draft exists.
 3. For AJ440, obtain/confirm an original of the exact physical model and the right to edit/publish it with AI. For AJ19, additionally obtain an isolated complete reference. Additional views are required before a gallery/hand shot.
 4. Once those inputs are ready, decide whether to approve the 3-credit AJ440 A/B. Requote immediately before generation. Reject an attractive but altered ring; do not spend on a catalogue batch until this pilot passes.
-5. Before any real-model page becomes public, approve its exact identity/description and image rights. Leave unknown price, supply and delivery explicitly unknown in enquiry/showcase mode. Confirm composition only from physical/source evidence; never infer it from the generated picture.
+5. Before any real-model page becomes public, approve its exact identity/description and image rights, replace internal candidate names with an accurate public title, and review its store SKU without treating research keys as supplier MPN/GTIN. Leave unknown price, supply and delivery explicitly unknown in enquiry/showcase mode. Confirm composition only from physical/source evidence; never infer it from the generated picture.
 6. Supplier agreements, samples, margins, fulfilment and returns remain Anton's business decisions. No supplier was contacted in this batch.
 
 ## Database, deployment and template boundary
@@ -45,4 +45,23 @@ The ecom template is untouched. A pure catalogue-preparation pattern or enquiry 
 
 ## Fresh validation
 
-Results will be recorded after this batch's frozen install, typecheck, lint, unit/UI, disposable MySQL/MariaDB integration suites, Webpack build and Chromium preview checks. Historical #15 results are not substituted for these checks. GitHub Actions was disabled at reconciliation; local checks must be reported as local.
+Fresh checks for this batch, with private production environment removed:
+
+| Check | Result / evidence |
+| --- | --- |
+| Frozen install | PASS, Node 24.19.0 and pinned pnpm 11.22.0; lockfile unchanged. |
+| Typecheck and lint | PASS. Initial narrowing errors in the new test were fixed; final explicit runs exited 0. |
+| Unit/UI | PASS, 127 files, 1,176 tests; 2 conditional skips: template account defaults in this customised store, and absent template-only `tiendas.json`. |
+| Focused catalogue tests | PASS, 6 tests, including portable CSV newline reproduction, all twelve unpriced/private references and truthful enquiry copy. |
+| MySQL 8.4.11 | PASS, 90 files, 898 tests; 1 external Pagopar sandbox skip. |
+| MariaDB 10.11.19 | PASS, 90 files, 898 tests; same external sandbox skip. |
+| Final Webpack build | PASS after the mobile guide links were enlarged to 44 px; includes TypeScript validation. With DB intentionally absent during build, expected catalogue/settings fallback warnings appeared. |
+| Chromium | PASS at 1440 and 390 px after the final build: all ten tailored category comparisons and 44 px guide targets, no overflow, canonical/filter controls, no private supplier HTML, concept noindex/no Offers/no cart, truthful WhatsApp URL/copy, paused checkout and draft 404. Sitemap excludes concepts/drafts. Orders/payments/reservations stayed 0/0/0; no external link was followed. Screenshots inspected. |
+| Preflight | Expected FAIL in the unconfigured snapshot: 7 payment/setup blockers; DB-dependent delivery check unavailable. This is not live configuration evidence or payment readiness. |
+| Hosted CI | Actions confirmed disabled on 7 October; no hosted CI success claimed. Initial API TLS failure recovered on retry. |
+
+Initial parallel integration attempts hit local timeout failures and were interrupted. Both complete suites were rerun sequentially on the disposable loopback servers with 120-second test/hook allowances; their final results above supersede those attempts. Test-only runtime durability settings were adjusted only after verifying our own datadirs. Initial Chromium's 30-second navigation timed out; the successful checks used a 120-second allowance. No repository timeout/configuration or production setting was changed to mask these attempts.
+
+Local preview fixtures are separate from production: 24 protected concepts and 12 unpublished research drafts in `anillos_supplier_browser_test_20261007` on loopback. Store preview: `http://127.0.0.1:54642/categoria/solitarios`; private source/prompt review: `http://127.0.0.1:54641`. The source images and preview helpers remain outside Git. Logs/screenshots use the `anillos-supplier-*` prefix in the parent workspace; no production environment, database, build or Git history was copied from another repository.
+
+PR: [#16](https://github.com/antonmarklundcom/anillos/pull/16), a separate draft stacked on #15, unmerged. Review #15 first; retarget/recheck #16 against main after #15 is merged. Production, suppliers and the ecom template remain untouched.

@@ -57,6 +57,8 @@
 }
 .catalogue-choice a {
   display: flex;
+  align-items: center;
+  min-height: 44px;
   justify-content: space-between;
   font-size: 12px;
   font-weight: 500;
