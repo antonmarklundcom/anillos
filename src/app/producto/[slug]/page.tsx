@@ -10,6 +10,8 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getProductSlugRedirect } from "@/domain/product-slugs";
 import { productGuidance } from "@/store/product-guidance";
+import { enquiryBriefText } from "@/store/enquiry-brief";
+import { ProductEnquiryBrief } from "@/components/product-enquiry-brief";
 import { comparisonUrl } from "@/lib/product-comparison";
 import {
   merchantImages,
@@ -247,6 +249,21 @@ export default async function ProductPage({
   const productUrl = origin
     ? `${origin.origin}/producto/${product.slug}`
     : null;
+  const showEnquiryBrief =
+    isConceptProduct(product.slug) ||
+    product.saleMode === "enquiry" ||
+    product.saleMode === "showcase";
+  const briefHref =
+    showEnquiryBrief && product.saleMode !== "showcase"
+      ? await waLinkPublico(
+          enquiryBriefText({
+            name: product.name,
+            categorySlug: product.categorySlug,
+            concept: isConceptProduct(product.slug),
+            url: productUrl,
+          })
+        )
+      : null;
 
   // JSON-LD: PYG y priceValidUntil no se inventan — se dejan afuera si no
   // hay dato, que es mejor que un dato falso en el rich result. Lo arma
@@ -291,7 +308,7 @@ export default async function ProductPage({
               isConceptProduct(product.slug) ||
               image.provenance === "illustrative"
                 ? `Diseño ilustrativo: ${product.name}. No es una foto del producto real.`
-                : image.alt ?? product.name,
+                : (image.alt ?? product.name),
             illustrative:
               isConceptProduct(product.slug) || !verifiedProductImage(image),
             evidencePending:
@@ -448,7 +465,7 @@ export default async function ProductPage({
             />
           </div>
 
-          {waHref ? (
+          {waHref && !showEnquiryBrief ? (
             <a
               href={waHref}
               target="_blank"
@@ -485,6 +502,12 @@ export default async function ProductPage({
         </div>
       </div>
 
+      {showEnquiryBrief ? (
+        <ProductEnquiryBrief
+          categorySlug={product.categorySlug}
+          href={briefHref}
+        />
+      ) : null}
       <section
         className="product-details"
         aria-labelledby="product-details-heading"

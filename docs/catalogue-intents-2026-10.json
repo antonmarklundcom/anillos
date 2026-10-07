@@ -1,0 +1,82 @@
+[
+  {
+    "category": "promesa",
+    "group": "anillo de la promesa",
+    "main": "anillo de la promesa",
+    "searches": 1900,
+    "variants": "añillo de promesa (folded); anillos de promesa 1900 is a separate main row, same destination",
+    "next": "AJ584 current image/stone; AJ20 dimensions; CR279 base alloy/plating; permission for each model"
+  },
+  {
+    "category": "solitarios",
+    "group": "solitarios anillos",
+    "main": "solitarios anillos",
+    "searches": 2900,
+    "variants": "anillos de compromiso solitario 260, modelos de anillos solitarios 20; no extra spelling pages",
+    "next": "AJ440 original/permission and stone; Hub exact SKU; GA6220 conflicting identity"
+  },
+  {
+    "category": "compromiso",
+    "group": "anillos de compromiso paraguay",
+    "main": "anillos de compromiso paraguay",
+    "searches": 480,
+    "variants": "anillos de compromiso de plata 140; same existing page, no invented local shop",
+    "next": "Resolve GA6220 circón/moissanita versions; AJ440/584 verified composition and measures"
+  },
+  {
+    "category": "alianzas",
+    "group": "anillos de boda / alianzas / alianzas de boda",
+    "main": "anillos de boda",
+    "searches": 480,
+    "variants": "anillos de casamiento 140 (folded marriage variants); alianzas 880, alianzas de boda 110 and Paraguay 50 stay on this destination",
+    "next": "A real pair quotation and two independent measures; AJ19 single-piece reference does not establish a pair"
+  },
+  {
+    "category": "alianzas-plata",
+    "group": "alianzas de plata",
+    "main": "alianzas de plata",
+    "searches": 40,
+    "variants": "alianzas de plata lisas / para parejas / pareja 10 each; exclude gold-price rows from this mixed group",
+    "next": "GA5025P current URL; GA4345P material of band/applique; no inferred 925"
+  },
+  {
+    "category": "alianzas-oro",
+    "group": "anillos de oro / alianzas de plata (mixed group)",
+    "main": "anillos de alianza de oro",
+    "searches": 50,
+    "variants": "anillos de boda de oro 30; precio de alianzas de oro en Paraguay 40 is informational until a quotation exists",
+    "next": "Resolve 2/1.9 and 2/2.3 mm discrepancies, current URLs, weight/purity and pair terms"
+  },
+  {
+    "category": "oro",
+    "group": "anillos de oro",
+    "main": "anillos de oro",
+    "searches": 320,
+    "variants": "anillos de oro Paraguay 40; anillos bañados en oro 30 is a separate construction explained in material guidance",
+    "next": "Real verified gold composition; plated CR279/Hub are not assigned to solid gold"
+  },
+  {
+    "category": "hombre",
+    "group": "anillas para hombre",
+    "main": "anillas para hombre",
+    "searches": 260,
+    "variants": "anillos para hombre (folded), Paraguay 70; single destination and no spelling page",
+    "next": "AJ19 isolated complete reference, unit, width/section, purity, size scale and permission"
+  },
+  {
+    "category": "acero",
+    "group": "anillos",
+    "main": "anillos acero inox",
+    "searches": 20,
+    "variants": "anillos acero inoxidable 20 and anillos acero 10 are separate main rows; exclude branded rows",
+    "next": "Research gap: no exact steel SKU, composition or authorised product input among the 12 references"
+  },
+  {
+    "category": "plata-925",
+    "group": "anillos de plata",
+    "main": "anillos de plata",
+    "searches": 260,
+    "variants": "anillos de plata Paraguay 70; this is general silver demand, not a proven 925 offering or a 925-specific count",
+    "next": "Research gap: no exact confirmed 925 SKU among the 12; DS Pratas programme alone is insufficient"
+  }
+]
