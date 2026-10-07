@@ -10,6 +10,17 @@
 
 import { formatDatePY } from "./py";
 import { isConceptProduct } from "./concept-products";
+import type {
+  ProductSpecifications,
+  VariantAttributes,
+  VerifiedIdentifiers,
+} from "./product-attributes";
+import {
+  publicSpecifications,
+  publicIdentifiers,
+  publicVariantAttributes,
+} from "./public-product-facts";
+import { variantUrl } from "./variant-url";
 
 /**
  * Lo que ningún buscador debería recorrer.
@@ -173,9 +184,12 @@ export function productJsonLd(input: {
     label: string;
     pricePyg: number;
     available: number;
+    attributes?: VariantAttributes;
+    identifiers?: VerifiedIdentifiers;
   }[];
   saleMode?: "stock" | "enquiry" | "showcase";
   showPrice?: boolean;
+  specifications?: ProductSpecifications;
   /**
    * Promedio y cantidad de reseñas **aprobadas** (`getProductRatingSummary`).
    * Con `count` 0 o ausente no sale ni `aggregateRating` ni `review`: un
@@ -199,7 +213,8 @@ export function productJsonLd(input: {
     ? offerShippingLd(input.merchant)
     : null;
   const returnPolicy = input.merchant ? returnPolicyLd(input.merchant) : null;
-  return {
+  const facts = publicSpecifications(input.specifications, input.slug);
+  const data: JsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: input.name,
@@ -208,6 +223,53 @@ export function productJsonLd(input: {
     url,
     brand: input.brand ? { "@type": "Brand", name: input.brand } : undefined,
     sku: input.variants[0]?.sku,
+    ...(facts?.material ? { material: facts.material } : {}),
+    ...(facts
+      ? {
+          additionalProperty: [
+            ...(facts.purity
+              ? [
+                  {
+                    "@type": "PropertyValue",
+                    name: "Ley o pureza",
+                    value: facts.purity,
+                  },
+                ]
+              : []),
+            ...(facts.stone
+              ? [
+                  {
+                    "@type": "PropertyValue",
+                    name: "Piedra",
+                    value: facts.stone,
+                  },
+                ]
+              : []),
+            ...(facts.widthMm
+              ? [
+                  {
+                    "@type": "PropertyValue",
+                    name: "Ancho de banda",
+                    value: facts.widthMm,
+                    unitText: "mm",
+                  },
+                ]
+              : []),
+            ...(facts.unit
+              ? [
+                  {
+                    "@type": "PropertyValue",
+                    name: "Unidad de venta",
+                    value:
+                      facts.unit === "pair"
+                        ? "Par de dos anillos"
+                        : "Un anillo",
+                  },
+                ]
+              : []),
+          ],
+        }
+      : {}),
     offers:
       !isConceptProduct(input.slug) &&
       (input.saleMode === undefined || input.saleMode === "stock") &&
@@ -243,6 +305,62 @@ export function productJsonLd(input: {
         }
       : {}),
   };
+  // Size grouping requires verified, distinct, directly selectable variants.
+  const sizes = input.variants.map((variant) => {
+    const attributes = publicVariantAttributes(variant.attributes, true);
+    return attributes?.sizeLabel && attributes.sizeSystem
+      ? `${attributes.sizeSystem} ${attributes.sizeLabel}`
+      : null;
+  });
+  if (
+    facts?.unit === "individual" &&
+    url &&
+    input.images.length &&
+    input.variants.length > 1 &&
+    input.variants.every((variant) => variant.available > 0) &&
+    sizes.every(Boolean) &&
+    new Set(sizes).size === sizes.length
+  ) {
+    const offers = Array.isArray(data.offers) ? (data.offers as JsonLd[]) : [];
+    const group = { ...data };
+    delete group.sku;
+    delete group.offers;
+    return {
+      ...group,
+      "@type": "ProductGroup",
+      productGroupID: input.slug,
+      variesBy: ["https://schema.org/size"],
+      hasVariant: input.variants.map((variant, index) => {
+        const identifiers = publicIdentifiers(variant.identifiers, input.slug);
+        const variantLink = variantUrl(url, variant.sku);
+        return {
+          "@type": "Product",
+          name: `${input.name} · ${sizes[index]}`,
+          sku: variant.sku,
+          size: sizes[index],
+          image: input.images,
+          url: variantLink,
+          ...(identifiers?.gtin
+            ? { [`gtin${identifiers.gtin.length}`]: identifiers.gtin }
+            : {}),
+          ...(identifiers?.mpn ? { mpn: identifiers.mpn } : {}),
+          ...(offers[index]
+            ? { offers: { ...offers[index], url: variantLink } }
+            : {}),
+        };
+      }),
+    };
+  }
+  if (input.variants.length === 1) {
+    const identifiers = publicIdentifiers(
+      input.variants[0]?.identifiers,
+      input.slug
+    );
+    if (identifiers?.gtin)
+      data[`gtin${identifiers.gtin.length}`] = identifiers.gtin;
+    if (identifiers?.mpn) data.mpn = identifiers.mpn;
+  }
+  return data;
 }
 
 /** Una reseña aprobada, como la necesita el JSON-LD. */

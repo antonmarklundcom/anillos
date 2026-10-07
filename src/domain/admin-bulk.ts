@@ -1,7 +1,14 @@
 import { eq, inArray, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { categories, priceAdjustments, products, variants } from "@/db/schema";
+import {
+  categories,
+  priceAdjustments,
+  products,
+  productSlugRedirects,
+  variants,
+} from "@/db/schema";
+import { claimProductSlug } from "./product-slugs";
 import type { MessageKey, Params } from "@/i18n";
 
 import { DomainError } from "./errors";
@@ -361,6 +368,7 @@ export async function duplicateProduct(productId: number): Promise<number> {
       .limit(1);
     const nuevoId = creados[0]?.id;
     if (!nuevoId) throw new AdminBulkError("adminError.masivo.noPude");
+    await claimProductSlug(tx, slug, nuevoId);
 
     const variantesOriginales = await tx
       .select()
@@ -399,7 +407,12 @@ async function slugLibre(tx: Executor, base: string): Promise<string> {
       .from(products)
       .where(eq(products.slug, recortado))
       .limit(1);
-    if (!choque[0]) return recortado;
+    const historical = await tx
+      .select({ slug: productSlugRedirects.slug })
+      .from(productSlugRedirects)
+      .where(eq(productSlugRedirects.slug, recortado))
+      .limit(1);
+    if (!choque[0] && !historical[0]) return recortado;
   }
   throw new AdminBulkError("adminError.masivo.demasiadasCopias");
 }

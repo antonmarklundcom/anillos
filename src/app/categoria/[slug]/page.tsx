@@ -31,6 +31,11 @@ import { siteOrigin } from "@/lib/site-url";
 import { log } from "@/lib/log";
 import { getStoreCategory, getStoreCategories } from "@/store/catalog";
 import { getBrands, getCategoryProducts, isCatalogSort } from "@/db/queries";
+import {
+  getCatalogueFacets,
+  parseCatalogueFilters,
+  EMPTY_CATALOGUE_FACETS,
+} from "@/domain/catalogue-facets";
 
 export const revalidate = 300;
 
@@ -49,7 +54,12 @@ const loadCategoryProducts = cache(
     minPricePyg: number | undefined,
     maxPricePyg: number | undefined,
     sort: "relevancia" | "precio-asc" | "precio-desc" | "nuevos",
-    page: number
+    page: number,
+    material: string | undefined,
+    stone: string | undefined,
+    unit: string | undefined,
+    inStock: boolean | undefined,
+    invalid: boolean | undefined
   ) => {
     const category = await loadCategory(slug);
     const empty = {
@@ -69,6 +79,11 @@ const loadCategoryProducts = cache(
         maxPricePyg,
         sort,
         page,
+        material,
+        stone,
+        unit,
+        inStock,
+        invalid,
       });
       return { result, catalogAvailable: true };
     } catch (error) {
@@ -92,6 +107,7 @@ function productQuery(query: Awaited<SearchParams>) {
     brand: first(query.marca),
     min,
     max,
+    ...parseCatalogueFilters(query),
   };
 }
 
@@ -119,6 +135,7 @@ export async function generateMetadata({
   // con `**Importado**` publicaría literalmente los asteriscos en el
   // resultado de Google — mismo motivo que en `producto/[slug]`.
   const description =
+    category.seoDescription ||
     CATEGORY_PAGES[slug]?.description ||
     descriptionSnippet(markdownToText(category.description)) ||
     t("categoria.metaDescripcion", { nombre: category.name });
@@ -127,14 +144,30 @@ export async function generateMetadata({
   // quedan fuera del índice y apuntan a la categoría base.
   const origin = siteOrigin();
   const query = await searchParams;
-  const { page, sort, brand, min, max } = productQuery(query);
+  const {
+    page,
+    sort,
+    brand,
+    min,
+    max,
+    material,
+    stone,
+    unit,
+    inStock,
+    invalid,
+  } = productQuery(query);
   const { catalogAvailable } = await loadCategoryProducts(
     slug,
     brand,
     min,
     max,
     sort,
-    page
+    page,
+    material,
+    stone,
+    unit,
+    inStock,
+    invalid
   );
   const filtered = Object.keys(query).some(
     (key) => key !== "page" && Boolean(first(query[key]))
@@ -148,7 +181,11 @@ export async function generateMetadata({
 
   return {
     ...(await ringMetadata(
-      { title: CATEGORY_PAGES[slug]?.title ?? category.name, description },
+      {
+        title:
+          category.seoTitle ?? CATEGORY_PAGES[slug]?.title ?? category.name,
+        description,
+      },
       canonical ?? `/categoria/${slug}`
     )),
     ...(filtered || (page > 1 && !catalogAvailable)
@@ -183,7 +220,18 @@ export default async function CategoryPage({
   // encabezado de texto de siempre (plan-operacion §6.3).
   const categoryImageUrl = productImageUrl(category.imageCloudinaryId, "hero");
 
-  const { page, sort, brand, min, max } = productQuery(query);
+  const {
+    page,
+    sort,
+    brand,
+    min,
+    max,
+    material,
+    stone,
+    unit,
+    inStock,
+    invalid,
+  } = productQuery(query);
 
   const [settings, categories] = await Promise.all([
     getStoreSettings(),
@@ -191,14 +239,32 @@ export default async function CategoryPage({
   ]);
   const { vidriera } = settings;
   const available = new Set(categories.map((item) => item.slug));
-  const [{ result, catalogAvailable }, brands] = await Promise.all([
-    loadCategoryProducts(slug, brand, min, max, sort, page),
+  const [{ result, catalogAvailable }, brands, facets] = await Promise.all([
+    loadCategoryProducts(
+      slug,
+      brand,
+      min,
+      max,
+      sort,
+      page,
+      material,
+      stone,
+      unit,
+      inStock,
+      invalid
+    ),
     category.catalogAvailable
       ? getBrands(slug).catch((error) => {
           log.error("store.category.brands_unavailable", { slug, error });
           return [];
         })
       : Promise.resolve([]),
+    category.catalogAvailable
+      ? getCatalogueFacets(slug).catch((error) => {
+          log.error("store.category.facets_unavailable", { slug, error });
+          return EMPTY_CATALOGUE_FACETS;
+        })
+      : Promise.resolve(EMPTY_CATALOGUE_FACETS),
   ]);
 
   // An impossible page must not become an indexable copy of the buying guide.
@@ -396,7 +462,7 @@ export default async function CategoryPage({
         {catalogAvailable ? (
           <div className="mt-5">
             <Suspense fallback={null}>
-              <CatalogFilters brands={[...brands]} />
+              <CatalogFilters brands={[...brands]} facets={facets} />
             </Suspense>
           </div>
         ) : null}

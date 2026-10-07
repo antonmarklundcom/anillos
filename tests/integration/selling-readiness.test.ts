@@ -14,6 +14,7 @@ import {
 } from "@/db/queries";
 import { createOrder, type CreateOrderInput } from "@/domain/create-order";
 import { priceCart } from "@/domain/cart";
+import { TIENDA } from "@/config/tienda";
 import { readyPaymentMethods } from "@/domain/payment-readiness";
 import { productInquiryLinks } from "@/domain/product-inquiries";
 import { productJsonLd } from "@/lib/seo";
@@ -107,7 +108,14 @@ describe.skipIf(!hasTestDb)("selling modes and usable payments", () => {
       const catalog = await getProductBySlug(row!.slug);
       expect(catalog!.variants[0]!.pricePyg).toBe(0);
       expect(catalog!.variants[0]!.compareAtPyg).toBeNull();
-      expect(await productInquiryLinks(catalog!)).toEqual({});
+      const links = await productInquiryLinks(catalog!);
+      if (saleMode === "showcase") expect(links).toEqual({});
+      else {
+        expect(links[variantId]).toContain(
+          `https://wa.me/${TIENDA.whatsapp?.replace(/\D/g, "")}`
+        );
+        expect(links[variantId]).not.toContain("123456");
+      }
       const ld = productJsonLd({ ...catalog!, origin: null, images: [] });
       expect(JSON.parse(JSON.stringify(ld))).not.toHaveProperty("offers");
       expect(JSON.stringify(ld)).not.toContain("123456");

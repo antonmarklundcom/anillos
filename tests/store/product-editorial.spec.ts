@@ -14,17 +14,33 @@ test("editorial concept detail preserves gallery, unit and safety on each viewpo
     page.getByRole("heading", { name: "Detalles para elegir con calma" })
   ).toBeVisible();
   const gallery = page.getByRole("figure", { name: "Galería del producto" });
-  await expect(gallery.getByRole("button")).toHaveCount(3);
-  const second = gallery.getByRole("button").nth(1);
+  const thumbnails = gallery
+    .locator(".product-gallery-thumbnails")
+    .getByRole("button");
+  await expect(thumbnails).toHaveCount(3);
+  const second = thumbnails.nth(1);
   await second.focus();
   await page.keyboard.press("Space");
   await expect(second).toHaveAttribute("aria-pressed", "true");
   await expect(gallery.locator("img").first()).toHaveAttribute("alt", /lino/);
+  await gallery.getByRole("button", { name: /^Ampliar imagen/ }).click();
+  const zoom = page.getByRole("dialog");
+  await expect(zoom).toContainText("Imagen 2 de 3");
+  await expect(zoom).toContainText("Imagen ilustrativa");
+  await zoom.getByRole("button", { name: "Imagen siguiente" }).click();
+  await expect(zoom).toContainText("Imagen 3 de 3");
+  await page.keyboard.press("Escape");
+  await expect(zoom).toBeHidden();
+  await expect(
+    gallery.getByRole("button", { name: /^Ampliar imagen/ })
+  ).toBeFocused();
   await page
-    .getByText("¿Cómo confirmo el talle de esta pieza?", { exact: true })
+    .getByText("¿Cómo elijo el talle de este modelo?", { exact: true })
     .click();
   await expect(
-    page.getByRole("link", { name: "Consultá la guía de medidas de anillos" })
+    page.getByText("Medí el dedo y la mano donde vas a usarlo", {
+      exact: false,
+    })
   ).toBeVisible();
   if (testInfo.project.name === "mobile")
     await page.setViewportSize({ width: 320, height: 568 });

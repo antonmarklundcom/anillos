@@ -272,7 +272,9 @@ test("the placeholder gallery works with keyboard selection and stays out of mer
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/producto/concepto-onda-plata");
   const gallery = page.getByRole("figure", { name: "Galería del producto" });
-  const buttons = gallery.getByRole("button");
+  const buttons = gallery
+    .locator(".product-gallery-thumbnails")
+    .getByRole("button");
   await expect(buttons).toHaveCount(3);
   await expect(buttons.nth(0)).toHaveAttribute("aria-pressed", "true");
   for (let index = 1; index < 3; index++) {

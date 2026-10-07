@@ -1,4 +1,5 @@
 import { readBankDetails } from "@/domain/admin-bank";
+import { TIENDA } from "@/config/tienda";
 import { getStoreSettings } from "@/domain/store-settings";
 import {
   contactoEfectivo,
@@ -55,7 +56,10 @@ export async function waLinkPublico(text: string): Promise<string | null> {
 /** Todo el contacto público, con la misma precedencia: panel → entorno. */
 export async function contactoPublico(): Promise<ContactoEfectivo> {
   const ajustes = await getStoreSettings();
-  return contactoEfectivo(ajustes.contacto, comercioWhatsApp());
+  return contactoEfectivo(
+    ajustes.contacto,
+    comercioWhatsApp() ?? normalizePhonePY(TIENDA.whatsapp ?? "")
+  );
 }
 
 export type DatosBancarios = {

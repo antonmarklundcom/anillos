@@ -12,8 +12,21 @@ import { MarkdownEditor } from "@/components/admin/markdown-editor";
 import { slugify } from "@/lib/slug";
 import { TESTIDS } from "@/lib/testids";
 import { t } from "@/i18n";
+import { ProductAttributeFields } from "./product-attribute-fields";
+import { ProductSeoChecklist } from "./product-seo-checklist";
+import type { ProductReadinessInput } from "@/store/product-seo-readiness";
+import {
+  attributeFormData,
+  verificationDate,
+  type ProductSpecifications,
+  type SupplierDetails,
+} from "@/lib/product-attributes";
 
 export type ProductFormValues = {
+  specifications?: ProductSpecifications | null;
+  supplierDetails?: SupplierDetails | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
   saleMode?: "stock" | "enquiry" | "showcase";
   showPrice?: boolean;
   productId?: number;
@@ -32,9 +45,11 @@ export type ProductFormValues = {
 export function ProductForm({
   defaults,
   categories,
+  readiness,
 }: {
   defaults: ProductFormValues;
   categories: Array<{ id: number; name: string }>;
+  readiness?: ProductReadinessInput;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -53,9 +68,42 @@ export function ProductForm({
         event.preventDefault();
         setError(null);
         const data = new FormData(event.currentTarget);
+        const specifications = attributeFormData(data, [
+          "material",
+          "purity",
+          "stone",
+          "widthMm",
+          "unit",
+        ]);
+        const supplierDetails = attributeFormData(data, [
+          "reference",
+          "sourceUrl",
+          "imageProvenance",
+        ]);
+        const factsVerified = verificationDate(data, "specificationsVerified");
+        const supplierVerified = verificationDate(data, "supplierVerified");
 
         startTransition(async () => {
           const result = await saveProduct({
+            specifications:
+              Object.keys(specifications).length || factsVerified
+                ? {
+                    ...specifications,
+                    ...(factsVerified ? { verifiedAt: factsVerified } : {}),
+                  }
+                : null,
+            supplierDetails:
+              Object.keys(supplierDetails).length || supplierVerified
+                ? {
+                    ...supplierDetails,
+                    ...(supplierVerified
+                      ? { verifiedAt: supplierVerified }
+                      : {}),
+                  }
+                : null,
+            seoTitle: String(data.get("seoTitle") ?? "").trim() || null,
+            seoDescription:
+              String(data.get("seoDescription") ?? "").trim() || null,
             productId: defaults.productId,
             saleMode: String(data.get("saleMode") ?? "stock"),
             showPrice: data.get("showPrice") === "on",
@@ -126,6 +174,14 @@ export function ProductForm({
           de este PR, así que el submit no cambió — sólo se le sumó la
           pestaña de vista previa, renderizada en el cliente con la misma
           función que va a usar la ficha pública del producto. */}
+      <ProductSeoChecklist product={readiness ?? defaults} />
+      <ProductAttributeFields
+        specifications={defaults.specifications}
+        supplierDetails={defaults.supplierDetails}
+        seoTitle={defaults.seoTitle}
+        seoDescription={defaults.seoDescription}
+      />
+
       <div className="grid gap-2">
         <Label htmlFor="saleMode">{t("panel.producto.modo")}</Label>
         <select

@@ -73,6 +73,7 @@ test.describe("isolated admin workspace", () => {
       `/admin/pedidos/${data.orderId}/imprimir`,
       ...[
         "categorias",
+        "seo",
         "resenas",
         "devoluciones",
         "clientes",

@@ -33,8 +33,19 @@ export default async function AdminBankPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold tracking-tight">{t("panel.banco.titulo")}</h1>
-      <p className="text-muted-foreground mt-1 text-sm">{t("panel.banco.bajada")}</p>
+      <h1 className="text-xl font-semibold tracking-tight">
+        {t("panel.banco.titulo")}
+      </h1>
+      <p className="text-muted-foreground mt-1 text-sm">
+        {t("panel.banco.bajada")}
+      </p>
+      <p className="mt-4 rounded-lg border p-4 text-sm">
+        Para iniciar con tu cuenta ueno, cargá los cinco datos tal como aparecen
+        en el banco. Guardarlos acá evita editar variables de entorno. Mientras
+        falte alguno, el checkout no ofrece transferencia. No hay cobro
+        automático: revisá el ingreso real en tu cuenta antes de marcar el
+        pedido como pagado.
+      </p>
 
       <div className="mt-6">
         <BankDetailsManager

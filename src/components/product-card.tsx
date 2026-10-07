@@ -76,7 +76,13 @@ export function ProductCard({
           className="text-muted-foreground text-xs"
           data-testid="ring-price-unit"
         >
-          {priceUnit(product.categorySlug)}
+          {product.verifiedSpecifications?.unit === "pair"
+            ? "Par de dos anillos"
+            : product.verifiedSpecifications?.unit === "individual"
+              ? "Un anillo"
+              : isConceptProduct(product.slug)
+                ? priceUnit(product.categorySlug)
+                : "Unidad por confirmar"}
         </p>
         {conceptImageFor(product.slug) ? (
           <p className="product-card-note text-muted-foreground text-xs">

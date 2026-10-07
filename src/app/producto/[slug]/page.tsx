@@ -7,7 +7,10 @@ import { ringMetadata } from "@/store/seo";
 import { productMetaDescription } from "@/store/product-metadata";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { getProductSlugRedirect } from "@/domain/product-slugs";
+import { productGuidance } from "@/store/product-guidance";
+import { comparisonUrl } from "@/lib/product-comparison";
 import { cache } from "react";
 
 import { AddToCart } from "@/components/add-to-cart";
@@ -69,14 +72,16 @@ export async function generateMetadata({
   // markdown, una que empiece con `**Importado**` publicaría literalmente los
   // asteriscos en el resultado de Google. Es el único lugar de la vidriera que
   // O7 toca — el render de la descripción en la página es de S11.
-  const description = productMetaDescription({
-    name: product.name,
-    categoryName: product.categoryName,
-    description: product.description,
-    cheapestPrice: cheapest,
-    saleMode: product.saleMode,
-    showPrice: product.showPrice,
-  });
+  const description =
+    product.seoDescription ??
+    productMetaDescription({
+      name: product.name,
+      categoryName: product.categoryName,
+      description: product.description,
+      cheapestPrice: cheapest,
+      saleMode: product.saleMode,
+      showPrice: product.showPrice,
+    });
 
   // La foto principal, recortada a la caja que espera WhatsApp. Si el
   // producto todavía no tiene fotos (o falta el cloud de Cloudinary), se
@@ -95,13 +100,13 @@ export async function generateMetadata({
     : undefined;
 
   const metadata = await ringMetadata(
-    { title: product.name, description },
+    { title: product.seoTitle ?? product.name, description },
     canonical ?? `/producto/${product.slug}`
   );
   return {
     ...metadata,
-    title: product.name,
-    ...(isConceptProduct(product.slug)
+    title: product.seoTitle ?? product.name,
+    ...(isConceptProduct(product.slug) || slug !== product.slug
       ? { robots: { index: false, follow: true } }
       : {}),
     description,
@@ -128,14 +133,40 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({ params }: { params: Params }) {
+export default async function ProductPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Promise<{ variante?: string | string[] }>;
+}) {
   const { slug } = await params;
   const product = await loadProduct(slug);
   // El notFound() va acá y no en generateMetadata: lanzado desde el metadata,
   // Next dibuja el 404 pero responde 200. Por lo mismo esta ruta no tiene
   // loading.tsx — ese Suspense manda el shell, y con él el status, antes de
   // que sepamos si el producto existe.
-  if (!product) notFound();
+  if (!product) {
+    const redirect = await getProductSlugRedirect(slug);
+    if (redirect) permanentRedirect(`/producto/${redirect}`);
+    notFound();
+  }
+  const query = await searchParams;
+  const specifications = product.verifiedSpecifications;
+  const unitText =
+    specifications?.unit === "pair"
+      ? "Par de dos anillos"
+      : specifications?.unit === "individual"
+        ? "Un anillo"
+        : isConceptProduct(product.slug)
+          ? priceUnit(product.categorySlug)
+          : "Unidad por confirmar";
+  const guidance = productGuidance({
+    categorySlug: product.categorySlug,
+    specifications,
+    factsVerified: Boolean(specifications),
+    concept: isConceptProduct(product.slug),
+  });
 
   const cheapest = product.variants.reduce<number | undefined>(
     (min, variant) =>
@@ -202,6 +233,7 @@ export default async function ProductPage({ params }: { params: Params }) {
     variants: product.variants,
     saleMode: product.saleMode,
     showPrice: product.showPrice,
+    specifications,
     rating,
     // Envío y devoluciones para Google, sólo con lo que el dueño cargó.
     merchant: ajustes.envioDevolucion,
@@ -260,7 +292,7 @@ export default async function ProductPage({ params }: { params: Params }) {
           </p>
           <h1 className="product-title">{product.name}</h1>
           <p className="product-unit" data-testid="ring-price-unit">
-            {priceUnit(product.categorySlug)}
+            {unitText}
           </p>
           {isConceptProduct(product.slug) ? (
             <p
@@ -282,6 +314,12 @@ export default async function ProductPage({ params }: { params: Params }) {
             </Link>
             <Link href="/contacto" className="underline underline-offset-4">
               Cómo consultar
+            </Link>
+            <Link
+              href={comparisonUrl([product.slug])}
+              className="underline underline-offset-4"
+            >
+              Comparar piezas
             </Link>
           </div>
           {rating.count >= 1 ? (
@@ -308,6 +346,9 @@ export default async function ProductPage({ params }: { params: Params }) {
               stockAlertsEnabled={stockAlertsEnabled()}
               whatsappPhone={whatsappPhone}
               productUrl={productUrl}
+              initialVariantSku={
+                typeof query.variante === "string" ? query.variante : undefined
+              }
             />
             <WishlistButton
               slug={product.slug}
@@ -400,9 +441,55 @@ export default async function ProductPage({ params }: { params: Params }) {
               </dd>
             </div>
             <div>
-              <dt>Unidad de la colección</dt>
-              <dd>{priceUnit(product.categorySlug)}</dd>
+              <dt>Unidad de venta</dt>
+              <dd>{unitText}</dd>
             </div>
+            {specifications?.material ? (
+              <div>
+                <dt>Material confirmado</dt>
+                <dd>
+                  {specifications.material}
+                  {specifications.purity ? ` · ${specifications.purity}` : ""}
+                </dd>
+              </div>
+            ) : null}
+            {specifications?.stone ? (
+              <div>
+                <dt>Piedra</dt>
+                <dd>{specifications.stone}</dd>
+              </div>
+            ) : null}
+            {specifications?.widthMm ? (
+              <div>
+                <dt>Ancho de banda</dt>
+                <dd>{specifications.widthMm.toLocaleString("es-PY")} mm</dd>
+              </div>
+            ) : null}
+            {product.variants
+              .filter(
+                (variant) =>
+                  variant.attributes?.sizeLabel ||
+                  variant.attributes?.interiorMm
+              )
+              .map((variant) => (
+                <div key={variant.sku}>
+                  <dt>{variant.label}</dt>
+                  <dd>
+                    {[
+                      variant.attributes?.sizeSystem,
+                      variant.attributes?.sizeLabel,
+                      variant.attributes?.interiorMm
+                        ? `${variant.attributes.interiorMm} mm de diámetro interior`
+                        : null,
+                      variant.attributes?.interiorMmSecond
+                        ? `segunda pieza: ${variant.attributes.interiorMmSecond} mm`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </dd>
+                </div>
+              ))}
             <div>
               <dt>Medidas</dt>
               <dd>
@@ -419,26 +506,12 @@ export default async function ProductPage({ params }: { params: Params }) {
         aria-label="Información para elegir esta pieza"
       >
         <h2>Antes de elegir este anillo</h2>
-        <details>
-          <summary>¿Cómo confirmo el talle de esta pieza?</summary>
-          <p>
-            Medí el dedo donde la usarás y compará esa medida con las variantes
-            y la escala del proveedor. Para un par, registrá las dos medidas.{" "}
-            <Link href="/guias/talles">
-              Consultá la guía de medidas de anillos
-            </Link>
-            .
-          </p>
-        </details>
-        <details>
-          <summary>¿Qué tengo que revisar en la ficha?</summary>
-          <p>
-            Composición, recubrimientos, piedra identificada si la tiene, ancho
-            y unidad vendida. Una imagen ilustrativa no acredita esos datos.{" "}
-            <Link href="/guias/materiales">Compará los materiales</Link> antes
-            de decidir.
-          </p>
-        </details>
+        {guidance.faq.map((faq) => (
+          <details key={faq.question}>
+            <summary>{faq.question}</summary>
+            <p>{faq.answer}</p>
+          </details>
+        ))}
         <details>
           <summary>¿Qué debe incluir una propuesta de compra?</summary>
           <p>
@@ -448,7 +521,13 @@ export default async function ProductPage({ params }: { params: Params }) {
           </p>
         </details>
         <p className="mt-5">
-          <Link href="/guias/cuidados">Cómo limpiar y cuidar un anillo</Link> ·{" "}
+          {guidance.related.map((link, index) => (
+            <span key={link.href}>
+              {index ? " · " : ""}
+              <Link href={link.href}>{link.label}</Link>
+            </span>
+          ))}
+          {" · "}
           <Link href="/como-funciona">Disponibilidad y entrega</Link>
         </p>
       </section>

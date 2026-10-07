@@ -226,6 +226,10 @@ async function main(): Promise<void> {
       if (!categoryId)
         throw new Error(`Categoría sin id: ${producto.categoryName}`);
       return {
+        specifications: producto.specifications,
+        supplierDetails: producto.supplierDetails,
+        seoTitle: producto.seoTitle,
+        seoDescription: producto.seoDescription,
         saleMode: producto.saleMode,
         showPrice: producto.showPrice,
         slug: producto.slug,

@@ -72,11 +72,28 @@ export default async function AdminProductPage({ params }: { params: Params }) {
         <h2 className="font-medium">{t("panel.producto.datos")}</h2>
         <div className="mt-2">
           <ProductForm
+            readiness={{
+              ...product,
+              categorySlug: categories.find(
+                (category) => category.id === product.categoryId
+              )?.slug,
+              images,
+              variants: variants.map((variant) => ({
+                pricePyg: variant.pricePyg,
+                stock: variant.onHand,
+                available: variant.available,
+                attributes: variant.attributes,
+              })),
+            }}
             categories={categories.map((category) => ({
               id: category.id,
               name: category.name,
             }))}
             defaults={{
+              specifications: product.specifications,
+              supplierDetails: product.supplierDetails,
+              seoTitle: product.seoTitle,
+              seoDescription: product.seoDescription,
               productId: product.id,
               saleMode: product.saleMode,
               showPrice: product.showPrice,
@@ -100,6 +117,8 @@ export default async function AdminProductPage({ params }: { params: Params }) {
           <VariantEditor
             productId={product.id}
             variants={variants.map((variant) => ({
+              attributes: variant.attributes,
+              identifiers: variant.identifiers,
               id: variant.id,
               sku: variant.sku,
               label: variant.label,
