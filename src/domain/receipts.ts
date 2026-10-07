@@ -4,7 +4,9 @@ import type { MessageKey, Params } from "@/i18n";
 import { DomainError } from "./errors";
 
 import { getDb } from "@/db";
-import { receipts } from "@/db/schema";
+import { orders, receipts } from "@/db/schema";
+import { withLockRetry } from "@/db/retry";
+import { RECEIPT_VERIFICATION_HOURS, transitionOrder } from "./orders";
 
 import type { Executor } from "./executor";
 import { RECEIPT_MAX_BYTES } from "@/lib/upload-limits";
@@ -101,9 +103,36 @@ export async function recordReceipt(
   });
 }
 
+/** Finalize only after the remote upload; serialize quota, current state and holds under the order lock. */
+export async function finalizeUploadedReceipt(input: {
+  orderId: number; cloudinaryId: string; mime: string; bytes: number;
+}): Promise<void> {
+  await withLockRetry(() => getDb().transaction(async (tx) => {
+    const [order] = await tx.select({ status: orders.status, paymentMethod: orders.paymentMethod })
+      .from(orders).where(eq(orders.id, input.orderId)).for("update");
+    if (!order || order.paymentMethod !== "transferencia" ||
+      !["pendiente_pago", "rechazado", "esperando_verificacion"].includes(order.status))
+      throw new ReceiptError("error.comprobante.noEsperaComprobante");
+    const previous = await tx.select({ uploadedAt: receipts.uploadedAt }).from(receipts)
+      .where(eq(receipts.orderId, input.orderId)).orderBy(receipts.uploadedAt, receipts.id).for("update");
+    if (previous.length >= RECEIPT_MAX_PER_ORDER)
+      throw new ReceiptError("error.comprobante.demasiados", { maximo: RECEIPT_MAX_PER_ORDER });
+    if (previous[0] && previous[0].uploadedAt.getTime() + RECEIPT_VERIFICATION_HOURS * 3600_000 <= Date.now())
+      throw new ReceiptError("error.comprobante.noEsperaComprobante");
+    await recordReceipt(input, tx);
+    await transitionOrder(input.orderId, "esperando_verificacion", "buyer", "comprobante subido", { executor: tx });
+  }));
+}
+
 export async function listReceipts(orderId: number, executor?: Executor) {
   const tx = executor ?? getDb();
   return tx.select().from(receipts).where(eq(receipts.orderId, orderId));
+}
+
+/** Resolve ambiguous commit errors before deleting a private uploaded asset. */
+export async function receiptAssetRecorded(cloudinaryId: string): Promise<boolean> {
+  return (await getDb().select({ id: receipts.id }).from(receipts)
+    .where(eq(receipts.cloudinaryId, cloudinaryId)).limit(1)).length > 0;
 }
 
 export async function pendingReceipts(executor?: Executor) {

@@ -52,7 +52,9 @@ describe('GET /api/version', () => {
     const cuerpo = (await response.json()) as Record<string, string>;
 
     expect(response.status).toBe(200);
-    expect(Object.keys(cuerpo).sort()).toEqual(['builtAt', 'node', 'sha']);
+    expect(Object.keys(cuerpo).sort()).toEqual(['builtAt', 'migrations', 'node', 'sha']);
+    expect(cuerpo.migrations).toHaveProperty('current');
+    expect(cuerpo.migrations).toHaveProperty('pending');
     expect(cuerpo.node).toBe(process.version);
   });
 

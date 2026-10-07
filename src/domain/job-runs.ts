@@ -196,6 +196,11 @@ export function cronAtrasado(
   return now.getTime() - run.lastOkAt.getTime() > maxMinutes * 60_000;
 }
 
+/** Daily backup: allow a two-hour scheduling/upload margin, never infer success from started_at. */
+export function backupAtrasado(run: { lastOkAt: Date | null } | null, now = new Date()): boolean {
+  return cronAtrasado(run, now, 26 * 60);
+}
+
 /** El estado de un trabajo, para el panel y para los tests. */
 export async function getJobRun(job: JobName, executor?: Executor) {
   const tx = executor ?? getDb();

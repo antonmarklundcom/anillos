@@ -31,6 +31,8 @@ describe.skipIf(!hasTestDb)("GET /api/health", () => {
       db: true,
       cron: false,
       catalog: true,
+      schema: true,
+      backup: true,
     });
 
     // Un monitor por palabra clave (DEPLOY.md §8) ve el cron andando.
@@ -68,12 +70,14 @@ describe.skipIf(!hasTestDb)("GET /api/health", () => {
 
     // Booleanos y nada más.
     expect(Object.keys(JSON.parse(body) as object).sort()).toEqual([
+      "backup",
       "catalog",
       "cron",
       "db",
       "ok",
+      "schema",
     ]);
-    expect(body).not.toMatch(/mysql|maria|version|8\.\d|schema/i);
+    expect(body).not.toMatch(/mysql|maria|version|8\.\d/i);
   });
 });
 
@@ -98,6 +102,8 @@ describe("GET /api/health sin base", () => {
       db: false,
       cron: false,
       catalog: false,
+      schema: false,
+      backup: true,
     });
 
     vi.doUnmock("@/db");

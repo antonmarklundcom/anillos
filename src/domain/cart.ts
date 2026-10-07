@@ -115,7 +115,9 @@ export async function priceCart(
       !row.variantActive ||
       !row.productActive ||
       row.publishedAt === null ||
-      !row.categoryActive
+      !row.categoryActive ||
+      !Number.isSafeInteger(row.pricePyg) ||
+      row.pricePyg <= 0
     ) {
       issues.push({
         type: "no_disponible",

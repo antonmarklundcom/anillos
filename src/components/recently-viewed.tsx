@@ -6,7 +6,11 @@ import { useEffect, useState } from "react";
 
 import { CART_STORAGE_KEY } from "@/lib/cart-store";
 import { t } from "@/i18n/client";
-import { categoryPlaceholderSrc, productImageUrl } from "@/lib/images";
+import { productImageUrl } from "@/lib/images";
+import {
+  verifiedProductImage,
+  type ImageProvenance,
+} from "@/lib/product-image-provenance";
 import { formatGs } from "@/lib/money";
 import { TESTIDS } from "@/lib/testids";
 
@@ -34,6 +38,9 @@ export type RecentlyViewedItem = {
   pricePyg: number;
   imageCloudinaryId: string | null;
   imageAlt: string | null;
+  imageSrc?: string | null;
+  imageProvenance?: ImageProvenance | null;
+  imageVerifiedAt?: string | null;
 };
 
 const STORAGE_KEY = `${CART_STORAGE_KEY}-vistos`;
@@ -46,7 +53,8 @@ function isItem(value: unknown): value is RecentlyViewedItem {
     typeof item.slug === "string" &&
     item.slug !== "" &&
     typeof item.name === "string" &&
-    Number.isInteger(item.pricePyg) &&
+    Number.isSafeInteger(item.pricePyg) &&
+    (item.pricePyg ?? 0) > 0 &&
     (item.imageCloudinaryId === null ||
       typeof item.imageCloudinaryId === "string") &&
     (item.imageAlt === null || typeof item.imageAlt === "string")
@@ -86,7 +94,7 @@ export function RecentlyViewed({ current }: { current: RecentlyViewedItem }) {
     const timer = setTimeout(() => {
       const existing = readList();
       const next = [
-        current,
+        ...(isItem(current) ? [current] : []),
         ...existing.filter((item) => item.slug !== current.slug),
       ].slice(0, MAX_ITEMS);
       writeList(next);
@@ -109,7 +117,15 @@ export function RecentlyViewed({ current }: { current: RecentlyViewedItem }) {
       </h2>
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {items.map((item) => {
-          const url = productImageUrl(item.imageCloudinaryId, "card");
+          const url =
+            typeof item.imageSrc === "string" &&
+            /^https:\/\/res\.cloudinary\.com\//.test(item.imageSrc)
+              ? item.imageSrc
+              : productImageUrl(item.imageCloudinaryId, "card");
+          const confirmed = verifiedProductImage({
+            provenance: item.imageProvenance,
+            verifiedAt: item.imageVerifiedAt,
+          });
           return (
             <Link
               key={item.slug}
@@ -119,14 +135,27 @@ export function RecentlyViewed({ current }: { current: RecentlyViewedItem }) {
               className="group border-border hover:border-foreground/20 focus-visible:ring-ring flex flex-col rounded-xl border p-3 transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
               <div className="bg-muted relative aspect-square overflow-hidden rounded-lg">
-                <Image
-                  src={url ?? categoryPlaceholderSrc("generico")}
-                  alt={item.imageAlt ?? item.name}
-                  fill
-                  unoptimized={Boolean(url)}
-                  sizes="(max-width: 640px) 50vw, 300px"
-                  className="object-cover"
-                />
+                {url ? (
+                  <Image
+                    src={url}
+                    alt={item.imageAlt ?? item.name}
+                    fill
+                    unoptimized={Boolean(url)}
+                    sizes="(max-width: 640px) 50vw, 300px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-muted-foreground absolute inset-0 grid place-content-center p-3 text-center text-sm">
+                    Foto en preparación
+                  </span>
+                )}
+                {url && !confirmed ? (
+                  <span className="text-muted-foreground bg-background/95 absolute inset-x-2 bottom-2 rounded px-2 py-1 text-center text-xs">
+                    {item.imageProvenance === "illustrative"
+                      ? "Imagen ilustrativa"
+                      : "Imagen por verificar"}
+                  </span>
+                ) : null}
               </div>
               <div className="mt-3 flex flex-1 flex-col gap-1">
                 <h3 className="group-hover:text-foreground line-clamp-2 text-sm font-medium">

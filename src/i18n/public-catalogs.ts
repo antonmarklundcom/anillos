@@ -492,6 +492,7 @@ export const publicCatalogs: Record<string, Record<string, string>> = {
     "password.mostrar": "Mostrar contraseña",
     "password.ocultar": "Ocultar contraseña",
     "password.confirmar": "Repetí la contraseña",
-    "password.noCoinciden": "Las contraseñas no coinciden. Volvé a escribirlas."
+    "password.noCoinciden": "Las contraseñas no coinciden. Volvé a escribirlas.",
+    "pedido.comprobante.sinAlmacenamiento": "La carga de comprobantes no está disponible. Contactá con la tienda para verificar tu transferencia."
   }
 };

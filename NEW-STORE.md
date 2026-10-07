@@ -1083,6 +1083,14 @@ tienda salió.
 
 ### Migraciones que llegan por `template:sync`
 
+`template:diff` y `template:sync` verifican journal, SQL, snapshots y fechas antes
+de fusionar. Si la tienda y el template agregaron migraciones con el mismo índice
+o fechas anteriores a las ya aplicadas, paran incluso en `--dry-run`. No edites
+una migración aplicada para quitar el bloqueo. Preservá su SQL y snapshot;
+revisá/regenerá solamente las migraciones todavía no aplicadas en una rama y
+ensayá la secuencia completa en una base descartable. La tienda y el template
+son historiales distintos: un merge de JSON no demuestra compatibilidad.
+
 Una migración del template es **maquinaria**: viaja marcada con `*` y
 `template:sync` la trae sola (`drizzle/` entero, con su `_journal.json`). Después del sync, en
 esta tienda hay que aplicarla como cualquier otra —`pnpm db:push` en local,

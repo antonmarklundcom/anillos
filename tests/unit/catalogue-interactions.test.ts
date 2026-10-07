@@ -37,11 +37,10 @@ const product: CatalogProduct = {
   variants,
 };
 it("only resolves exact valid share selections and does not select unavailable stock", () => {
-  expect(variantFromSku(variants, "RING-A/17", true)?.id).toBe(1);
-  expect(variantFromSku(variants, "RING-B", true)).toBeUndefined();
-  expect(variantFromSku(variants, "RING-B", false)?.id).toBe(2);
-  expect(variantFromSku(variants, ["RING-A/17"], true)).toBeUndefined();
-  expect(variantFromSku(variants, "unknown", true)).toBeUndefined();
+  expect(variantFromSku(variants, "RING-A/17")?.id).toBe(1);
+  expect(variantFromSku(variants, "RING-B")?.id).toBe(2);
+  expect(variantFromSku(variants, ["RING-A/17"])).toBeUndefined();
+  expect(variantFromSku(variants, "unknown")).toBeUndefined();
 });
 it("encodes SKU and preserves existing URL data", () => {
   expect(

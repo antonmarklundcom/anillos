@@ -9,6 +9,7 @@ import {
   type ImageSize,
 } from "@/lib/images";
 import { cn } from "@/lib/utils";
+import { verifiedProductImage } from "@/lib/product-image-provenance";
 import type { CatalogImage } from "@/db/queries";
 
 /**
@@ -54,6 +55,7 @@ export function ProductImage({
   className,
   priority = false,
   sizes,
+  concept = false,
 }: {
   image: CatalogImage | null;
   alt: string;
@@ -62,6 +64,7 @@ export function ProductImage({
   className?: string;
   priority?: boolean;
   sizes?: string;
+  concept?: boolean;
 }) {
   const url = productImageUrl(image?.cloudinaryId, size);
   const wrapper = cn(
@@ -70,6 +73,19 @@ export function ProductImage({
   );
 
   if (!url) {
+    if (isRingCollection(categorySlug) && !concept) {
+      return (
+        <div
+          className={`${wrapper} grid place-content-center p-4 text-center`}
+          role="img"
+          aria-label={`Foto en preparación: ${alt}`}
+        >
+          <span className="text-muted-foreground text-sm">
+            Foto en preparación
+          </span>
+        </div>
+      );
+    }
     if (isRingCollection(categorySlug)) {
       return (
         <div className={wrapper}>
@@ -139,6 +155,13 @@ export function ProductImage({
         placeholder={image?.blurDataUrl ? "blur" : "empty"}
         blurDataURL={image?.blurDataUrl ?? undefined}
       />
+      {image && !verifiedProductImage(image) ? (
+        <span className="text-muted-foreground bg-background/95 absolute inset-x-3 bottom-3 rounded px-2 py-1 text-center text-xs">
+          {image.provenance === "illustrative"
+            ? "Imagen ilustrativa"
+            : "Imagen por verificar"}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -33,12 +34,17 @@ const ALL = "__todas__";
 export function CatalogFilters({
   brands,
   facets,
+  resultCount,
+  hasPrices = true,
 }: {
   brands: BrandFacet[];
   facets?: CatalogueFacets;
+  resultCount?: number;
+  hasPrices?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
+  const [expanded, setExpanded] = useState(false);
 
   const update = (key: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
@@ -95,7 +101,19 @@ export function CatalogFilters({
 
   return (
     <div className="grid gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        className="rounded border px-4 py-3 text-left text-sm sm:hidden"
+        aria-expanded={expanded}
+        aria-controls="catalogue-filter-controls"
+        onClick={() => setExpanded(!expanded)}
+      >
+        Filtrar y ordenar{activos.length ? ` (${activos.length})` : ""}
+      </button>
+      <div
+        id="catalogue-filter-controls"
+        className={`${expanded ? "flex" : "hidden"} flex-wrap items-center gap-2 sm:flex`}
+      >
         {attributeFilters.map((filter) =>
           filter.options.length || params.get(filter.key) ? (
             <Select
@@ -125,7 +143,7 @@ export function CatalogFilters({
             </Select>
           ) : null
         )}
-        {facets ? (
+        {facets && (facets.inStock > 0 || params.get("stock")) ? (
           <label className="flex min-h-10 cursor-pointer items-center gap-2 px-2 text-sm">
             <input
               type="checkbox"
@@ -166,27 +184,29 @@ export function CatalogFilters({
           </Select>
         ) : null}
 
-        <Select
-          value={precio ?? ALL}
-          onValueChange={(value) => update("precio", value)}
-        >
-          <SelectTrigger
-            className="w-[200px]"
-            aria-label={t("filtros.precio.label")}
+        {hasPrices || precio ? (
+          <Select
+            value={precio ?? ALL}
+            onValueChange={(value) => update("precio", value)}
           >
-            <SelectValue placeholder="Precio" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL}>
-              {t("filtros.precio.cualquiera")}
-            </SelectItem>
-            {PRICE_RANGES.map((range) => (
-              <SelectItem key={range.id} value={range.id}>
-                {range.label}
+            <SelectTrigger
+              className="w-[200px]"
+              aria-label={t("filtros.precio.label")}
+            >
+              <SelectValue placeholder="Precio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>
+                {t("filtros.precio.cualquiera")}
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {PRICE_RANGES.map((range) => (
+                <SelectItem key={range.id} value={range.id}>
+                  {range.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : null}
 
         <Select
           value={params.get("orden") ?? "relevancia"}
@@ -201,14 +221,30 @@ export function CatalogFilters({
             <SelectValue placeholder="Ordenar" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(SORT_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label()}
-              </SelectItem>
-            ))}
+            {Object.entries(SORT_LABELS)
+              .filter(
+                ([value]) =>
+                  hasPrices ||
+                  !value.startsWith("precio-") ||
+                  value === params.get("orden")
+              )
+              .map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label()}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>
+      {resultCount !== undefined ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className="text-muted-foreground text-sm"
+        >
+          {resultCount} {resultCount === 1 ? "diseño" : "diseños"}
+        </p>
+      ) : null}
 
       {activos.length > 0 ? (
         <ul className="flex flex-wrap items-center gap-2">

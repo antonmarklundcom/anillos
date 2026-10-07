@@ -79,6 +79,7 @@ export default async function AdminProductPage({ params }: { params: Params }) {
               )?.slug,
               images,
               variants: variants.map((variant) => ({
+                isActive: variant.isActive,
                 pricePyg: variant.pricePyg,
                 stock: variant.onHand,
                 available: variant.available,

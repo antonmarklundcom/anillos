@@ -1,4 +1,5 @@
 import { cronJson, requireCronSecret } from "@/lib/cron-auth";
+import { migrationStatus } from "@/db/migration-status";
 
 /**
  * `/api/version` — qué build está corriendo ahora mismo (plan-operacion §5.4 B).
@@ -27,5 +28,6 @@ export async function GET(request: Request): Promise<Response> {
     sha: process.env.BUILD_SHA ?? "desconocido",
     builtAt: process.env.BUILD_AT ?? "desconocido",
     node: process.version,
+    migrations: await migrationStatus().catch(() => ({ compatible: false, current: false, pending: [] })),
   });
 }

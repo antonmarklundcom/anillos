@@ -4,19 +4,19 @@ import { safeError } from "../src/lib/safe-error";
 
 import { readFileSync } from "node:fs";
 
-import { eq, inArray, sql } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 import { closePool, getDb } from "@/db";
-import { categories, products, variants } from "@/db/schema";
-import { parseCatalogo, type CatalogoProducto } from "@/domain/catalog-import";
+import { categories, products } from "@/db/schema";
+import { parseCatalogo } from "@/domain/catalog-import";
 import { slugify } from "@/lib/slug";
 
 import {
   applyCatalogFotos,
   contarFotosNuevas,
+  buildCatalogImportPlan,
+  applyCatalogImportPlan,
 } from "@/domain/catalog-import-plan";
-
-import { upsertCatalogProducts, type CatalogProductUpsert } from "./seed";
 
 /**
  * `pnpm importar:productos <planilla.csv>` — el catálogo entero de una vez.
@@ -103,40 +103,18 @@ async function main(): Promise<void> {
     }
   }
 
-  // --- SKUs: uno que ya existe en OTRO producto es un error, no un update.
-  // El upsert re-colgaría la variante del producto de la planilla en
-  // silencio, y "mover una variante de producto" no es algo que una planilla
-  // tenga permitido decidir sin que nadie lo vea.
-  const skus = productos.flatMap((p) => p.variants.map((v) => v.sku));
-  const skuRows = skus.length
-    ? await db
-        .select({ sku: variants.sku, productSlug: products.slug })
-        .from(variants)
-        .innerJoin(products, eq(variants.productId, products.id))
-        .where(inArray(variants.sku, skus))
-    : [];
-  const duenoDeSku = new Map(skuRows.map((row) => [row.sku, row.productSlug]));
-
-  const conflictos: string[] = [];
-  for (const producto of productos) {
-    for (const variante of producto.variants) {
-      const dueno = duenoDeSku.get(variante.sku);
-      if (dueno !== undefined && dueno !== producto.slug) {
-        conflictos.push(
-          `✗ El SKU "${variante.sku}" ya existe en la base y es del producto "${dueno}", no de "${producto.slug}". Cambiá el SKU o el slug en la planilla.`
-        );
-      }
-    }
-  }
-  if (conflictos.length > 0) {
-    for (const conflicto of conflictos) console.error(conflicto);
+  const checkedPlan = await buildCatalogImportPlan(texto);
+  if (checkedPlan.errores.length) {
+    // These are deliberate catalogue validation messages, not caught SQL/provider
+    // errors. Keep SKU ownership diagnostics useful without exposing raw errors.
+    for (const error of checkedPlan.errores) console.error(`✗ ${error}`);
     console.error(
-      `\n${conflictos.length} conflicto(s) de SKU. No se escribió nada.`
+      `${checkedPlan.errores.length} conflicto(s). No se escribió nada.`
     );
     process.exitCode = 1;
-    await closePool();
     return;
   }
+  const skus = productos.flatMap((p) => p.variants.map((v) => v.sku));
 
   // --- El plan ------------------------------------------------------------
   const slugsProductos = productos.map((p) => p.slug);
@@ -150,7 +128,7 @@ async function main(): Promise<void> {
   const productosExistentes = new Set(productRows.map((row) => row.slug));
   const nuevos = productos.filter((p) => !productosExistentes.has(p.slug));
   const variantesTotal = skus.length;
-  const variantesExistentes = duenoDeSku.size;
+  const variantesExistentes = checkedPlan.variantesActualizar;
   const fotosNuevas = await contarFotosNuevas(
     productos,
     idPorSlugExistente,
@@ -190,62 +168,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  // --- Escribir -----------------------------------------------------------
-  if (categoriasNuevas.size > 0) {
-    const maxPosition =
-      (
-        await db
-          .select({
-            max: sql<number>`COALESCE(MAX(${categories.position}), 0)`,
-          })
-          .from(categories)
-      )[0]?.max ?? 0;
-    let position = maxPosition;
-    for (const [slug, nombre] of categoriasNuevas) {
-      position += 1;
-      await db
-        .insert(categories)
-        .values({ slug, name: nombre, position })
-        .onDuplicateKeyUpdate({ set: { name: nombre, isActive: true } });
-      const fila = (
-        await db
-          .select({ id: categories.id })
-          .from(categories)
-          .where(eq(categories.slug, slug))
-          .limit(1)
-      )[0];
-      if (!fila) throw new Error(`No pude releer la categoría ${slug}`);
-      categoriaPorSlug.set(slug, fila.id);
-    }
-    console.log(`✓ ${categoriasNuevas.size} categorías creadas`);
-  }
-
-  const items: CatalogProductUpsert[] = productos.map(
-    (producto: CatalogoProducto) => {
-      const categoryId = categoriaPorSlug.get(slugify(producto.categoryName));
-      if (!categoryId)
-        throw new Error(`Categoría sin id: ${producto.categoryName}`);
-      return {
-        specifications: producto.specifications,
-        supplierDetails: producto.supplierDetails,
-        seoTitle: producto.seoTitle,
-        seoDescription: producto.seoDescription,
-        saleMode: producto.saleMode,
-        showPrice: producto.showPrice,
-        slug: producto.slug,
-        name: producto.name,
-        description: producto.description,
-        categoryId,
-        brand: producto.brand,
-        ivaRate: producto.ivaRate,
-        variants: producto.variants,
-      };
-    }
-  );
-
-  const escritas = await upsertCatalogProducts(items, {
+  const escritas = await applyCatalogImportPlan(checkedPlan, {
     resetStock: PISAR_STOCK,
+    actor: "catalog-import:cli",
   });
+  if (categoriasNuevas.size)
+    console.log(`✓ ${categoriasNuevas.size} categorías creadas`);
   console.log(
     `✓ ${productos.length} productos · ${escritas} variantes escritas`
   );

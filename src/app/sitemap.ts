@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { GUIDES } from "@/content/guides";
+import { CATEGORY_PAGES } from "@/content/category-pages";
 import { isConceptProduct } from "@/lib/concept-products";
 
 import { getSitemapEntries } from "@/db/queries";
@@ -35,7 +36,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "como-funciona",
     ...GUIDES.map((guide) => `guias/${guide.slug}`),
   ];
-  const categories = await getStoreCategories();
+  const categories = (await getStoreCategories()).map((category) => ({
+    ...category,
+    reviewedAt: CATEGORY_PAGES[category.slug]?.reviewedAt,
+  }));
+  const pageDates = Object.fromEntries(
+    GUIDES.map((guide) => [`guias/${guide.slug}`, guide.reviewedAt])
+  );
 
   try {
     const entries = await getSitemapEntries();
@@ -46,10 +53,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         (product) => !isConceptProduct(product.slug)
       ),
       pages,
+      pageDates,
     });
   } catch {
     // La base caída no puede tumbar el sitio: al menos la home se publica, y
     // el crawler vuelve en el próximo revalidate.
-    return buildSitemap(origin, { categories, products: [], pages });
+    return buildSitemap(origin, { categories, products: [], pages, pageDates });
   }
 }

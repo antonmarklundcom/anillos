@@ -260,7 +260,12 @@ export default async function CategoryPage({
         })
       : Promise.resolve([]),
     category.catalogAvailable
-      ? getCatalogueFacets(slug).catch((error) => {
+      ? getCatalogueFacets(slug, undefined, {
+          material,
+          stone,
+          unit,
+          inStock,
+        }).catch((error) => {
           log.error("store.category.facets_unavailable", { slug, error });
           return EMPTY_CATALOGUE_FACETS;
         })
@@ -462,7 +467,12 @@ export default async function CategoryPage({
         {catalogAvailable ? (
           <div className="mt-5">
             <Suspense fallback={null}>
-              <CatalogFilters brands={[...brands]} facets={facets} />
+              <CatalogFilters
+                brands={[...brands]}
+                facets={facets}
+                resultCount={result.total}
+                hasPrices={facets.hasPrices ?? false}
+              />
             </Suspense>
           </div>
         ) : null}

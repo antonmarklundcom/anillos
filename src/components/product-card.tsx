@@ -28,8 +28,11 @@ export function ProductCard({
 }) {
   // El precio "desde" es el de la variante más barata disponible; si no hay
   // ninguna con stock, igual mostramos el más barato para no dejar el card mudo.
-  const inStock = product.variants.filter((variant) => variant.available > 0);
-  const shown = (inStock.length > 0 ? inStock : product.variants).reduce<
+  const priced = product.variants.filter(
+    (variant) => Number.isSafeInteger(variant.pricePyg) && variant.pricePyg > 0
+  );
+  const inStock = priced.filter((variant) => variant.available > 0);
+  const shown = (inStock.length > 0 ? inStock : priced).reduce<
     CatalogProduct["variants"][number] | undefined
   >(
     (cheapest, variant) =>
@@ -37,100 +40,106 @@ export function ProductCard({
     undefined
   );
 
-  const totalAvailable = product.variants.reduce(
-    (total, variant) => total + variant.available,
-    0
-  );
+  const totalAvailable = (
+    product.showPrice === false ||
+    isConceptProduct(product.slug) ||
+    (product.saleMode ?? "stock") !== "stock"
+      ? []
+      : priced
+  ).reduce((total, variant) => total + variant.available, 0);
   const hasVariantRange = product.variants.length > 1;
 
   return (
-    <Link
-      href={`/producto/${product.slug}`}
-      data-testid={TESTIDS.productCard}
-      data-slug={product.slug}
-      className="product-editorial-card group focus-visible:ring-ring flex flex-col focus-visible:ring-2 focus-visible:outline-none"
-    >
-      <div className="product-card-photo relative">
-        <ProductImage
-          image={product.image}
-          alt={product.name}
-          categorySlug={product.categorySlug}
-          priority={priority}
-        />
-        <WishlistButton
-          slug={product.slug}
-          name={product.name}
-          sku={shown?.sku}
-          pricePyg={product.showPrice === false ? undefined : shown?.pricePyg}
-        />
-      </div>
+    <div className="relative">
+      <Link
+        href={`/producto/${product.slug}`}
+        data-testid={TESTIDS.productCard}
+        data-slug={product.slug}
+        className="product-editorial-card group focus-visible:ring-ring flex flex-col focus-visible:ring-2 focus-visible:outline-none"
+      >
+        <div className="product-card-photo relative">
+          <ProductImage
+            image={product.image}
+            alt={product.name}
+            categorySlug={product.categorySlug}
+            concept={isConceptProduct(product.slug)}
+            priority={priority}
+          />
+        </div>
 
-      <div className="product-card-copy mt-4 flex flex-1 flex-col gap-2">
-        <p className="product-card-category text-muted-foreground text-xs">
-          {product.brand ?? product.categoryName}
-        </p>
-        <h3 className="product-card-title group-hover:text-foreground line-clamp-2 font-medium">
-          {product.name}
-        </h3>
-        <p
-          className="text-muted-foreground text-xs"
-          data-testid="ring-price-unit"
-        >
-          {product.verifiedSpecifications?.unit === "pair"
-            ? "Par de dos anillos"
-            : product.verifiedSpecifications?.unit === "individual"
-              ? "Un anillo"
-              : isConceptProduct(product.slug)
-                ? priceUnit(product.categorySlug)
-                : "Unidad por confirmar"}
-        </p>
-        {conceptImageFor(product.slug) ? (
-          <p className="product-card-note text-muted-foreground text-xs">
-            Referencia de diseño · no disponible para compra
+        <div className="product-card-copy mt-4 flex flex-1 flex-col gap-2">
+          <p className="product-card-category text-muted-foreground text-xs">
+            {product.brand ?? product.categoryName}
           </p>
-        ) : null}
-        {showRating && product.rating && product.rating.count >= 1 ? (
-          <p className="text-muted-foreground flex items-center gap-1 text-xs">
-            <RatingStars value={product.rating.average} size={12} />
-            <span aria-hidden>{formatRating(product.rating.average)}</span>
-            <span>({tPlural("catalogo.resenas", product.rating.count)})</span>
+          <h3 className="product-card-title group-hover:text-foreground line-clamp-2 font-medium">
+            {product.name}
+          </h3>
+          <p
+            className="text-muted-foreground text-xs"
+            data-testid="ring-price-unit"
+          >
+            {product.verifiedSpecifications?.unit === "pair"
+              ? "Par de dos anillos"
+              : product.verifiedSpecifications?.unit === "individual"
+                ? "Un anillo"
+                : isConceptProduct(product.slug)
+                  ? priceUnit(product.categorySlug)
+                  : "Unidad por confirmar"}
           </p>
-        ) : null}
-
-        <div className="mt-auto pt-2">
-          {shown && product.showPrice !== false ? (
-            <PriceTag
-              pricePyg={shown.pricePyg}
-              compareAtPyg={shown.compareAtPyg}
-              size="sm"
-            />
+          {conceptImageFor(product.slug) ? (
+            <p className="product-card-note text-muted-foreground text-xs">
+              Referencia de diseño · no disponible para compra
+            </p>
           ) : null}
-          <div className="product-card-foot mt-2 flex flex-wrap items-center gap-2">
-            {isConceptProduct(product.slug) ? (
-              <span className="text-xs">Explorá la idea y sus detalles</span>
-            ) : (product.saleMode ?? "stock") === "stock" ? (
-              <StockBadge available={totalAvailable} />
-            ) : (
-              <span className="text-xs">
-                {t(
-                  product.saleMode === "enquiry"
-                    ? "producto.soloConsulta"
-                    : "producto.muestra"
-                )}
-              </span>
-            )}
-            {hasVariantRange ? (
-              <span className="text-muted-foreground text-xs">
-                {t("catalogo.opciones", { n: product.variants.length })}
-              </span>
+          {showRating && product.rating && product.rating.count >= 1 ? (
+            <p className="text-muted-foreground flex items-center gap-1 text-xs">
+              <RatingStars value={product.rating.average} size={12} />
+              <span aria-hidden>{formatRating(product.rating.average)}</span>
+              <span>({tPlural("catalogo.resenas", product.rating.count)})</span>
+            </p>
+          ) : null}
+
+          <div className="mt-auto pt-2">
+            {shown && product.showPrice !== false ? (
+              <PriceTag
+                pricePyg={shown.pricePyg}
+                compareAtPyg={shown.compareAtPyg}
+                size="sm"
+              />
             ) : null}
-            <span className="product-card-arrow ml-auto" aria-hidden>
-              ↗
-            </span>
+            <div className="product-card-foot mt-2 flex flex-wrap items-center gap-2">
+              {isConceptProduct(product.slug) ? (
+                <span className="text-xs">Explorá la idea y sus detalles</span>
+              ) : (product.saleMode ?? "stock") === "stock" ? (
+                <StockBadge available={totalAvailable} />
+              ) : (
+                <span className="text-xs">
+                  {t(
+                    product.saleMode === "enquiry"
+                      ? "producto.soloConsulta"
+                      : "producto.muestra"
+                  )}
+                </span>
+              )}
+              {hasVariantRange ? (
+                <span className="text-muted-foreground text-xs">
+                  {t("catalogo.opciones", { n: product.variants.length })}
+                </span>
+              ) : null}
+              <span className="product-card-arrow ml-auto" aria-hidden>
+                ↗
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+      <WishlistButton
+        slug={product.slug}
+        name={product.name}
+        sku={shown?.sku}
+        pricePyg={product.showPrice === false ? undefined : shown?.pricePyg}
+      />
+    </div>
   );
 }
 

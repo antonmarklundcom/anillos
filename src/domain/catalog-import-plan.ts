@@ -11,6 +11,7 @@ import {
 } from "@/lib/cloudinary";
 import { cargarIntegraciones } from "@/lib/integraciones-store";
 
+import { upsertCatalogProducts } from "../../scripts/seed";
 import { addProductImage } from "./admin-products";
 import { parseCatalogo, type CatalogoProducto } from "./catalog-import";
 import type { Executor } from "./executor";
@@ -103,7 +104,13 @@ export async function buildCatalogImportPlan(
   const errores: string[] = [];
   for (const producto of productos) {
     for (const variante of producto.variants) {
-      const dueno = duenoDeSku.get(variante.sku);
+      const [owner] = await tx
+        .select({ productSlug: products.slug })
+        .from(variants)
+        .innerJoin(products, eq(variants.productId, products.id))
+        .where(eq(variants.sku, variante.sku))
+        .limit(1);
+      const dueno = owner?.productSlug;
       if (dueno !== undefined && dueno !== producto.slug) {
         errores.push(
           `El SKU "${variante.sku}" ya existe en la base y es del producto "${dueno}", no de "${producto.slug}". Cambiá el SKU o el slug en la planilla.`
@@ -371,4 +378,27 @@ export async function ensureCatalogCategories(
     categoriaPorSlug.set(slug, fila.id);
   }
   return categoriaPorSlug;
+}
+
+export async function applyCatalogImportPlan(
+  plan: CatalogImportPlan,
+  options: {
+    resetStock?: boolean;
+    actor?: string;
+    actorUserId?: number | null;
+    verifiedImport?: boolean;
+  } = {}
+): Promise<number> {
+  if (plan.errores.length) throw new Error("La planilla tiene errores.");
+  return getDb().transaction(async (tx) => {
+    const ids = await ensureCatalogCategories(plan, tx);
+    return upsertCatalogProducts(
+      plan.productos.map((p) => {
+        const categoryId = ids.get(slugify(p.categoryName));
+        if (!categoryId) throw new Error("Categoría sin id.");
+        return { ...p, categoryId };
+      }),
+      { ...options, publishedAt: null, executor: tx }
+    );
+  });
 }

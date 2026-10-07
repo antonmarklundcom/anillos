@@ -19,6 +19,8 @@ import { formatGs, formatGsPlain } from "@/lib/money";
 import { ORDER_STATUS_LABEL_COMPRADOR } from "@/lib/order-labels";
 import { formatDateTimePY } from "@/lib/py";
 import { TESTIDS } from "@/lib/testids";
+import { cloudinaryConfigured } from "@/lib/cloudinary";
+import { cargarIntegraciones } from "@/lib/integraciones-store";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +48,8 @@ export default async function OrderPage({
   // Distinguirlos convierte esta página en un detector de pedidos válidos.
   const order = await requireOrderAccess(orderNumber, token);
   if (!order) notFound();
+  await cargarIntegraciones();
+  const receiptStorageReady = cloudinaryConfigured();
 
   // Reseñas: sólo con el pedido entregado y el token en la mano (el mismo que
   // re-chequea la acción). Antes de eso ni se consulta.
@@ -157,11 +161,11 @@ export default async function OrderPage({
         <section className="border-border mt-6 rounded-xl border p-4">
           <h2 className="font-medium">{t("pedido.comprobante.titulo")}</h2>
           <div className="mt-3">
-            <ReceiptUpload
+            {receiptStorageReady ? <ReceiptUpload
               orderNumber={order.orderNumber}
               token={token}
               remaining={RECEIPT_MAX_PER_ORDER - receiptCount}
-            />
+            /> : <p className="text-muted-foreground text-sm">{t("pedido.comprobante.sinAlmacenamiento")}</p>}
           </div>
           {comprobanteWaHref ? (
             <>

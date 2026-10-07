@@ -169,6 +169,13 @@
       "when": 1791333256001,
       "tag": "0023_previous_mockingbird",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1791352031320,
+      "tag": "0024_silent_star_brand",
+      "breakpoints": true
     }
   ]
 }

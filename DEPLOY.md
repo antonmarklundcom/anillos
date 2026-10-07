@@ -358,6 +358,22 @@ se revisó en un PR.
 
 ---
 
+### Actualizaciones con migraciones nuevas
+
+Antes de reiniciar con código que lee columnas nuevas, guardá una copia privada
+y ensayá las migraciones versionadas en una base descartable. Coordiná el
+redeploy automático con la aplicación de migraciones: una fusión sola no las
+aplica. Para cambios aditivos compatibles, aplicá la migración revisada antes
+de activar el código dependiente; no generalices ese orden a cambios destructivos.
+Usá `pnpm db:migrate` desde la revisión aprobada contra la base indicada
+privadamente, o setup de sólo migración con `{}` y su secreto. Nunca uses
+`db:push`, seed ni campos de dueño para una actualización. El script limita
+esperas de bloqueo de metadatos a 30 segundos: un bloqueo obliga a revisar y
+reintentar, no a matar consultas de producción. Comprobá `pnpm db:check`,
+`/api/version` autenticada y todos los booleanos de salud después del redeploy.
+Un backup viejo se restaura en una base nueva con su esquema original y luego
+se actualiza; no lo cargues directamente sobre un esquema más nuevo.
+
 ## 5. Cron: las tres entradas del hPanel
 
 Tres rutas, tres entradas en **hPanel → Advanced → Cron Jobs**. Hostinger
@@ -596,7 +612,13 @@ Stack, Hetrix): apuntalo a `https://TU-DOMINIO/api/health` cada 5 minutos.
 > puede vender nada.
 
 En el monitor, entonces: alertar si la respuesta **no contiene**
-`"db":true,"cron":true`. El `cron` es el otro silencio: `false` si
+`"db":true,"cron":true,"catalog":true,"schema":true,"backup":true`. `schema`
+confirma el historial aplicado contra los hashes y fechas del código; `catalog`
+ejecuta una consulta real. `backup` exige un éxito en las últimas 26 horas cuando
+Cloudinary habilita copias; si están apagadas, no exige frescura. Configurá y
+ensayá las copias antes de vender: un `backup:true` con copias apagadas no prueba
+que exista una copia. Todos los controles tienen un plazo de tres segundos.
+El `cron` es el otro silencio: `false` si
 `vencer-pedidos` no corrió en las últimas 2 horas (§5) — sin él no vence
 ningún pedido sin pagar, el stock queda reservado y no sale ningún
 recordatorio de pago.

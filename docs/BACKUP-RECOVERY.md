@@ -14,3 +14,15 @@ The automatic backup is a private authenticated raw Cloudinary asset. Obtain its
 Format 2 includes the application/schema version, database version, table inventory, an encryption-key check, final row counts and a SHA-256 checksum. The checksum detects damage; it is not a substitute for authenticated retrieval. The restore refuses an existing populated target or a newer incompatible initialized schema. Restore an older backup into a fresh database so its original schema can be loaded before upgrade migrations.
 
 Legacy backups require explicit `--legacy`. They lack the format-2 closing checksum and version guarantees; recover them into an empty isolated database and perform a separate complete validation. `--vaciar` no longer deletes a live database. Recovery never changes the source backup or the live store automatically.
+
+For a repeatable local verification, retrieve the private asset manually and run
+`pnpm backup:verify -- /private/path/backup.jsonl.gz`. This checks the manifest,
+schema table inventory, complete counts/checksum and the encryption-key match
+when the original key is available. It does not download assets or prove that
+the production scheduler is running. Never paste the signed retrieval URL.
+Add `--restore` only with `DATABASE_URL` privately pointing at an empty loopback
+database whose name contains `test` and ends in `_restore_check`. That opt-in
+path loads and upgrades the backup, verifies decryption and reconciliation;
+it refuses a live/remote target. Keep the recovery environment isolated.
+Health and the owner dashboard flag enabled backups without a completed run
+within 26 hours; started or failed runs do not count as fresh backups.

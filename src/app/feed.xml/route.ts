@@ -6,6 +6,7 @@ import { buildProductFeed } from "@/lib/product-feed";
 import { siteOrigin } from "@/lib/site-url";
 import { nombreTienda } from "@/lib/marca";
 import { log } from "@/lib/log";
+import { merchantImages } from "@/lib/product-image-provenance";
 
 /**
  * `/feed.xml` — el catálogo para Google Merchant Center y Meta Commerce
@@ -55,7 +56,8 @@ export async function GET(): Promise<Response> {
       description: markdownToText(product.description),
       brand: product.brand,
       categoryName: product.categoryName,
-      images: product.images
+      specifications: product.verifiedSpecifications,
+      images: merchantImages(product.images)
         .map((image) => productImageUrl(image.cloudinaryId, "detail"))
         .filter((src): src is string => src !== null),
       variants: product.variants,

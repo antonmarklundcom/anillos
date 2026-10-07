@@ -3,14 +3,14 @@
 import { safeError } from "@/lib/safe-error";
 
 import { requireOrderAccess } from "@/domain/order-access";
-import { transitionOrder } from "@/domain/orders";
 import {
   ReceiptError,
   assertCanUpload,
-  recordReceipt,
+  finalizeUploadedReceipt,
+  receiptAssetRecorded,
   validateReceipt,
 } from "@/domain/receipts";
-import { carpetaComprobantes, cloudinary } from "@/lib/cloudinary";
+import { carpetaComprobantes, cloudinary, cloudinaryConfigured } from "@/lib/cloudinary";
 import { t } from "@/i18n";
 import { cargarIntegraciones } from "@/lib/integraciones-store";
 
@@ -43,7 +43,9 @@ export async function uploadReceipt(
     return { ok: false, error: t("error.comprobante.elegiArchivo") };
   }
 
+  let uploadedId: string | undefined;
   try {
+    if (!cloudinaryConfigured()) return { ok: false, error: t("error.comprobante.generico") };
     if (order.paymentMethod !== "transferencia") {
       throw new ReceiptError("error.comprobante.noEsTransferencia");
     }
@@ -76,24 +78,22 @@ export async function uploadReceipt(
       }
     );
 
-    await recordReceipt({
+    uploadedId = uploaded.public_id;
+    await finalizeUploadedReceipt({
       orderId: order.id,
       cloudinaryId: uploaded.public_id,
       mime,
       bytes: content.byteLength,
     });
 
-    // El estado sólo se mueve por acá. Si ya estaba esperando verificación
-    // (segundo comprobante), transitionOrder lo trata como no-op.
-    await transitionOrder(
-      order.id,
-      "esperando_verificacion",
-      "buyer",
-      "comprobante subido"
-    );
-
     return { ok: true };
   } catch (error) {
+    if (uploadedId) {
+      // If commit succeeded but its acknowledgement was lost, preserve the recorded asset.
+      try { if (!(await receiptAssetRecorded(uploadedId)))
+        await cloudinary.uploader.destroy(uploadedId, { type: "authenticated", resource_type: "image" }); }
+      catch (cleanupError) { console.error("No se pudo retirar el comprobante no registrado", safeError(cleanupError).message); }
+    }
     if (error instanceof ReceiptError) {
       return { ok: false, error: error.message };
     }

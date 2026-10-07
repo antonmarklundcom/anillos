@@ -143,7 +143,8 @@ export const StoreSettingsSchema = z.object({
       .array(z.enum(["transferencia", "contra_entrega", "tarjeta"]))
       .max(3)
       .nullable()
-      .catch(null),
+      .default(null)
+      .catch([]),
     confianzaActiva: interruptor(true),
     confianzaTitulo: texto,
     confianzaLineas: z.array(z.string()).max(4).nullable().catch(null),

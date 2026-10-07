@@ -147,6 +147,7 @@ const GUARD_ESPERADO: Readonly<Record<string, "Admin" | "Staff" | "Owner">> = {
   saveProductVariant: "Staff",
   adjustVariantStock: "Staff",
   uploadProductImage: "Staff",
+  saveProductImageDetails: "Staff",
   removeProductImage: "Staff",
   previewCatalogImport: "Staff",
   applyCatalogImport: "Staff",

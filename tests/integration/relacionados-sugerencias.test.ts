@@ -125,6 +125,55 @@ describe.skipIf(!hasTestDb)('también te puede interesar', () => {
     expect(rows.map((row) => row.slug)).toContain('mas-barato');
   });
 
+  it("una ficha sin precio ordena por marca y nombre sin ORDER BY 0", async () => {
+    const ids = await catalogo("ropa", [
+      {
+        slug: "el-que-miro",
+        name: "Consulta",
+        brand: "Marca A",
+        pricePyg: 0,
+        onHand: 0,
+      },
+      {
+        slug: "a-otra-marca",
+        name: "A otra marca",
+        brand: "Marca B",
+        pricePyg: 10_000,
+      },
+      {
+        slug: "z-misma-marca",
+        name: "Z misma marca",
+        brand: "Marca A",
+        pricePyg: 90_000,
+      },
+    ]);
+
+    const rows = await getRelatedProducts({
+      productId: ids.get("el-que-miro")!,
+      categorySlug: "ropa",
+      brand: "Marca A",
+    });
+
+    expect(rows.map((row) => row.slug)).toEqual([
+      "z-misma-marca",
+      "a-otra-marca",
+    ]);
+  });
+
+  it("una ficha sin precio ni relacionados disponibles devuelve una lista vacía", async () => {
+    const ids = await catalogo("ropa", [
+      { slug: "el-que-miro", name: "Consulta", pricePyg: 0, onHand: 0 },
+    ]);
+
+    expect(
+      await getRelatedProducts({
+        productId: ids.get("el-que-miro")!,
+        categorySlug: "ropa",
+        brand: null,
+      })
+    ).toEqual([]);
+  });
+
   it('nunca se recomienda a sí mismo', async () => {
     const ids = await catalogo('ropa', BASE);
     const rows = await relacionadosDe(ids);

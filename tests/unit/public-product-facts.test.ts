@@ -8,6 +8,48 @@ import { productJsonLd } from "@/lib/seo";
 
 const verifiedAt = "2026-01-01T12:00:00Z";
 describe("public confirmed facts and variants", () => {
+  it("keeps verification staff identity out of all public projections and structured data", () => {
+    const verifiedBy = { userId: 98765, label: "private-owner@example.test" };
+    const specifications = {
+      unit: "individual" as const,
+      material: "Plata",
+      verifiedAt,
+      verifiedBy,
+    };
+    const attributes = {
+      sizeSystem: "US",
+      sizeLabel: "7",
+      verifiedAt,
+      verifiedBy,
+    };
+    const identifiers = { gtin: "4006381333931", verifiedAt, verifiedBy };
+    const output = [
+      publicSpecifications(specifications, "ring"),
+      publicVariantAttributes(attributes, true),
+      publicIdentifiers(identifiers, "ring"),
+      productJsonLd({
+        origin: new URL("https://example.test"),
+        slug: "ring",
+        name: "Anillo",
+        images: [],
+        specifications,
+        variants: [
+          {
+            sku: "R-7",
+            label: "7",
+            pricePyg: 120000,
+            available: 0,
+            attributes,
+            identifiers,
+          },
+        ],
+      }),
+    ];
+    expect(JSON.stringify(output)).not.toContain("verifiedBy");
+    expect(JSON.stringify(output)).not.toContain("98765");
+    expect(JSON.stringify(output)).not.toContain("private-owner@example.test");
+    expect(output[0]).toHaveProperty("verifiedAt");
+  });
   it("does not infer facts from draft text or publish concept facts", () => {
     expect(publicSpecifications({ material: "Plata" }, "ring")).toBeUndefined();
     expect(
@@ -49,7 +91,7 @@ describe("public confirmed facts and variants", () => {
         sku: `R-${size}`,
         label: size,
         pricePyg: 120000,
-        available: 1,
+        available: size === "7" ? 1 : 0,
         attributes: { sizeSystem: "US", sizeLabel: size, verifiedAt },
       })),
     };
@@ -57,12 +99,18 @@ describe("public confirmed facts and variants", () => {
     expect(data["@type"]).toBe("ProductGroup");
     const variants = data.hasVariant as Array<{
       url: string;
-      offers: { url: string };
+      offers: { url: string; availability: string };
     }>;
     expect(variants[0]?.url).toBe(
       "https://example.com/producto/ring?variante=R-7"
     );
     expect(variants[0]?.offers.url).toBe(variants[0]?.url);
+    expect(variants[1]?.offers.availability).toBe(
+      "https://schema.org/OutOfStock"
+    );
+    expect(variants[1]?.url).toBe(
+      "https://example.com/producto/ring?variante=R-8"
+    );
     expect(
       productJsonLd({ ...input, specifications: undefined })["@type"]
     ).toBe("Product");

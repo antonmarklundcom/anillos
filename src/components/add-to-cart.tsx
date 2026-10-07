@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 import { QuantityStepper } from "@/components/quantity-stepper";
@@ -15,7 +15,7 @@ import { recallVariant, rememberVariant } from "@/lib/variant-memory";
 import { variantFromSku, variantUrl } from "@/lib/variant-url";
 import { TESTIDS } from "@/lib/testids";
 import { cn } from "@/lib/utils";
-import type { CatalogProductDetail } from "@/db/queries";
+import type { CatalogProductDetail, CatalogVariant } from "@/db/queries";
 import { t } from "@/i18n/client";
 
 /**
@@ -40,7 +40,15 @@ export function AddToCart({
   inquiryLinks = {},
   initialVariantSku = null,
 }: {
-  product: CatalogProductDetail;
+  product: Pick<
+    CatalogProductDetail,
+    "slug" | "name" | "saleMode" | "showPrice"
+  > & {
+    variants: Pick<
+      CatalogVariant,
+      "id" | "sku" | "label" | "pricePyg" | "compareAtPyg" | "available"
+    >[];
+  };
   stockAlertsEnabled?: boolean;
   whatsappPhone?: string | null;
   productUrl?: string | null;
@@ -81,7 +89,15 @@ export function AddToCart({
     () => new URLSearchParams(window.location.search).get("variante"),
     () => initialVariantSku
   );
-  const shared = variantFromSku(product.variants, urlSku, purchasable);
+  const shared = variantFromSku(product.variants, urlSku);
+  useEffect(() => {
+    if (urlSku && !shared) {
+      const next = new URL(window.location.href);
+      next.searchParams.delete("variante");
+      window.history.replaceState(window.history.state, "", next.toString());
+      window.dispatchEvent(new Event("variant-selection-change"));
+    }
+  }, [urlSku, shared]);
   // Sólo vale si esa variante sigue existiendo y con stock: es un atajo, no
   // una decisión. Todo lo que se cobra lo recalcula el servidor.
   const remembered = product.variants.find(
@@ -96,7 +112,11 @@ export function AddToCart({
     product.variants[0]?.id;
   const selected = product.variants.find((variant) => variant.id === variantId);
   const max = Math.max(1, Math.min(99, selected?.available ?? 0));
-  const canAdd = Boolean(purchasable && selected && selected.available > 0);
+  const validPrice =
+    Number.isSafeInteger(selected?.pricePyg) && (selected?.pricePyg ?? 0) > 0;
+  const canAdd = Boolean(
+    purchasable && selected && selected.available > 0 && validPrice
+  );
 
   return (
     <div className="space-y-4">
@@ -120,7 +140,6 @@ export function AddToCart({
                 <button
                   key={variant.id}
                   type="button"
-                  disabled={disabled}
                   aria-pressed={variant.id === variantId}
                   onClick={() => {
                     setQty(1);
@@ -137,11 +156,11 @@ export function AddToCart({
                     variant.id === variantId
                       ? "border-foreground bg-foreground text-background"
                       : "border-border hover:border-foreground/40",
-                    disabled &&
-                      "text-muted-foreground cursor-not-allowed line-through opacity-60"
+                    disabled && "text-muted-foreground line-through"
                   )}
                 >
                   {variant.label}
+                  {disabled ? " · Agotado" : ""}
                 </button>
               );
             })}
@@ -151,7 +170,7 @@ export function AddToCart({
 
       {selected ? (
         <div className="flex flex-wrap items-center gap-3">
-          {product.showPrice !== false ? (
+          {product.showPrice !== false && validPrice ? (
             <PriceTag
               pricePyg={selected.pricePyg}
               compareAtPyg={selected.compareAtPyg}

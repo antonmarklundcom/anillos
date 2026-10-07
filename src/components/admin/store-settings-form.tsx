@@ -61,6 +61,7 @@ export function SettingsSectionForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const paymentSelectionChanged = useRef(false);
 
   const correr = (accion: () => Promise<{ ok: true } | { ok: false; error: string }>, ok: string) => {
     setError(null);
@@ -71,6 +72,7 @@ export function SettingsSectionForm({
         return;
       }
       toast.success(ok);
+      paymentSelectionChanged.current = false;
       router.refresh();
     });
   };
@@ -78,10 +80,15 @@ export function SettingsSectionForm({
   return (
     <form
       className="grid gap-4"
+      onChange={(event) => {
+        if (event.target instanceof HTMLInputElement && event.target.name === "metodosPago") paymentSelectionChanged.current = true;
+      }}
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const valores = leerCampos(data, campos);
+        // Saving trust copy must preserve inherited deployment policy.
+        if (seccion === "checkout" && !paymentSelectionChanged.current) delete valores.metodosPago;
         correr(
           () =>
             guardarAjustes({

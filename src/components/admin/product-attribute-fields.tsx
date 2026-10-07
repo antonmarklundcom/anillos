@@ -8,6 +8,29 @@ import type {
   VerifiedIdentifiers,
 } from "@/lib/product-attributes";
 import type { FormEvent } from "react";
+import { FieldError, useFieldError } from "./field-validation";
+
+function VerificationInfo({
+  value,
+}: {
+  value?: { verifiedAt?: string; verifiedBy?: { label: string } } | null;
+}) {
+  if (!value?.verifiedAt || !Number.isFinite(Date.parse(value.verifiedAt)))
+    return null;
+  return (
+    <p className="text-muted-foreground mt-2 text-sm">
+      Verificado el{" "}
+      {new Intl.DateTimeFormat("es-PY", {
+        dateStyle: "medium",
+        timeZone: "America/Asuncion",
+      }).format(new Date(value.verifiedAt))}
+      {value.verifiedBy
+        ? ` por ${value.verifiedBy.label}`
+        : " (registro anterior sin autor identificado)"}
+      .
+    </p>
+  );
+}
 
 function invalidateVerification(
   event: FormEvent<HTMLElement>,
@@ -44,6 +67,7 @@ function Field({
   maxLength?: number;
 }) {
   const id = `${name}${suffix}`;
+  const error = useFieldError(name);
   return (
     <div className="grid gap-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -53,7 +77,12 @@ function Field({
         defaultValue={value ?? ""}
         maxLength={maxLength}
         inputMode={numeric ? "decimal" : undefined}
+        type={name === "sourceUrl" ? "url" : "text"}
+        pattern={name === "sourceUrl" ? "https://.*" : undefined}
+        aria-invalid={Boolean(error) || undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
       />
+      <FieldError name={name} id={`${id}-error`} />
     </div>
   );
 }
@@ -69,6 +98,7 @@ export function ProductAttributeFields({
   seoTitle?: string | null;
   seoDescription?: string | null;
 }) {
+  const unitError = useFieldError("unit");
   return (
     <>
       <details
@@ -126,11 +156,14 @@ export function ProductAttributeFields({
               name="unit"
               defaultValue={specifications?.unit ?? ""}
               className="rounded border p-2"
+              aria-invalid={Boolean(unitError) || undefined}
+              aria-describedby={unitError ? "unit-error" : undefined}
             >
               <option value="">Sin confirmar</option>
               <option value="individual">Una pieza individual</option>
               <option value="pair">Un par de dos piezas</option>
             </select>
+            <FieldError name="unit" id="unit-error" />
           </div>
           <Field
             name="reference"
@@ -168,6 +201,7 @@ export function ProductAttributeFields({
           />
           Verifiqué la ficha técnica y la unidad de venta.
         </label>
+        <VerificationInfo value={specifications} />
         <label className="mt-3 flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -176,6 +210,7 @@ export function ProductAttributeFields({
           />
           Verifiqué la referencia y la procedencia con el proveedor.
         </label>
+        <VerificationInfo value={supplierDetails} />
       </details>
       <details className="rounded-lg border p-4">
         <summary className="cursor-pointer font-medium">
@@ -285,6 +320,7 @@ export function VariantAttributeFields({
         />
         Verifiqué las medidas y el sistema de talles de esta variante.
       </label>
+      <VerificationInfo value={attributes} />
       <label className="mt-4 flex items-center gap-2 text-sm">
         <input
           type="checkbox"
@@ -293,6 +329,7 @@ export function VariantAttributeFields({
         />
         Verifiqué estos identificadores con el fabricante o proveedor.
       </label>
+      <VerificationInfo value={identifiers} />
     </details>
   );
 }

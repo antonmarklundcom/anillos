@@ -7,11 +7,23 @@ import {
   RUTAS_PRIVADAS,
   breadcrumbJsonLd,
   buildSitemap,
+  editorialDate,
   itemListJsonLd,
   organizationJsonLd,
   productJsonLd,
   type MerchantPoliciesLd,
 } from "../../src/lib/seo";
+
+describe("actual editorial dates only", () => {
+  it("rejects missing, impossible and future dates", () => {
+    expect(editorialDate()).toBeUndefined();
+    expect(editorialDate("2026-02-30")).toBeUndefined();
+    expect(editorialDate("2099-01-01")).toBeUndefined();
+    expect(editorialDate("2026-01-01")?.toISOString()).toBe(
+      "2026-01-01T00:00:00.000Z"
+    );
+  });
+});
 
 /**
  * SEO técnico.
@@ -223,7 +235,7 @@ describe("productJsonLd", () => {
     ]);
     expect(jsonLd.url).toBe("https://tienda.com.py/producto/conjunto-encaje");
     expect(jsonLd.offers[0]).toMatchObject({
-      url: "https://tienda.com.py/producto/conjunto-encaje",
+      url: "https://tienda.com.py/producto/conjunto-encaje?variante=CE-S",
       itemCondition: "https://schema.org/NewCondition",
       availability: "https://schema.org/InStock",
       priceCurrency: "PYG",

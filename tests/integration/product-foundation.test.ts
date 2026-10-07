@@ -35,19 +35,17 @@ const verifiedAt = "2026-01-01T12:00:00.000Z";
 describe.skipIf(!hasTestDb)("supplier-ready catalogue foundation", () => {
   beforeEach(resetTables);
   afterAll(closeTestDb);
-  const write = (
-    categoryId: number,
-    slug = "verified-piece"
-  ): ProductWrite => ({
-    slug,
-    name: "Pieza verificada",
-    description: "Ficha del modelo.",
-    categoryId,
-    brand: null,
-    ivaRate: 10,
-    isActive: true,
-    published: true,
-  });
+  const write = (categoryId: number, slug = "verified-piece") =>
+    ({
+      slug,
+      name: "Pieza verificada",
+      description: "Ficha del modelo.",
+      categoryId,
+      brand: null,
+      ivaRate: 10,
+      isActive: true,
+      published: true,
+    }) satisfies ProductWrite;
 
   it("saves optional verified facts and SEO without modifying physical inventory", async () => {
     const categoryId = await createCategory();
@@ -114,17 +112,36 @@ describe.skipIf(!hasTestDb)("supplier-ready catalogue foundation", () => {
     });
   });
 
-  it("renames directly to the current URL and rejects collisions, cycles and concept escapes atomically", async () => {
+  it("reclaims own historical URLs while retaining reservations and rejecting foreign ownership", async () => {
     const categoryId = await createCategory();
     const id = await createProduct(write(categoryId, "first-model"));
+    await updateProduct(id, write(categoryId, "second-model"));
+    await updateProduct(id, write(categoryId, "first-model"));
+    expect(await getProductSlugRedirect("first-model")).toBeNull();
+    expect(await getProductSlugRedirect("second-model")).toBe("first-model");
     await updateProduct(id, write(categoryId, "second-model"));
     await updateProduct(id, write(categoryId, "third-model"));
     expect(await getProductSlugRedirect("first-model")).toBe("third-model");
     expect(await getProductSlugRedirect("second-model")).toBe("third-model");
     expect(await getProductSlugRedirect("third-model")).toBeNull();
+    await updateProduct(id, write(categoryId, "first-model"));
+    expect(await getProductSlugRedirect("first-model")).toBeNull();
+    expect(await getProductSlugRedirect("second-model")).toBe("first-model");
+    expect(await getProductSlugRedirect("third-model")).toBe("first-model");
+    expect(await getProductSlugRedirect("FIRST-MODEL")).toBe("first-model");
+    const other = await createProduct(write(categoryId, "other-model"));
     await expect(
-      updateProduct(id, write(categoryId, "first-model"))
+      updateProduct(other, write(categoryId, "SECOND-MODEL"))
     ).rejects.toMatchObject({ code: "adminError.producto.slugHistorico" });
+    expect((await getAdminProduct(other))?.product.slug).toBe("other-model");
+    await expect(
+      updateProduct(id, write(categoryId, "OTHER-MODEL"))
+    ).rejects.toMatchObject({ code: "adminError.producto.slugRepetido" });
+    await updateProduct(other, write(categoryId, "other-current"));
+    await expect(
+      updateProduct(id, write(categoryId, "OTHER-MODEL"))
+    ).rejects.toMatchObject({ code: "adminError.producto.slugHistorico" });
+    expect(await getProductSlugRedirect("other-model")).toBe("other-current");
     await expect(
       createProduct(write(categoryId, "second-model"))
     ).rejects.toMatchObject({ code: "adminError.producto.slugHistorico" });
@@ -139,7 +156,7 @@ describe.skipIf(!hasTestDb)("supplier-ready catalogue foundation", () => {
     await expect(
       updateProduct(concept, write(categoryId, "real-reference"))
     ).rejects.toMatchObject({ code: "adminError.producto.slugConcepto" });
-    expect((await getAdminProduct(id))?.product.slug).toBe("third-model");
+    expect((await getAdminProduct(id))?.product.slug).toBe("first-model");
     await getTestDb()
       .update(categories)
       .set({ isActive: false })

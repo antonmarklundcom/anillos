@@ -7,6 +7,8 @@ import {
 } from "./ring-expansion";
 
 type BaseGuide = {
+  publishedAt?: string;
+  reviewedAt?: string;
   slug: string;
   title: string;
   description: string;

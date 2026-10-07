@@ -11,6 +11,11 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getProductSlugRedirect } from "@/domain/product-slugs";
 import { productGuidance } from "@/store/product-guidance";
 import { comparisonUrl } from "@/lib/product-comparison";
+import {
+  merchantImages,
+  verifiedProductImage,
+} from "@/lib/product-image-provenance";
+import { variantUrl } from "@/lib/variant-url";
 import { cache } from "react";
 
 import { AddToCart } from "@/components/add-to-cart";
@@ -62,11 +67,16 @@ export async function generateMetadata({
   const product = await loadProduct(slug).catch(() => null);
   if (!product) return { title: t("producto.noEncontrado") };
 
-  const cheapest = product.variants.reduce<number | undefined>(
-    (min, variant) =>
-      min === undefined || variant.pricePyg < min ? variant.pricePyg : min,
-    undefined
-  );
+  const cheapest = product.variants
+    .filter(
+      (variant) =>
+        Number.isSafeInteger(variant.pricePyg) && variant.pricePyg > 0
+    )
+    .reduce<number | undefined>(
+      (min, variant) =>
+        min === undefined || variant.pricePyg < min ? variant.pricePyg : min,
+      undefined
+    );
 
   // `markdownToText` y no la descripción cruda (O7): desde que el campo acepta
   // markdown, una que empiece con `**Importado**` publicaría literalmente los
@@ -87,7 +97,10 @@ export async function generateMetadata({
   // producto todavía no tiene fotos (o falta el cloud de Cloudinary), se
   // omite `images` y Next hereda la del sitio (`app/opengraph-image.tsx`):
   // el link se comparte con la marca en vez de con un rectángulo gris.
-  const ogImage = productImageUrl(product.images[0]?.cloudinaryId, "og");
+  const merchantPhotos = isConceptProduct(product.slug)
+    ? []
+    : merchantImages(product.images);
+  const ogImage = productImageUrl(merchantPhotos[0]?.cloudinaryId, "og");
 
   // == S17 == Mismo criterio que `categoria/[slug]`: canonical a la URL
   // limpia del producto, y sólo si hay origen configurado (`siteOrigin()`,
@@ -124,7 +137,7 @@ export async function generateMetadata({
                 url: ogImage,
                 width: OG_IMAGE_SIZE.width,
                 height: OG_IMAGE_SIZE.height,
-                alt: product.images[0]?.alt ?? product.name,
+                alt: merchantPhotos[0]?.alt ?? product.name,
               },
             ],
           }
@@ -148,10 +161,24 @@ export default async function ProductPage({
   // que sepamos si el producto existe.
   if (!product) {
     const redirect = await getProductSlugRedirect(slug);
-    if (redirect) permanentRedirect(`/producto/${redirect}`);
+    if (redirect) {
+      const originalQuery = await searchParams;
+      permanentRedirect(
+        typeof originalQuery.variante === "string"
+          ? variantUrl(`/producto/${redirect}`, originalQuery.variante)
+          : `/producto/${redirect}`
+      );
+    }
     notFound();
   }
   const query = await searchParams;
+  if (slug !== product.slug) {
+    permanentRedirect(
+      typeof query.variante === "string"
+        ? variantUrl(`/producto/${product.slug}`, query.variante)
+        : `/producto/${product.slug}`
+    );
+  }
   const specifications = product.verifiedSpecifications;
   const unitText =
     specifications?.unit === "pair"
@@ -168,11 +195,16 @@ export default async function ProductPage({
     concept: isConceptProduct(product.slug),
   });
 
-  const cheapest = product.variants.reduce<number | undefined>(
-    (min, variant) =>
-      min === undefined || variant.pricePyg < min ? variant.pricePyg : min,
-    undefined
-  );
+  const cheapest = product.variants
+    .filter(
+      (variant) =>
+        Number.isSafeInteger(variant.pricePyg) && variant.pricePyg > 0
+    )
+    .reduce<number | undefined>(
+      (min, variant) =>
+        min === undefined || variant.pricePyg < min ? variant.pricePyg : min,
+      undefined
+    );
   const totalAvailable = product.variants.reduce(
     (total, variant) => total + variant.available,
     0
@@ -226,7 +258,10 @@ export default async function ProductPage({
     // Mismo motivo que arriba: el JSON-LD que lee Google es texto, no markdown.
     description: markdownToText(product.description),
     brand: product.brand,
-    images: product.images
+    images: (isConceptProduct(product.slug)
+      ? []
+      : merchantImages(product.images)
+    )
       .slice(0, 5)
       .map((image) => productImageUrl(image.cloudinaryId, "detail"))
       .filter((src): src is string => src !== null),
@@ -247,7 +282,19 @@ export default async function ProductPage({
   });
   const gallery = product.images.slice(0, 5).flatMap((image) => {
     const src = productImageUrl(image.cloudinaryId, "detail");
-    return src ? [{ src, alt: image.alt ?? product.name }] : [];
+    return src
+      ? [
+          {
+            src,
+            thumbnailSrc: productImageUrl(image.cloudinaryId, "thumb") ?? src,
+            alt: image.alt ?? product.name,
+            illustrative: !verifiedProductImage(image),
+            evidencePending:
+              !verifiedProductImage(image) &&
+              image.provenance !== "illustrative",
+          },
+        ]
+      : [];
   });
   const breadcrumbs = breadcrumbJsonLd(origin, [
     { name: t("nav.inicio"), path: "/" },
@@ -281,9 +328,20 @@ export default async function ProductPage({
 
       <div className="product-hero">
         <div className="product-visual">
-          <ProductGallery
-            images={gallery.length ? gallery : PRODUCT_PLACEHOLDERS}
-          />
+          {gallery.length || isConceptProduct(product.slug) ? (
+            <ProductGallery
+              images={gallery.length ? gallery : PRODUCT_PLACEHOLDERS}
+            />
+          ) : (
+            <div
+              className="product-photo-pending"
+              role="img"
+              aria-label="Fotografía del producto en preparación"
+            >
+              <span>Foto en preparación</span>
+              <p>La fotografía de esta pieza todavía no está disponible.</p>
+            </div>
+          )}
         </div>
 
         <div className="product-summary">
@@ -341,7 +399,22 @@ export default async function ProductPage({
               de vuelta hasta acá. */}
           <div id={BLOQUE_COMPRA_ID} className="product-purchase scroll-mt-24">
             <AddToCart
-              product={product}
+              product={{
+                slug: product.slug,
+                name: product.name,
+                saleMode: product.saleMode,
+                showPrice: product.showPrice,
+                variants: product.variants.map(
+                  ({ id, sku, label, pricePyg, compareAtPyg, available }) => ({
+                    id,
+                    sku,
+                    label,
+                    pricePyg,
+                    compareAtPyg,
+                    available,
+                  })
+                ),
+              }}
               inquiryLinks={inquiryLinks}
               stockAlertsEnabled={stockAlertsEnabled()}
               whatsappPhone={whatsappPhone}
@@ -517,7 +590,10 @@ export default async function ProductPage({
           <p>
             Modelo real, talle, cantidad de piezas, precio final en guaraníes y
             condiciones de entrega, ajustes y cambios. Confirmá esos datos antes
-            de pagar. Los conceptos no se venden ni se reservan.
+            de pagar.
+            {isConceptProduct(product.slug)
+              ? " Los conceptos no se venden ni se reservan."
+              : ""}
           </p>
         </details>
         <p className="mt-5">
@@ -593,7 +669,7 @@ export default async function ProductPage({
         />
       ) : null}
 
-      {product.showPrice !== false ? (
+      {product.showPrice !== false && cheapest !== undefined ? (
         <RecentlyViewed
           current={{
             slug: product.slug,
@@ -601,6 +677,10 @@ export default async function ProductPage({
             pricePyg: cheapest ?? product.variants[0]?.pricePyg ?? 0,
             imageCloudinaryId: product.images[0]?.cloudinaryId ?? null,
             imageAlt: product.images[0]?.alt ?? null,
+            imageSrc: productImageUrl(product.images[0]?.cloudinaryId, "card"),
+            imageProvenance: product.images[0]?.provenance ?? null,
+            imageVerifiedAt:
+              product.images[0]?.verifiedAt?.toISOString() ?? null,
           }}
         />
       ) : null}

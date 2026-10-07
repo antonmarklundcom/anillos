@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { templateMigrationIssue } from './template-migrations';
 
 import {
   BASELINE_FILE,
@@ -130,6 +131,11 @@ function main(): void {
   }
 
   const cabezaTemplate = git('rev-parse', ref).trim();
+  const savedBaseline = existsSync(BASELINE_FILE) ? parseBaseline(readFileSync(BASELINE_FILE, 'utf8')) : null;
+  if (savedBaseline) {
+    const issue = templateMigrationIssue(process.cwd(), savedBaseline, cabezaTemplate);
+    if (issue) { console.error(`✗ ${issue}`); process.exitCode = 1; return; }
+  }
   const enLaTienda = new Set(rutasEn(process.cwd(), 'HEAD'));
   // Contra el commit que corresponde: la punta del template para el reporte,
   // el commit que se va a marcar para `--marcar` (con `--origen`, el de la

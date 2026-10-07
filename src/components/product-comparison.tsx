@@ -1,9 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
+import { ProductImage } from "@/components/product-image";
 import type { CatalogProduct } from "@/db/queries";
 import type { ProductSpecifications } from "@/lib/product-attributes";
-import { productImageUrl } from "@/lib/images";
-import { PRODUCT_PLACEHOLDERS } from "@/config/product-placeholders";
 import { isConceptProduct } from "@/lib/concept-products";
 import {
   comparisonAvailability,
@@ -83,29 +81,16 @@ export function ProductComparison({
           <tr>
             <th scope="col">Característica</th>
             {products.map((product) => {
-              const image = productImageUrl(
-                product.image?.cloudinaryId,
-                "card"
-              );
               return (
                 <th key={product.slug} scope="col">
-                  <Image
-                    src={image ?? PRODUCT_PLACEHOLDERS[0].src}
-                    alt={
-                      image
-                        ? (product.image?.alt ?? product.name)
-                        : "Imagen ilustrativa"
-                    }
-                    width={260}
-                    height={260}
-                    unoptimized={(image ?? "").startsWith("https://")}
-                    className="mb-3 aspect-square w-full object-cover"
+                  <ProductImage
+                    image={product.image}
+                    alt={product.name}
+                    categorySlug={product.categorySlug}
+                    concept={isConceptProduct(product.slug)}
+                    className="mb-3 w-full"
+                    sizes="260px"
                   />
-                  {!image ? (
-                    <p className="mb-2 text-xs font-normal">
-                      Imagen ilustrativa
-                    </p>
-                  ) : null}
                   <Link
                     href={`/producto/${product.slug}`}
                     className="underline underline-offset-4"
