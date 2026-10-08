@@ -82,6 +82,141 @@ const quote: CustomerQuotation = {
 };
 
 describe("owner sales operations", () => {
+  it("clears captured customer print and manual content only after accepting a database reload", async () => {
+    const value = initial();
+    value.workspace.customerQuotations.push(quote);
+    vi.mocked(readSalesWorkspaceAction).mockResolvedValue({
+      ok: true,
+      snapshot: { ...initial(), revision: 2 },
+    });
+    renderWorkspace(value);
+    fireEvent.click(screen.getByRole("button", { name: "Cotizaciones" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Revisar hoja para PDF" })
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Copiar propuesta manual" })
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Revisar versión guardada" })
+    );
+    await screen.findByText("Versión de la base: revisión 2");
+    expect(screen.getByTestId("customer-quote-print")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Texto para copiar manualmente")
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Descartar mi borrador y abrir esta versión",
+      })
+    );
+    expect(
+      screen.queryByTestId("customer-quote-print")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Texto para copiar manualmente")
+    ).not.toBeInTheDocument();
+  });
+  it("keeps an unsaved reviewed quote preview but never mounts its native printable sheet", () => {
+    const value = initial();
+    renderWorkspace(value);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Respaldo e importación" })
+    );
+    const imported = emptySalesWorkspace();
+    imported.customerQuotations.push(quote);
+    fireEvent.change(screen.getByLabelText("O pegá JSON para revisar"), {
+      target: { value: JSON.stringify(imported) },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Validar y revisar importación" })
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar reemplazo del borrador" })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Cotizaciones" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Revisar hoja para PDF" })
+    );
+    expect(
+      screen.getByText("Revisión de la hoja para comprador")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Imprimir / guardar como PDF" })
+    ).toBeDisabled();
+    expect(
+      screen.queryByTestId("customer-quote-print")
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("sales-operations")).toHaveAttribute(
+      "data-sales-workspace"
+    );
+  });
+  it("discloses FAQ removal and search-counter consent changes before importing", () => {
+    const value = initial();
+    value.workspace.searchGapCollectionEnabled = true;
+    value.workspace.productFaqs.push({
+      id: "faq",
+      productSlug: "modelo-real",
+      question: "Pregunta real",
+      answer: "Respuesta verificada",
+      evidenceUrl: "https://example.com/evidencia",
+      confirmedAt: "2026-10-07T00:00:00Z",
+      published: true,
+    });
+    renderWorkspace(value);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Respaldo e importación" })
+    );
+    fireEvent.change(screen.getByLabelText("O pegá JSON para revisar"), {
+      target: { value: JSON.stringify(emptySalesWorkspace()) },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Validar y revisar importación" })
+    );
+    expect(
+      screen.getByText("Preguntas por modelo: 1 actuales → 0 importadas")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Preguntas publicadas: 1 actuales → 0 importadas")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Conteos de búsquedas sin resultados: habilitados → apagados"
+      )
+    ).toBeInTheDocument();
+    expect(saveSalesWorkspaceAction).not.toHaveBeenCalled();
+  });
+  it("keeps unsaved alternative previews outside the native printable customer sheet", () => {
+    const workspace = emptySalesWorkspace();
+    workspace.customerQuotations.push(quote, { ...quote, id: "quote-2" });
+    workspace.quoteComparisons.push({
+      id: "comparison",
+      enquiryId: "e",
+      quotationIds: [quote.id, "quote-2"],
+      createdOn: "2026-10-07",
+      criteria: "Criterio privado",
+      selectedQuotationId: null,
+      decisionNotes: "",
+    });
+    render(
+      <SalesOperationsComparison
+        comparisonId="comparison"
+        workspace={workspace}
+        saved={emptySalesWorkspace()}
+        storeName="Marca vigente"
+        close={vi.fn()}
+      />
+    );
+    expect(
+      screen.getByText("Revisión de alternativas para cliente")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Imprimir comparación / guardar PDF" })
+    ).toBeDisabled();
+    expect(
+      screen.queryByTestId("customer-comparison-print")
+    ).not.toBeInTheDocument();
+  });
   it("shows server-canonical preserved revisions after saving instead of replaying the submitted draft", async () => {
     const value = initial();
     value.workspace.customerQuotations.push(quote);
@@ -314,6 +449,22 @@ describe("owner sales operations", () => {
     ]);
     expect(sheet.totalPyg).toBe(230000);
     expect(JSON.stringify(sheet)).not.toContain("Nuevas condiciones");
+    const historicalDraft = operationsCustomerSheet(
+      { ...reviewed, status: "draft" },
+      value.workspace,
+      "Propuesta preservada",
+      true
+    );
+    expect(historicalDraft.totalPyg).toBe(230000);
+    expect(historicalDraft.services).toEqual(sheet.services);
+    expect(
+      operationsCustomerSheet(
+        { ...reviewed, status: "draft", servicesSnapshot: [] },
+        value.workspace,
+        "Propuesta antigua",
+        true
+      ).totalPyg
+    ).toBeNull();
   });
   it("requires evidence and explicit human confirmation for a quote revision acceptance", () => {
     const value = initial();

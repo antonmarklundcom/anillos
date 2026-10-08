@@ -26,10 +26,11 @@ export const operationsQuoteDisclaimer =
 export function operationsCustomerSheet(
   quote: CustomerQuotation,
   workspace: SalesWorkspace,
-  storeName: string
+  storeName: string,
+  historical = false
 ) {
   const sourceServices =
-    quote.status === "review_ready"
+    historical || quote.status === "review_ready"
       ? quote.servicesSnapshot
       : workspace.serviceOptions.filter(
           (s) => quote.serviceOptionIds.includes(s.id) && s.enabled
@@ -53,16 +54,17 @@ export function operationsCustomerSheet(
     deliveryPyg: quote.deliveryPyg,
     deliveryConditions: quote.deliveryConditions,
     deliveryConfirmedOn: quote.deliveryConfirmedOn,
-    totalPyg: quotationTotal(quote, workspace.serviceOptions),
+    totalPyg: quotationTotal(quote, workspace.serviceOptions, historical),
     disclaimer: operationsQuoteDisclaimer,
   };
 }
 export function operationsQuoteText(
   quote: CustomerQuotation,
   workspace: SalesWorkspace,
-  storeName: string
+  storeName: string,
+  historical = false
 ) {
-  const s = operationsCustomerSheet(quote, workspace, storeName);
+  const s = operationsCustomerSheet(quote, workspace, storeName, historical);
   return [
     `${s.storeName} · Cotización para revisar`,
     `Fecha: ${operationsDay(s.createdOn)}${s.expiresOn ? ` · Validez: ${operationsDay(s.expiresOn)}` : ""}`,
@@ -82,10 +84,11 @@ export function operationsQuoteText(
 export function operationsQuoteDifferences(
   before: CustomerQuotation,
   after: CustomerQuotation,
-  workspace: SalesWorkspace
+  workspace: SalesWorkspace,
+  historical = false
 ) {
-  const a = operationsCustomerSheet(before, workspace, "");
-  const b = operationsCustomerSheet(after, workspace, "");
+  const a = operationsCustomerSheet(before, workspace, "", historical);
+  const b = operationsCustomerSheet(after, workspace, "", historical);
   const groups = [
     { key: "lines", label: "Modelos, unidades, cantidades o precios" },
     { key: "services", label: "Servicios y condiciones" },

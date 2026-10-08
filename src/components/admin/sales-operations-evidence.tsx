@@ -38,7 +38,12 @@ export function SalesOperationsEvidence({
             )
             .sort((a, b) => b.revisionNumber - a.revisionNumber)[0];
           const differences = before
-            ? operationsQuoteDifferences(before.snapshot, r.snapshot, workspace)
+            ? operationsQuoteDifferences(
+                before.snapshot,
+                r.snapshot,
+                workspace,
+                true
+              )
             : [];
           return (
             <details key={r.id} className={styles.section}>
@@ -61,7 +66,8 @@ export function SalesOperationsEvidence({
                 {operationsQuoteText(
                   r.snapshot,
                   workspace,
-                  "Propuesta preservada"
+                  "Propuesta preservada",
+                  true
                 )}
               </pre>
               {r.acceptedOn && (
@@ -306,13 +312,15 @@ export function SalesOperationsComparison({
           <button onClick={close}>Cerrar comparación</button>
         </div>
       </section>
-      <article
-        className={styles.print}
-        data-testid="customer-comparison-print"
-        data-sales-print-sheet="comparison"
-      >
-        {content}
-      </article>
+      {savedComparison && (
+        <article
+          className={styles.print}
+          data-testid="customer-comparison-print"
+          data-sales-print-sheet="comparison"
+        >
+          {content}
+        </article>
+      )}
     </>
   );
 }

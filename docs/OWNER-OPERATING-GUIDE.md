@@ -6,17 +6,18 @@ Updated **7 October 2026**. Supplier research is dated evidence, not a current q
 
 ## Start here
 
-| What you need | Open this |
-| --- | --- |
-| What to do toward a first sale | [First sale sequence](#first-sale-sequence) |
-| Suppliers and exact ring references | [Supplier research and catalogue](#supplier-research-and-catalogue) |
-| Website settings and owner tools | [Manage the website](#manage-the-website) |
-| Daily work and useful numbers | [Operating routine and measurement](#operating-routine-and-measurement) |
-| Where data lives and how to protect it | [Data and recovery](#data-and-recovery) |
-| Hosting jobs and private security work | [Technical operations for Anton](#technical-operations-for-anton) |
-| Twenty further coding ideas | [Further coding priorities](#further-coding-priorities) |
-| Every repository document | [Complete document index](#complete-document-index) |
-| Original keyword research and session handoffs | [Local source documents](#local-source-documents) |
+| What you need                                  | Open this                                                               |
+| ---------------------------------------------- | ----------------------------------------------------------------------- |
+| What to do toward a first sale                 | [First sale sequence](#first-sale-sequence)                             |
+| Suppliers and exact ring references            | [Supplier research and catalogue](#supplier-research-and-catalogue)     |
+| Website settings and owner tools               | [Manage the website](#manage-the-website)                               |
+| Daily work and useful numbers                  | [Operating routine and measurement](#operating-routine-and-measurement) |
+| Current bugs and twenty sales coding ideas     | [Walkthrough review](WALKTHROUGH-REVIEW-2026-10.md)                     |
+| Where data lives and how to protect it         | [Data and recovery](#data-and-recovery)                                 |
+| Hosting jobs and private security work         | [Technical operations for Anton](#technical-operations-for-anton)       |
+| Twenty further coding ideas                    | [Further coding priorities](#further-coding-priorities)                 |
+| Every repository document                      | [Complete document index](#complete-document-index)                     |
+| Original keyword research and session handoffs | [Local source documents](#local-source-documents)                       |
 
 ## Current position
 
@@ -24,17 +25,19 @@ The business is testing demand through **WhatsApp enquiries and showcase pages**
 
 The temporary illustrations help explain styles. Their titles no longer repeat `· concepto` in the new sales batch; images retain the minimal **Imagen ilustrativa** label. Reserved `concepto-*` pages stay price-hidden, unpurchasable, noindex and excluded from sitemap/feed. Create a new real-product slug when a genuine model replaces an illustration.
 
-| Work | Verified review state on 7 October | What this means |
-| --- | --- | --- |
-| [PR #14](https://github.com/antonmarklundcom/anillos/pull/14) and migrations 0023/0024 | Anton reported them merged/live and applied | Do not repeat setup, migrations or seeds. Production was not inspected in this session. |
-| [PR #15](https://github.com/antonmarklundcom/anillos/pull/15) | Merged, verified through GitHub | Contains the demand-test safeguards. Merge status alone does not establish the running production version or saved admin settings. |
-| [PR #16](https://github.com/antonmarklundcom/anillos/pull/16) | Open draft, targets `main` | Supplier catalogue preparation and improved category/product enquiries; not released here. |
-| [PR #17](https://github.com/antonmarklundcom/anillos/pull/17) | Open draft, based on #16 | Finder, better enquiry forms, sizing printout and owner sales tools; includes this guide. Review after #16. |
-| [PR #18](https://github.com/antonmarklundcom/anillos/pull/18) | Open draft, based on #17 | Shared owner sales workspace and twenty-nine authorised improvements; migration 0025 must precede release. Review after #17. |
+| Work                                                                                   | Verified review state on 7 October          | What this means                                                                                                                                             |
+| -------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [PR #14](https://github.com/antonmarklundcom/anillos/pull/14) and migrations 0023/0024 | Anton reported them merged/live and applied | Do not repeat setup, migrations or seeds. Production was not inspected in this session.                                                                     |
+| [PR #15](https://github.com/antonmarklundcom/anillos/pull/15)                          | Merged, verified through GitHub             | Contains the demand-test safeguards. Merge status alone does not establish the running production version or saved admin settings.                          |
+| [PR #16](https://github.com/antonmarklundcom/anillos/pull/16)                          | GitHub records merge status                 | Supplier catalogue preparation and improved category/product enquiries.                                                                                     |
+| [PR #17](https://github.com/antonmarklundcom/anillos/pull/17)                          | GitHub records merge status                 | Finder, better enquiry forms, sizing printout and owner sales tools; includes this guide. Depends on #16.                                                   |
+| [PR #18](https://github.com/antonmarklundcom/anillos/pull/18)                          | GitHub records merge status                 | Shared owner sales workspace and twenty-nine authorised improvements; Migration 0025 enables the shared workspace and image focus controls; depends on #17. |
 
-The actual local preview is [the ring finder](http://127.0.0.1:54644/elegir). Its synthetic catalogue and accounts are not production data; the URL works only while that local server is running. #16 and #17 need **no new database migration**. Applying catalogue drafts to a real database or releasing code would be separate actions. The new WhatsApp operations batch adds twenty-nine authorised improvements and shared private records. It requires **migration 0025 before releasing the new code**, including catalogue image columns. That migration was rehearsed locally and has not been applied to production. Read the [workspace manual](WHATSAPP-SALES-WORKSPACE.md), [scope and email plan](WHATSAPP-OPERATIONS-PLAN-2026-10.md) and [fresh verification](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md).
+The actual local preview is [the ring finder](http://127.0.0.1:54644/elegir). Its synthetic catalogue and accounts are not production data; the URL works only while that local server is running. #16 and #17 need **no new database migration**. Applying catalogue drafts to a real database or releasing code would be separate actions. The new WhatsApp operations batch adds twenty-nine authorised improvements and shared private records. The release now supports the existing 0024 schema: catalogue browsing and ordinary image management remain available. **Migration 0025 is still required to enable the shared workspace and image focus controls.** That migration was rehearsed locally and has not been applied to production. Read the [workspace manual](WHATSAPP-SALES-WORKSPACE.md), [scope and email plan](WHATSAPP-OPERATIONS-PLAN-2026-10.md) and [fresh verification](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md).
 
-Older documents sometimes describe transfer-first launch, new-store setup or already completed migration work. Use the current demand-test scope above and the dated status notices before following a historical recipe. No agent is authorised here to merge, deploy, change production/hosting/secrets, spend on images or contact suppliers.
+Older documents sometimes describe transfer-first launch, new-store setup or already completed migration work. Use the current demand-test scope above and the dated status notices before following a historical recipe. Anton explicitly authorised preparing and merging PRs #16–#18 on 7 October. Production/database/hosting changes, secret handling, paid images and supplier contact remain outside that authorisation.
+
+The [latest walkthrough review](WALKTHROUGH-REVIEW-2026-10.md) found **16 code defects and one misleading cart-copy issue** in the current PR 18 application. Fifteen defects have targeted reproductions. The merge-readiness batch fixes all seventeen numbered findings and adds regression coverage; see [merge readiness and remaining work](MERGE-READINESS-2026-10.md) for the current validation. The review also records current policy/business gaps and twenty further sales coding ideas.
 
 ## First sale sequence
 
@@ -64,15 +67,15 @@ The twelve research references comprise four Asunción Joyas models, five G&A re
 
 For each model Anton pursues, keep a private record of:
 
-| Field | Evidence to obtain |
-| --- | --- |
-| Identity and unit | Supplier name/contact, exact model/SKU, source and date; single ring or pair and what is included |
-| Product facts | Written material/purity, plating, stone, width, dimensions, sizes and manufacturing tolerances |
-| Commercial terms | Dated quotation, currency, minimum, unit/quantity, taxes, freight, payment terms and validity |
-| Fulfilment | Actual stock or manufacturing capacity, responsibility, dispatch/delivery conditions and defective/incorrect-item handling |
-| Extras | Whether resizing, engraving and packaging exist, costs, limitations and responsibility |
-| Images | Original source, exact physical-model confirmation, permission to publish and, separately, permission for AI editing |
-| Economics | Total landed cost per saleable unit, all variable costs, supported customer price and contribution |
+| Field             | Evidence to obtain                                                                                                         |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Identity and unit | Supplier name/contact, exact model/SKU, source and date; single ring or pair and what is included                          |
+| Product facts     | Written material/purity, plating, stone, width, dimensions, sizes and manufacturing tolerances                             |
+| Commercial terms  | Dated quotation, currency, minimum, unit/quantity, taxes, freight, payment terms and validity                              |
+| Fulfilment        | Actual stock or manufacturing capacity, responsibility, dispatch/delivery conditions and defective/incorrect-item handling |
+| Extras            | Whether resizing, engraving and packaging exist, costs, limitations and responsibility                                     |
+| Images            | Original source, exact physical-model confirmation, permission to publish and, separately, permission for AI editing       |
+| Economics         | Total landed cost per saleable unit, all variable costs, supported customer price and contribution                         |
 
 Do not publish private costs or supplier negotiations in product copy or this repository. Existing product admin has private supplier reference fields; it is not yet a quotation history or procurement system.
 
@@ -82,21 +85,21 @@ The pilot's 7 October quote was **3 credits total for two single outputs**. Cred
 
 Production owner access starts at [admin login](https://anillos.com.py/admin/login). Use your existing account; routine management does not require setup or a migration. The full role/page inventory is in [admin workspace](ADMIN-WORKSPACE.md); the newer sales route is documented separately in [sales tools](SALES-ENQUIRY-TOOLS-2026-10.md).
 
-| Destination | Use it for | Boundary |
-| --- | --- | --- |
-| [Settings](https://anillos.com.py/admin/ajustes) | Name, branding, hero, WhatsApp/email/address/hours/social links, policy text/visibility, checkout and optional customer accounts | Publish actual identity. Review saved text; defaults do not erase old saved promises. Leave payments paused. |
-| [Products](https://anillos.com.py/admin/productos) | Product drafts, modes, variants, images and private supplier references | Keep unknowns unknown. Supplier availability is not your physical stock. Reserve concept slugs. |
-| [Categories](https://anillos.com.py/admin/categorias) | Existing category names/content and activation | Make useful category pages; avoid thin duplicate keyword pages or unsupported assortments. |
-| [SEO and catalogue](https://anillos.com.py/admin/seo) | Existing catalogue/keyword coverage view | Keyword search volume is not visits, sales or guaranteed rankings. Concepts stay noindex. |
-| [Shared operations preview](http://127.0.0.1:54644/admin/ventas) | Enquiries, quotes/revisions, sourcing evidence, demand, purchasing drafts, costs/contribution, reminders, campaigns and private history | New batch based on #17; owner only, explicit database saves. Requires migration 0025 before release. See the [workspace manual](WHATSAPP-SALES-WORKSPACE.md). |
-| [Sales tools preview](http://127.0.0.1:54644/admin/herramientas-ventas) | Anonymous enquiry ledger, contribution scenarios and marketing copy | **New in #17**, future public route `/admin/herramientas-ventas`, owner-only, local browser storage. No shared CRM or automatic sending. |
-| [Users](https://anillos.com.py/admin/usuarios) | Individual users, roles and owner-managed password changes | Owner has all capabilities. Staff has operational access; vendedor has restricted order operations without monetary values. Do not share an owner account. |
-| [Integrations](https://anillos.com.py/admin/integraciones) | Actual storage, WhatsApp and optional integration settings | Public WhatsApp links and automated WhatsApp Cloud messages are different features. Optional Meta/Google setup is deferred. |
-| [Bank](https://anillos.com.py/admin/banco) | Bank, holder, RUC, account number/type and optional QR | Future payment configuration. Real bank fields do not authorise accepting payments during the trial. |
-| [Delivery](https://anillos.com.py/admin/envios) | Actual zones, costs and methods | Configure only confirmed arrangements; current demand copy promises no delivery date. |
-| [Orders](https://anillos.com.py/admin/pedidos), [customers](https://anillos.com.py/admin/clientes), [activity](https://anillos.com.py/admin/actividad) | Genuine orders/customer records and operational events | WhatsApp enquiries do not automatically appear as orders or customers. |
-| [Reviews](https://anillos.com.py/admin/resenas), [returns](https://anillos.com.py/admin/devoluciones), [coupons](https://anillos.com.py/admin/cupones) | Real review moderation, existing returns and promotions | Do not manufacture reviews or use a coupon to imply an unconfirmed price. Inventory returns and monetary refunds are separate actions. |
-| [Welcome](https://anillos.com.py/admin/bienvenida), [admin guide](https://anillos.com.py/admin/guia) | Owner onboarding and operating guidance | Access success does not prove commercial readiness. |
+| Destination                                                                                                                                            | Use it for                                                                                                                              | Boundary                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Settings](https://anillos.com.py/admin/ajustes)                                                                                                       | Name, branding, hero, WhatsApp/email/address/hours/social links, policy text/visibility, checkout and optional customer accounts        | Publish actual identity. Review saved text; defaults do not erase old saved promises. Leave payments paused.                                                                  |
+| [Products](https://anillos.com.py/admin/productos)                                                                                                     | Product drafts, modes, variants, images and private supplier references                                                                 | Keep unknowns unknown. Supplier availability is not your physical stock. Reserve concept slugs.                                                                               |
+| [Categories](https://anillos.com.py/admin/categorias)                                                                                                  | Existing category names/content and activation                                                                                          | Make useful category pages; avoid thin duplicate keyword pages or unsupported assortments.                                                                                    |
+| [SEO and catalogue](https://anillos.com.py/admin/seo)                                                                                                  | Existing catalogue/keyword coverage view                                                                                                | Keyword search volume is not visits, sales or guaranteed rankings. Concepts stay noindex.                                                                                     |
+| [Shared operations preview](http://127.0.0.1:54644/admin/ventas)                                                                                       | Enquiries, quotes/revisions, sourcing evidence, demand, purchasing drafts, costs/contribution, reminders, campaigns and private history | New batch based on #17; owner only, explicit database saves. Requires migration 0025 to enable the shared workspace. See the [workspace manual](WHATSAPP-SALES-WORKSPACE.md). |
+| [Sales tools preview](http://127.0.0.1:54644/admin/herramientas-ventas)                                                                                | Anonymous enquiry ledger, contribution scenarios and marketing copy                                                                     | **New in #17**, future public route `/admin/herramientas-ventas`, owner-only, local browser storage. No shared CRM or automatic sending.                                      |
+| [Users](https://anillos.com.py/admin/usuarios)                                                                                                         | Individual users, roles and owner-managed password changes                                                                              | Owner has all capabilities. Staff has operational access; vendedor has restricted order operations without monetary values. Do not share an owner account.                    |
+| [Integrations](https://anillos.com.py/admin/integraciones)                                                                                             | Actual storage, WhatsApp and optional integration settings                                                                              | Public WhatsApp links and automated WhatsApp Cloud messages are different features. Optional Meta/Google setup is deferred.                                                   |
+| [Bank](https://anillos.com.py/admin/banco)                                                                                                             | Bank, holder, RUC, account number/type and optional QR                                                                                  | Future payment configuration. Real bank fields do not authorise accepting payments during the trial.                                                                          |
+| [Delivery](https://anillos.com.py/admin/envios)                                                                                                        | Actual zones, costs and methods                                                                                                         | Configure only confirmed arrangements; current demand copy promises no delivery date.                                                                                         |
+| [Orders](https://anillos.com.py/admin/pedidos), [customers](https://anillos.com.py/admin/clientes), [activity](https://anillos.com.py/admin/actividad) | Genuine orders/customer records and operational events                                                                                  | WhatsApp enquiries do not automatically appear as orders or customers.                                                                                                        |
+| [Reviews](https://anillos.com.py/admin/resenas), [returns](https://anillos.com.py/admin/devoluciones), [coupons](https://anillos.com.py/admin/cupones) | Real review moderation, existing returns and promotions                                                                                 | Do not manufacture reviews or use a coupon to imply an unconfirmed price. Inventory returns and monetary refunds are separate actions.                                        |
+| [Welcome](https://anillos.com.py/admin/bienvenida), [admin guide](https://anillos.com.py/admin/guia)                                                   | Owner onboarding and operating guidance                                                                                                 | Access success does not prove commercial readiness.                                                                                                                           |
 
 Blank email/address/hours are omitted from the public UI. Confirm an actual operator identity independently: the bank-holder RUC is not a public legal-business identity editor.
 
@@ -114,16 +117,16 @@ Bank-transfer receipt upload uses Cloudinary when configured. The order page off
 
 **After each genuine sale:** record the agreed unit, collected amount, actual supplier/delivery/packaging/fees and any refund, then reconcile fulfilment and contribution. The current local ledger can record a manually reported sale; it does not maintain a financial book or verify the transaction.
 
-| Number | Definition and current collection method |
-| --- | --- |
-| Enquiries received | Actual incoming conversations; manual count/anonymous ledger. A click is not a received message. |
-| Qualified enquiries | Conversations with enough design, quantity, size/city and timing information to pursue; classify manually. |
-| Quote rate | Supported quotes issued divided by qualified enquiries for a defined period |
-| Quote conversion | Genuine sales divided by quotes, with the period and treatment of still-open quotes stated |
-| Loss reasons | The operations workspace records structured reasons for real lost enquiries; review availability, price, timing and follow-up gaps |
-| Contribution per sale | Supported sale revenue minus landed product cost and all applicable variable costs on a consistent tax basis |
-| Marketing cost per new buyer | Actual campaign spend divided by genuinely acquired buyers, when those links are known; no guess from clicks |
-| Net result | Contribution minus fixed/other costs; the current contribution calculator does not compute it |
+| Number                       | Definition and current collection method                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Enquiries received           | Actual incoming conversations; manual count/anonymous ledger. A click is not a received message.                                   |
+| Qualified enquiries          | Conversations with enough design, quantity, size/city and timing information to pursue; classify manually.                         |
+| Quote rate                   | Supported quotes issued divided by qualified enquiries for a defined period                                                        |
+| Quote conversion             | Genuine sales divided by quotes, with the period and treatment of still-open quotes stated                                         |
+| Loss reasons                 | The operations workspace records structured reasons for real lost enquiries; review availability, price, timing and follow-up gaps |
+| Contribution per sale        | Supported sale revenue minus landed product cost and all applicable variable costs on a consistent tax basis                       |
+| Marketing cost per new buyer | Actual campaign spend divided by genuinely acquired buyers, when those links are known; no guess from clicks                       |
+| Net result                   | Contribution minus fixed/other costs; the current contribution calculator does not compute it                                      |
 
 Use integer PYG and a consistent **one-ring or two-ring pair** unit. In the calculator, blank means unknown; enter zero only for a confirmed zero cost. Recalculate price-dependent commissions/taxes when trying a new price. The older calculator keeps costs in memory. The new operations workspace stores reviewed private cost profiles and actual sale outcomes; incomplete costs produce unknown contribution.
 
@@ -131,18 +134,18 @@ No new Meta/Google product setup or advertising attribution is included. Manual 
 
 ## Data and recovery
 
-| Data | Where it lives | Protection and limitation |
-| --- | --- | --- |
-| Products, variants, settings, users, real orders/payments and activity | Application MySQL database | Private database backups plus a verified restore; never use test/reset/seed tools on it |
-| Product/brand media and private receipts | Cloudinary when configured; some initial media is in `public/media` | Retain authorised originals/rights and provider recovery access. A database dump is not a separate backup of every media asset. |
-| Automatic database backups | Private authenticated raw Cloudinary assets when enabled | Need actual uploaded success, authenticated retrieval and restore proof; not a public URL |
-| Enquiry ledger in #17 | Owner-scoped localStorage in that browser and origin | Starts empty until explicitly opened; explicit save/export/import. Max 200 entries. No cross-device sync or automatic database backup. |
-| Shared operations workspace, audit and search-gap counts | New private database tables in migration 0025 | Owner only; explicit save with revision conflicts, safe undo and linked deletion. Counts are optional and anonymous. Export/backup copies have separate retention. |
-| Buyer enquiry drafts and favourites | Buyer's browser | Local preferences, not incoming leads or a shared customer database. Buyer controls draft saving/removal. |
-| Contribution inputs and marketing draft | Current sales-tool screen memory | Not persisted; record your real costs privately elsewhere if needed |
-| Supplier research and KWP dispositions | Linked JSON/CSV and documents | Versioned research snapshots, not live supplier inventory. Keep negotiated costs and personal data separate. |
-| WhatsApp correspondence | Business messaging account/devices | Not imported or backed up by this application's database backup; manage account/device recovery privately |
-| Passwords, API credentials and encryption recovery keys | Private password manager/protected recovery vault | Never Git, this handbook, public URLs or screenshots. Retain the key corresponding to each recoverable encrypted backup. |
+| Data                                                                   | Where it lives                                                      | Protection and limitation                                                                                                                                          |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Products, variants, settings, users, real orders/payments and activity | Application MySQL database                                          | Private database backups plus a verified restore; never use test/reset/seed tools on it                                                                            |
+| Product/brand media and private receipts                               | Cloudinary when configured; some initial media is in `public/media` | Retain authorised originals/rights and provider recovery access. A database dump is not a separate backup of every media asset.                                    |
+| Automatic database backups                                             | Private authenticated raw Cloudinary assets when enabled            | Need actual uploaded success, authenticated retrieval and restore proof; not a public URL                                                                          |
+| Enquiry ledger in #17                                                  | Owner-scoped localStorage in that browser and origin                | Starts empty until explicitly opened; explicit save/export/import. Max 200 entries. No cross-device sync or automatic database backup.                             |
+| Shared operations workspace, audit and search-gap counts               | New private database tables in migration 0025                       | Owner only; explicit save with revision conflicts, safe undo and linked deletion. Counts are optional and anonymous. Export/backup copies have separate retention. |
+| Buyer enquiry drafts and favourites                                    | Buyer's browser                                                     | Local preferences, not incoming leads or a shared customer database. Buyer controls draft saving/removal.                                                          |
+| Contribution inputs and marketing draft                                | Current sales-tool screen memory                                    | Not persisted; record your real costs privately elsewhere if needed                                                                                                |
+| Supplier research and KWP dispositions                                 | Linked JSON/CSV and documents                                       | Versioned research snapshots, not live supplier inventory. Keep negotiated costs and personal data separate.                                                       |
+| WhatsApp correspondence                                                | Business messaging account/devices                                  | Not imported or backed up by this application's database backup; manage account/device recovery privately                                                          |
+| Passwords, API credentials and encryption recovery keys                | Private password manager/protected recovery vault                   | Never Git, this handbook, public URLs or screenshots. Retain the key corresponding to each recoverable encrypted backup.                                           |
 
 Export the owner ledger after meaningful updates and before clearing browser data, changing devices or changing origin. Import shows a review before replacing the current list; preserve an export before replacement. Store files privately. Do not add customer names/phones to the anonymous aliases. The ledger is not an accounting or tax system.
 
@@ -158,11 +161,11 @@ These are owner tasks to arrange privately, not actions performed by this guide.
 4. Verify successful jobs and actual authenticated backup retrieval. A backup skipped for missing Cloudinary can return HTTP 200 without creating a copy. Rehearse restoration and retain the evidence privately.
 5. For a separately authorised release, check Node/package-manager compatibility in both install and build logs, run the appropriate checks and review the actual released pages. Do not infer release success from a merged PR or local preview.
 
-| Exact URL | UTC cron fields | Intended work |
-| --- | --- | --- |
-| `https://anillos.com.py/api/cron/vencer-pedidos` | `*/15 * * * *` | Expiry, reservations/maintenance and notification outbox; optional configured payment reminders |
-| `https://anillos.com.py/api/cron/resumen-diario` | `0 11 * * *` | Daily maintenance and optional configured owner digest; intended 08:00 Asunción |
-| `https://anillos.com.py/api/cron/backup` | `0 6 * * *` | Private database backup when Cloudinary is ready; intended 03:00 Asunción |
+| Exact URL                                        | UTC cron fields | Intended work                                                                                   |
+| ------------------------------------------------ | --------------- | ----------------------------------------------------------------------------------------------- |
+| `https://anillos.com.py/api/cron/vencer-pedidos` | `*/15 * * * *`  | Expiry, reservations/maintenance and notification outbox; optional configured payment reminders |
+| `https://anillos.com.py/api/cron/resumen-diario` | `0 11 * * *`    | Daily maintenance and optional configured owner digest; intended 08:00 Asunción                 |
+| `https://anillos.com.py/api/cron/backup`         | `0 6 * * *`     | Private database backup when Cloudinary is ready; intended 03:00 Asunción                       |
 
 There is no fourth outbox job to schedule. These URLs **write operational state**; do not open them casually to see what happens. Job schedules do not authorise enabling payments or automated messaging. Actual scheduler and provider configuration remain unverified here.
 
@@ -178,30 +181,30 @@ Anton authorised nineteen of the original twenty priorities and all ten addition
 
 The original list is implemented except the deferred two-ring builder, alongside the ten additions in the scope plan. Buyer-facing commercial options must use confirmed facts; payment acceptance remains off. Meta/Google product setup, ad attribution, new publication-check tooling and temporary-illustration detection are excluded.
 
-| Rank | Coding idea | Useful result and dependency |
-| --- | --- | --- |
-| 1 | Shared enquiry CRM | Extend the local anonymous ledger into persistent, cross-device enquiries linked to designs, assigned owner and status. Requires access/data/retention design and likely a migration. |
-| 2 | Supplier quotation history and comparison | Save dated private model/size/unit quotations and compare total landed costs, validity and fulfilment. Requires real quotes and private data storage. |
-| 3 | Customer quote builder | Generate a reviewed branded PDF/private quote from confirmed lines and delivery costs, without checkout/payment acceptance. Needs quote records and exact commercial facts. |
-| 4 | Owner follow-up inbox | Turn due dates into assignable tasks with an owner dashboard reminder and copyable reply. Extend the current overdue counts; no automatic customer messages. |
-| 5 | Actual sale contribution report | Link a manually confirmed sale to actual costs/refunds and show contribution by model, supplier and period. Extend the scenario calculator without presenting it as net profit. |
-| 6 | Structured reasons for lost enquiries | Add specific reasons and aggregate them so you can distinguish expensive quotes, unavailable sizes and slow follow-up. Extends the current basic closed/lost state. |
-| 7 | Two-ring enquiry builder | Let couples select two genuine models and two independent sizes in one brief, with explicit single/pair semantics and a combined request. Builds on the current two-measure enquiry. |
-| 8 | Supplier confirmation freshness | Track dates for model/size/availability confirmations and flag stale private records. Never convert supplier stock into Anillos stock. |
-| 9 | Price floor warnings in admin | Connect supported variable costs to bulk-price previews and flag prices below contribution targets. Requires stored costs; owner reviews any price change. |
-| 10 | Better search intent and typo handling | Match common ring terms and spelling mistakes to relevant existing designs/categories while preserving verified-fact filters. Improve the existing search rather than duplicating it. |
-| 11 | Search gaps dashboard | Count known empty-result intent buckets by day, only after owner opt-in. No raw query/IP/contact is persisted; no Meta/Google integration. |
-| 12 | Real-model shape and width filters | Add useful stone-shape/band-width filters where those attributes are actually verified. Extend the current catalogue filters without guessing from images. |
-| 13 | Fast product preview drawer | Show a larger authorised image, confirmed essentials and enquiry action within a collection, without losing the buyer's browsing position. No new database necessarily required. |
-| 14 | Campaign landing page editor | Assemble reusable occasion/style pages from existing categories, guides and approved real models. No fake stock, promises or automatically published campaigns. |
-| 15 | Better product gallery controls | Add focal-point/crop presets, mobile zoom and image ordering for authorised real-model images. Keep product geometry intact and originals available. |
-| 16 | Confirmed add-on quote options | Add genuine packaging, engraving or resizing options to a quote only after cost/terms are established. Requires real services and accurate limitations. |
-| 17 | Gift enquiry journey | Collect discreet packaging, recipient timing and fit uncertainty in a short optional gift brief. Requests preferences instead of promising services. |
-| 18 | Delivery cost capture for quotes | Extend existing shipping zones with a dated delivery quote per enquiry, separating buyer preference from confirmed courier cost/time. Needs actual fulfilment terms. |
-| 19 | After-sales case tracking | Manage actual fit/defect/engraving issues with evidence, responsible person and resolution, building on existing inventory returns. Requires private records and agreed policies. |
-| 20 | Opt-in occasion reminders | Store customer-approved gift/anniversary reminders and prepare manual follow-up drafts. Requires consent/deletion controls and customer-data design; no automatic sending. |
+| Rank | Coding idea                               | Useful result and dependency                                                                                                                                                          |
+| ---- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Shared enquiry CRM                        | Extend the local anonymous ledger into persistent, cross-device enquiries linked to designs, assigned owner and status. Requires access/data/retention design and likely a migration. |
+| 2    | Supplier quotation history and comparison | Save dated private model/size/unit quotations and compare total landed costs, validity and fulfilment. Requires real quotes and private data storage.                                 |
+| 3    | Customer quote builder                    | Generate a reviewed branded PDF/private quote from confirmed lines and delivery costs, without checkout/payment acceptance. Needs quote records and exact commercial facts.           |
+| 4    | Owner follow-up inbox                     | Turn due dates into assignable tasks with an owner dashboard reminder and copyable reply. Extend the current overdue counts; no automatic customer messages.                          |
+| 5    | Actual sale contribution report           | Link a manually confirmed sale to actual costs/refunds and show contribution by model, supplier and period. Extend the scenario calculator without presenting it as net profit.       |
+| 6    | Structured reasons for lost enquiries     | Add specific reasons and aggregate them so you can distinguish expensive quotes, unavailable sizes and slow follow-up. Extends the current basic closed/lost state.                   |
+| 7    | Two-ring enquiry builder                  | Let couples select two genuine models and two independent sizes in one brief, with explicit single/pair semantics and a combined request. Builds on the current two-measure enquiry.  |
+| 8    | Supplier confirmation freshness           | Track dates for model/size/availability confirmations and flag stale private records. Never convert supplier stock into Anillos stock.                                                |
+| 9    | Price floor warnings in admin             | Connect supported variable costs to bulk-price previews and flag prices below contribution targets. Requires stored costs; owner reviews any price change.                            |
+| 10   | Better search intent and typo handling    | Match common ring terms and spelling mistakes to relevant existing designs/categories while preserving verified-fact filters. Improve the existing search rather than duplicating it. |
+| 11   | Search gaps dashboard                     | Count known empty-result intent buckets by day, only after owner opt-in. No raw query/IP/contact is persisted; no Meta/Google integration.                                            |
+| 12   | Real-model shape and width filters        | Add useful stone-shape/band-width filters where those attributes are actually verified. Extend the current catalogue filters without guessing from images.                            |
+| 13   | Fast product preview drawer               | Show a larger authorised image, confirmed essentials and enquiry action within a collection, without losing the buyer's browsing position. No new database necessarily required.      |
+| 14   | Campaign landing page editor              | Assemble reusable occasion/style pages from existing categories, guides and approved real models. No fake stock, promises or automatically published campaigns.                       |
+| 15   | Better product gallery controls           | Add focal-point/crop presets, mobile zoom and image ordering for authorised real-model images. Keep product geometry intact and originals available.                                  |
+| 16   | Confirmed add-on quote options            | Add genuine packaging, engraving or resizing options to a quote only after cost/terms are established. Requires real services and accurate limitations.                               |
+| 17   | Gift enquiry journey                      | Collect discreet packaging, recipient timing and fit uncertainty in a short optional gift brief. Requests preferences instead of promising services.                                  |
+| 18   | Delivery cost capture for quotes          | Extend existing shipping zones with a dated delivery quote per enquiry, separating buyer preference from confirmed courier cost/time. Needs actual fulfilment terms.                  |
+| 19   | After-sales case tracking                 | Manage actual fit/defect/engraving issues with evidence, responsible person and resolution, building on existing inventory returns. Requires private records and agreed policies.     |
+| 20   | Opt-in occasion reminders                 | Store customer-approved gift/anniversary reminders and prepare manual follow-up drafts. Requires consent/deletion controls and customer-data design; no automatic sending.            |
 
-The operations implementation covers every original item except #7 and the ten additions listed in the scope document. Use actual demand and evidence to populate it. The generated migration adds private records and image focal columns; #16 and #17 themselves still need no new migration. Email, the two-ring builder, Meta/Google products and attribution remain deferred. No production release is included.
+The operations implementation covers every original item except #7 and the ten additions listed in the scope document. Use actual demand and evidence to populate it. The generated migration adds private records and image focal columns; #16 and #17 themselves still need no new migration. Email, the two-ring builder, Meta/Google products and attribution remain deferred. No production database or hosting action is included; merge status is recorded by the linked GitHub PRs.
 
 ## Complete document index
 
@@ -211,94 +214,96 @@ This index covers every tracked root/documentation Markdown file at the time of 
 
 ### Suppliers and catalogue data
 
-| Document | What it is for |
-| --- | --- |
-| [SUPPLIER-SHORTLIST-2026-10](SUPPLIER-SHORTLIST-2026-10.md) | Candidate supplier businesses, programme snapshots and cost cautions |
-| [SUPPLIER-PRODUCT-BRIEFS](SUPPLIER-PRODUCT-BRIEFS.md) | Twelve exact ring references and unresolved facts |
-| [SUPPLIER-CATALOGUE-BATCH-2026-10](SUPPLIER-CATALOGUE-BATCH-2026-10.md) | Current preparation, KWP destinations, source conflicts and validation |
-| [SUPPLIER-READY-IMPLEMENTATION](SUPPLIER-READY-IMPLEMENTATION.md) | Existing private supplier fields, units, imports and sale modes; transfer-first history is superseded for this trial |
-| [SUPPLIER-IMAGE-PILOT-2026-10](SUPPLIER-IMAGE-PILOT-2026-10.md) | Exact-input pilot, permissions, prompts, fidelity criteria and dated quote |
-| [AI-CATALOGUE-WORKFLOW](AI-CATALOGUE-WORKFLOW.md) | Safe AI-assisted catalogue drafting and minimum real-product evidence |
-| [supplier-models JSON](supplier-models-2026-10.json) | Twelve researched source records; private preparation input |
-| [supplier candidates CSV](supplier-candidates-draft.csv) | Generated unpriced/unpublished draft import; not a production import instruction |
-| [supplier coverage CSV](supplier-catalogue-coverage.csv) | Category/KWP intent, researched destinations and remaining evidence |
-| [catalogue intents JSON](catalogue-intents-2026-10.json) | Broader keyword-group disposition register |
-| [media provenance JSON](MEDIA-PROVENANCE.json) | Origin/limitations of initial media; not supplier availability |
+| Document                                                                | What it is for                                                                                                       |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [SUPPLIER-SHORTLIST-2026-10](SUPPLIER-SHORTLIST-2026-10.md)             | Candidate supplier businesses, programme snapshots and cost cautions                                                 |
+| [SUPPLIER-PRODUCT-BRIEFS](SUPPLIER-PRODUCT-BRIEFS.md)                   | Twelve exact ring references and unresolved facts                                                                    |
+| [SUPPLIER-CATALOGUE-BATCH-2026-10](SUPPLIER-CATALOGUE-BATCH-2026-10.md) | Current preparation, KWP destinations, source conflicts and validation                                               |
+| [SUPPLIER-READY-IMPLEMENTATION](SUPPLIER-READY-IMPLEMENTATION.md)       | Existing private supplier fields, units, imports and sale modes; transfer-first history is superseded for this trial |
+| [SUPPLIER-IMAGE-PILOT-2026-10](SUPPLIER-IMAGE-PILOT-2026-10.md)         | Exact-input pilot, permissions, prompts, fidelity criteria and dated quote                                           |
+| [AI-CATALOGUE-WORKFLOW](AI-CATALOGUE-WORKFLOW.md)                       | Safe AI-assisted catalogue drafting and minimum real-product evidence                                                |
+| [supplier-models JSON](supplier-models-2026-10.json)                    | Twelve researched source records; private preparation input                                                          |
+| [supplier candidates CSV](supplier-candidates-draft.csv)                | Generated unpriced/unpublished draft import; not a production import instruction                                     |
+| [supplier coverage CSV](supplier-catalogue-coverage.csv)                | Category/KWP intent, researched destinations and remaining evidence                                                  |
+| [catalogue intents JSON](catalogue-intents-2026-10.json)                | Broader keyword-group disposition register                                                                           |
+| [media provenance JSON](MEDIA-PROVENANCE.json)                          | Origin/limitations of initial media; not supplier availability                                                       |
 
 ### Sales and administration
 
-| Document | What it is for |
-| --- | --- |
-| [SALES-ENQUIRY-TOOLS-2026-10](SALES-ENQUIRY-TOOLS-2026-10.md) | #17 buyer tools, local ledger, contribution/copy tools and complete validation |
-| [WHATSAPP-OPERATIONS-PLAN-2026-10](WHATSAPP-OPERATIONS-PLAN-2026-10.md) | Twenty-nine authorised improvements; email and two-ring builder deferrals |
-| [WHATSAPP-SALES-WORKSPACE](WHATSAPP-SALES-WORKSPACE.md) | Owner workflows, data/privacy limits, migration ordering and business inputs |
-| [WHATSAPP-OPERATIONS-VERIFICATION-2026-10](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md) | Actual checks, preview, skips and unapplied migration |
-| [LOCAL-STOREFRONT-AUDIT](LOCAL-STOREFRONT-AUDIT.md) | Repeatable local performance/accessibility checks and manual limits |
-| [ADMIN-SETUP](ADMIN-SETUP.md) | Login, initial setup closure and manual recovery |
-| [ADMIN-WORKSPACE](ADMIN-WORKSPACE.md) | Page/role inventory, menu settings and operating boundaries |
-| [LAUNCH-CHECKLIST](LAUNCH-CHECKLIST.md) | Business/operational prerequisites before real sales; new-store steps are historical for this shop |
-| [DEMAND-TEST-REVIEW-2026-10](DEMAND-TEST-REVIEW-2026-10.md) | Eight checks, current enquiry policy, private rotation and scheduling steps |
+| Document                                                                                | What it is for                                                                                     |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [SALES-ENQUIRY-TOOLS-2026-10](SALES-ENQUIRY-TOOLS-2026-10.md)                           | #17 buyer tools, local ledger, contribution/copy tools and complete validation                     |
+| [WHATSAPP-OPERATIONS-PLAN-2026-10](WHATSAPP-OPERATIONS-PLAN-2026-10.md)                 | Twenty-nine authorised improvements; email and two-ring builder deferrals                          |
+| [WHATSAPP-SALES-WORKSPACE](WHATSAPP-SALES-WORKSPACE.md)                                 | Owner workflows, data/privacy limits, migration ordering and business inputs                       |
+| [WHATSAPP-OPERATIONS-VERIFICATION-2026-10](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md) | Actual checks, preview, skips and unapplied migration                                              |
+| [MERGE-READINESS](MERGE-READINESS-2026-10.md)                                           | Current bug fixes, local validation, merge sequence and remaining owner actions                    |
+| [WALKTHROUGH-REVIEW-2026-10](WALKTHROUGH-REVIEW-2026-10.md)                             | Current defects, targeted reproductions, public walkthrough and twenty sales coding ideas          |
+| [LOCAL-STOREFRONT-AUDIT](LOCAL-STOREFRONT-AUDIT.md)                                     | Repeatable local performance/accessibility checks and manual limits                                |
+| [ADMIN-SETUP](ADMIN-SETUP.md)                                                           | Login, initial setup closure and manual recovery                                                   |
+| [ADMIN-WORKSPACE](ADMIN-WORKSPACE.md)                                                   | Page/role inventory, menu settings and operating boundaries                                        |
+| [LAUNCH-CHECKLIST](LAUNCH-CHECKLIST.md)                                                 | Business/operational prerequisites before real sales; new-store steps are historical for this shop |
+| [DEMAND-TEST-REVIEW-2026-10](DEMAND-TEST-REVIEW-2026-10.md)                             | Eight checks, current enquiry policy, private rotation and scheduling steps                        |
 
 ### Content and marketing research
 
-| Document | What it is for |
-| --- | --- |
-| [COMPETITOR-RESEARCH](COMPETITOR-RESEARCH.md) | Dated public competitor/catalogue/marketing observations |
-| [SEO-CATALOGUE-COVERAGE](SEO-CATALOGUE-COVERAGE.md) | Keyword scope, assortment gaps and exclusions |
+| Document                                                    | What it is for                                           |
+| ----------------------------------------------------------- | -------------------------------------------------------- |
+| [COMPETITOR-RESEARCH](COMPETITOR-RESEARCH.md)               | Dated public competitor/catalogue/marketing observations |
+| [SEO-CATALOGUE-COVERAGE](SEO-CATALOGUE-COVERAGE.md)         | Keyword scope, assortment gaps and exclusions            |
 | [SEO-CONTENT-IMPLEMENTATION](SEO-CONTENT-IMPLEMENTATION.md) | KWP-backed category/guide implementation and limitations |
-| [CATALOGUE-SEO-REVIEW](CATALOGUE-SEO-REVIEW.md) | Category/product SEO review evidence |
-| [PRODUCT-SEO-SCHEMA-AUDIT](PRODUCT-SEO-SCHEMA-AUDIT.md) | Product metadata/schema and indexability findings |
-| [HOMEPAGE-REVIEW](HOMEPAGE-REVIEW.md) | Homepage review and validation history |
-| [RING-SCROLL-AUDIT](RING-SCROLL-AUDIT.md) | Ring animation/media/layout diagnosis |
+| [CATALOGUE-SEO-REVIEW](CATALOGUE-SEO-REVIEW.md)             | Category/product SEO review evidence                     |
+| [PRODUCT-SEO-SCHEMA-AUDIT](PRODUCT-SEO-SCHEMA-AUDIT.md)     | Product metadata/schema and indexability findings        |
+| [HOMEPAGE-REVIEW](HOMEPAGE-REVIEW.md)                       | Homepage review and validation history                   |
+| [RING-SCROLL-AUDIT](RING-SCROLL-AUDIT.md)                   | Ring animation/media/layout diagnosis                    |
 
 ### Operations and recovery
 
-| Document | What it is for |
-| --- | --- |
-| [DEPLOY](../DEPLOY.md) | Hostinger technical reference; do not repeat initialisation or production schema steps |
-| [BACKUP-RECOVERY](BACKUP-RECOVERY.md) | Private retrieval, integrity, encryption keys and isolated restore |
-| [REVIEW-FIXES-ROLLOUT](REVIEW-FIXES-ROLLOUT.md) | Historical #14 migration/release procedure with applied-status notice |
-| [ENV-OPCIONAL](ENV-OPCIONAL.md) | Optional integration names/contracts; not a place for secret values |
-| [CLAUDE-EMAIL-INVESTIGATION](CLAUDE-EMAIL-INVESTIGATION.md) | Proposed email work; not an implemented recovery service |
-| [CLOUDFLARE-EMAIL-HANDOFF](CLOUDFLARE-EMAIL-HANDOFF.md) | Email research context and questions; no ready integration claim |
+| Document                                                    | What it is for                                                                         |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [DEPLOY](../DEPLOY.md)                                      | Hostinger technical reference; do not repeat initialisation or production schema steps |
+| [BACKUP-RECOVERY](BACKUP-RECOVERY.md)                       | Private retrieval, integrity, encryption keys and isolated restore                     |
+| [REVIEW-FIXES-ROLLOUT](REVIEW-FIXES-ROLLOUT.md)             | Historical #14 migration/release procedure with applied-status notice                  |
+| [ENV-OPCIONAL](ENV-OPCIONAL.md)                             | Optional integration names/contracts; not a place for secret values                    |
+| [CLAUDE-EMAIL-INVESTIGATION](CLAUDE-EMAIL-INVESTIGATION.md) | Proposed email work; not an implemented recovery service                               |
+| [CLOUDFLARE-EMAIL-HANDOFF](CLOUDFLARE-EMAIL-HANDOFF.md)     | Email research context and questions; no ready integration claim                       |
 
 ### Implementation and review history
 
-| Document | What it is for |
-| --- | --- |
-| [STORE-IMPLEMENTATION](STORE-IMPLEMENTATION.md) | Store layout/configuration and template boundary |
-| [VERIFICATION](VERIFICATION.md) | Earlier checks and preview evidence; latest sales results are in the sales-batch document |
-| [CODING-HANDOFF-2026-10](CODING-HANDOFF-2026-10.md) | Earlier coding/PR handoff; use current PR states above |
-| [SITE-IMPROVEMENTS](SITE-IMPROVEMENTS.md) | Previous improvement priorities and disposition |
-| [IMPROVEMENT-PLAN-2026-10](IMPROVEMENT-PLAN-2026-10.md) | Dated implementation plan and discovered issues |
-| [TEMPLATE-HARDENING](TEMPLATE-HARDENING.md) | Payment/security/operational foundations and verification |
-| [ECOM-TEMPLATE-UPSTREAM](ECOM-TEMPLATE-UPSTREAM.md) | Candidates for a separate template change; no template work authorised here |
-| [ECOM-BUG-AUDIT-PROMPT](ECOM-BUG-AUDIT-PROMPT.md) | Historical template audit prompt, not work to repeat |
+| Document                                                | What it is for                                                                            |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [STORE-IMPLEMENTATION](STORE-IMPLEMENTATION.md)         | Store layout/configuration and template boundary                                          |
+| [VERIFICATION](VERIFICATION.md)                         | Earlier checks and preview evidence; latest sales results are in the sales-batch document |
+| [CODING-HANDOFF-2026-10](CODING-HANDOFF-2026-10.md)     | Earlier coding/PR handoff; use current PR states above                                    |
+| [SITE-IMPROVEMENTS](SITE-IMPROVEMENTS.md)               | Previous improvement priorities and disposition                                           |
+| [IMPROVEMENT-PLAN-2026-10](IMPROVEMENT-PLAN-2026-10.md) | Dated implementation plan and discovered issues                                           |
+| [TEMPLATE-HARDENING](TEMPLATE-HARDENING.md)             | Payment/security/operational foundations and verification                                 |
+| [ECOM-TEMPLATE-UPSTREAM](ECOM-TEMPLATE-UPSTREAM.md)     | Candidates for a separate template change; no template work authorised here               |
+| [ECOM-BUG-AUDIT-PROMPT](ECOM-BUG-AUDIT-PROMPT.md)       | Historical template audit prompt, not work to repeat                                      |
 
 ### Repository and developer references
 
-| Document | What it is for |
-| --- | --- |
-| [README](../README.md) | Repository introduction and local-development entry point |
-| [AGENTS](../AGENTS.md) | Repository instructions for coding agents |
-| [CLAUDE](../CLAUDE.md) | Additional repository working instructions |
-| [ARCH](../ARCH.md) | Application architecture and invariants |
-| [NEW-STORE](../NEW-STORE.md) | Generic template/new-store setup; not routine operations for this existing store |
-| [KNOWN-ISSUES](../KNOWN-ISSUES.md) | Recorded issues and limitations |
-| [TASKS](../TASKS.md) | Existing task register; reconcile old entries before repeating work |
-| [PLAN](../PLAN.md) | Template/application implementation plan |
-| [CHANGELOG](../CHANGELOG.md) | Recorded change history |
+| Document                           | What it is for                                                                   |
+| ---------------------------------- | -------------------------------------------------------------------------------- |
+| [README](../README.md)             | Repository introduction and local-development entry point                        |
+| [AGENTS](../AGENTS.md)             | Repository instructions for coding agents                                        |
+| [CLAUDE](../CLAUDE.md)             | Additional repository working instructions                                       |
+| [ARCH](../ARCH.md)                 | Application architecture and invariants                                          |
+| [NEW-STORE](../NEW-STORE.md)       | Generic template/new-store setup; not routine operations for this existing store |
+| [KNOWN-ISSUES](../KNOWN-ISSUES.md) | Recorded issues and limitations                                                  |
+| [TASKS](../TASKS.md)               | Existing task register; reconcile old entries before repeating work              |
+| [PLAN](../PLAN.md)                 | Template/application implementation plan                                         |
+| [CHANGELOG](../CHANGELOG.md)       | Recorded change history                                                          |
 
 ## Local source documents
 
 These links point to Anton's local files outside the repository. They are available on this computer and will not travel with a GitHub checkout. Dates or instructions in historical handoffs do not override the current scope.
 
-| Source | Use |
-| --- | --- |
-| [Consolidated handoff](<C:/Users/anton/OneDrive/Documents/ChatGPT/Websites Oct26- and beyond/anillos-review/CONSOLIDATED-HANDOFF-2026-10-07.md>) | Complete cross-session history, artefacts and current boundaries |
-| [Supplier catalogue handoff](<C:/Users/anton/OneDrive/Documents/ChatGPT/Websites Oct26- and beyond/anillos-review/SUPPLIER-CATALOGUE-HANDOFF-2026-10-07.md>) | Supplier batch, pilot and subsequent sales implementation evidence |
-| [Original Keyword Planner export](<C:/Users/anton/Downloads/anillos.com.py-keywords-for-ai.md>) | Owner's original keyword rows; read Summary, Meaning groups and relevant Group details |
-| [Earlier Claude handoff](<C:/Users/anton/Downloads/anillos-claude-handoff-2026-10-08.md>) | Earlier research/context to reconcile with actual code |
-| [Earlier indexed review prompt](<C:/Users/anton/Downloads/prompt-3-codex-review-with-file-index.txt>) | Historical file map and review request |
+| Source                                                                                                                                                       | Use                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| [Consolidated handoff](<C:/Users/anton/OneDrive/Documents/ChatGPT/Websites Oct26- and beyond/anillos-review/CONSOLIDATED-HANDOFF-2026-10-07.md>)             | Complete cross-session history, artefacts and current boundaries                       |
+| [Supplier catalogue handoff](<C:/Users/anton/OneDrive/Documents/ChatGPT/Websites Oct26- and beyond/anillos-review/SUPPLIER-CATALOGUE-HANDOFF-2026-10-07.md>) | Supplier batch, pilot and subsequent sales implementation evidence                     |
+| [Original Keyword Planner export](C:/Users/anton/Downloads/anillos.com.py-keywords-for-ai.md)                                                                | Owner's original keyword rows; read Summary, Meaning groups and relevant Group details |
+| [Earlier Claude handoff](C:/Users/anton/Downloads/anillos-claude-handoff-2026-10-08.md)                                                                      | Earlier research/context to reconcile with actual code                                 |
+| [Earlier indexed review prompt](C:/Users/anton/Downloads/prompt-3-codex-review-with-file-index.txt)                                                          | Historical file map and review request                                                 |
 
 Maintain this guide when the business stage, public release, supplier agreement, tool storage or recovery process changes. Keep dated evidence in its source document and update the relevant link/status here.

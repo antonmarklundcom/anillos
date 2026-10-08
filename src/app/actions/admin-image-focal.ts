@@ -3,6 +3,10 @@ import { and, asc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { productImages } from "@/db/schema";
+import {
+  assertProductImageFocalColumns,
+  productImageFocalMigrationMissing,
+} from "@/db/product-image-compat";
 import { ImageFocalPointSchema } from "@/domain/image-focal-point";
 import { z } from "zod";
 import {
@@ -24,6 +28,7 @@ export async function saveProductImageFocalPoint(
       };
     const { productId, imageId, focalPointX, focalPointY } = parsed.data;
     const saved = await getDb().transaction(async (tx) => {
+      await assertProductImageFocalColumns(tx);
       const condition = and(
         eq(productImages.id, imageId),
         eq(productImages.productId, productId)
@@ -46,6 +51,12 @@ export async function saveProductImageFocalPoint(
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {
+    if (productImageFocalMigrationMissing(error))
+      return {
+        ok: false,
+        error:
+          "Falta aplicar la migración 0025 para guardar el punto de enfoque. Las imágenes siguen disponibles.",
+      };
     return adminActionError("saveProductImageFocalPoint", error);
   }
 }

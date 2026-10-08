@@ -1578,6 +1578,12 @@ export function SalesOperations({
     setEditorDirty(false);
     setReloadReview(null);
     setConflict(false);
+    setPrintQuote(null);
+    setComparisonId(null);
+    setManualDraft("");
+    setImportReview(null);
+    setImportText("");
+    setDeleteId("");
     notice(
       "Se abrió la versión guardada. Se descartó el borrador con tu confirmación."
     );
@@ -1761,7 +1767,11 @@ export function SalesOperations({
     ) === JSON.stringify(printQuote)
   );
   return (
-    <div className={styles.workspace} data-testid="sales-operations">
+    <div
+      className={styles.workspace}
+      data-testid="sales-operations"
+      data-sales-workspace
+    >
       <div className={styles.toolbar}>
         <p>
           <strong>Espacio privado del dueño</strong>
@@ -2397,12 +2407,67 @@ export function SalesOperations({
                 </p>
               ))}
               <p>
+                Preguntas por modelo: {workspace.productFaqs.length} actuales →{" "}
+                {importReview.productFaqs.length} importadas
+              </p>
+              <p>
+                Preguntas publicadas:{" "}
+                {workspace.productFaqs.filter((faq) => faq.published).length}{" "}
+                actuales →{" "}
+                {importReview.productFaqs.filter((faq) => faq.published).length}{" "}
+                importadas
+              </p>
+              <p>
+                Campañas públicas:{" "}
+                {
+                  workspace.campaigns.filter(
+                    (campaign) => campaign.publicEnabled
+                  ).length
+                }{" "}
+                actuales →{" "}
+                {
+                  importReview.campaigns.filter(
+                    (campaign) => campaign.publicEnabled
+                  ).length
+                }{" "}
+                importadas
+              </p>
+              {importReview.productFaqs.map((faq) => (
+                <details key={faq.id}>
+                  <summary>
+                    {faq.productSlug}: {faq.question} ·{" "}
+                    {faq.published ? "Publicar al guardar" : "Privada"}
+                  </summary>
+                  <p>{faq.answer}</p>
+                </details>
+              ))}
+              <p>
+                Conteos de búsquedas sin resultados:{" "}
+                {workspace.searchGapCollectionEnabled
+                  ? "habilitados"
+                  : "apagados"}{" "}
+                →{" "}
+                {importReview.searchGapCollectionEnabled
+                  ? "habilitados"
+                  : "apagados"}
+              </p>
+              <p>
+                La importación también reemplaza el contenido y el estado
+                público de las preguntas y campañas. Revisá sus textos en el
+                borrador antes de guardar.
+              </p>
+              <p>
                 Exportá lo actual antes de reemplazar. No se combinarán datos.
               </p>
               <div className={styles.actions}>
                 <button
                   onClick={() => {
                     changeWorkspace(importReview);
+                    setPrintQuote(null);
+                    setComparisonId(null);
+                    setManualDraft("");
+                    setDeleteId("");
+                    setImportText("");
                     setImportReview(null);
                   }}
                 >
@@ -2467,60 +2532,62 @@ export function SalesOperations({
               </button>
             </div>
           </section>
-          <article
-            className={styles.print}
-            data-testid="customer-quote-print"
-            data-sales-print-sheet="quote"
-          >
-            <h1>{printSheet.storeName}</h1>
-            <h2>Cotización para revisar</h2>
-            <p>
-              Fecha: {operationsDay(printSheet.createdOn)}
-              {printSheet.expiresOn &&
-                ` · Validez: ${operationsDay(printSheet.expiresOn)}`}
-            </p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Modelo</th>
-                  <th>Unidad / cantidad</th>
-                  <th>Precio por unidad</th>
-                </tr>
-              </thead>
-              <tbody>
-                {printSheet.lines.map((line, index) => (
-                  <tr key={index}>
-                    <td>{line.model}</td>
-                    <td>
-                      {line.quantity}{" "}
-                      {line.unit === "pair"
-                        ? "par(es) de dos anillos"
-                        : "anillo(s)"}
-                    </td>
-                    <td>{operationsMoney(line.unitPricePyg)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {printSheet.services.map((service, index) => (
-              <p key={index}>
-                {service.name}: {operationsMoney(service.pricePyg)} ·{" "}
-                {service.terms}
+          {printQuoteSaved && (
+            <article
+              className={styles.print}
+              data-testid="customer-quote-print"
+              data-sales-print-sheet="quote"
+            >
+              <h1>{printSheet.storeName}</h1>
+              <h2>Cotización para revisar</h2>
+              <p>
+                Fecha: {operationsDay(printSheet.createdOn)}
+                {printSheet.expiresOn &&
+                  ` · Validez: ${operationsDay(printSheet.expiresOn)}`}
               </p>
-            ))}
-            <p>
-              Entrega: {operationsMoney(printSheet.deliveryPyg)} ·{" "}
-              {printSheet.deliveryConditions}
-            </p>
-            <p>
-              Entrega cotizada el:{" "}
-              {operationsDay(printSheet.deliveryConfirmedOn)}
-            </p>
-            <p>
-              <strong>Total: {operationsMoney(printSheet.totalPyg)}</strong>
-            </p>
-            <p>{printSheet.disclaimer}</p>
-          </article>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modelo</th>
+                    <th>Unidad / cantidad</th>
+                    <th>Precio por unidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {printSheet.lines.map((line, index) => (
+                    <tr key={index}>
+                      <td>{line.model}</td>
+                      <td>
+                        {line.quantity}{" "}
+                        {line.unit === "pair"
+                          ? "par(es) de dos anillos"
+                          : "anillo(s)"}
+                      </td>
+                      <td>{operationsMoney(line.unitPricePyg)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {printSheet.services.map((service, index) => (
+                <p key={index}>
+                  {service.name}: {operationsMoney(service.pricePyg)} ·{" "}
+                  {service.terms}
+                </p>
+              ))}
+              <p>
+                Entrega: {operationsMoney(printSheet.deliveryPyg)} ·{" "}
+                {printSheet.deliveryConditions}
+              </p>
+              <p>
+                Entrega cotizada el:{" "}
+                {operationsDay(printSheet.deliveryConfirmedOn)}
+              </p>
+              <p>
+                <strong>Total: {operationsMoney(printSheet.totalPyg)}</strong>
+              </p>
+              <p>{printSheet.disclaimer}</p>
+            </article>
+          )}
         </>
       )}
     </div>

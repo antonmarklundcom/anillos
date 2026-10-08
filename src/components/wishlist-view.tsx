@@ -16,17 +16,16 @@ import type { CatalogProduct } from "@/db/queries";
 import { t } from "@/i18n/client";
 import { waShareLink } from "@/lib/py";
 import { TESTIDS } from "@/lib/testids";
-import { useWishlist } from "@/lib/wishlist-store";
-
-const MAX_SHARED_SLUGS = 50;
+import { normalizeWishlistSlugs, useWishlist } from "@/lib/wishlist-store";
 
 function parseSharedSlugs(raw: string | null): string[] {
   if (!raw) return [];
-  return raw
-    .split(",")
-    .map((slug) => slug.trim())
-    .filter(Boolean)
-    .slice(0, MAX_SHARED_SLUGS);
+  return normalizeWishlistSlugs(
+    raw
+      .split(",")
+      .map((slug) => slug.trim())
+      .filter(Boolean)
+  );
 }
 
 /**
@@ -58,12 +57,14 @@ export function WishlistView({
 
   const mySlugs = useWishlist((state) => state.slugs);
   const addMany = useWishlist((state) => state.addMany);
-  const slugs = isShared ? sharedSlugs : mySlugs;
+  const slugs = isShared ? sharedSlugs : normalizeWishlistSlugs(mySlugs);
   const slugsKey = slugs.join(",");
 
   const [products, setProducts] = useState<CatalogProduct[] | null>(null);
   const [saved, setSaved] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     // El `setState` va adentro del `setTimeout`, no suelto en el cuerpo del
@@ -73,14 +74,21 @@ export function WishlistView({
     let cancelled = false;
     const timer = setTimeout(() => {
       if (cancelled) return;
+      setLoadError(false);
       if (slugs.length === 0) {
         setProducts([]);
         return;
       }
       setProducts(null);
-      void getWishlistProducts(slugs).then((result) => {
-        if (!cancelled) setProducts(result);
-      });
+      void getWishlistProducts(slugs)
+        .then((result) => {
+          if (!cancelled) setProducts(result);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setProducts([]);
+          setLoadError(true);
+        });
     }, 0);
 
     return () => {
@@ -91,7 +99,7 @@ export function WishlistView({
     // render de `useWishlist` arma un array nuevo aunque los slugs sean los
     // mismos.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slugsKey]);
+  }, [slugsKey, retry]);
 
   const shareUrl = origin
     ? new URL(`/favoritos?p=${slugsKey}`, origin).toString()
@@ -161,7 +169,18 @@ export function WishlistView({
         </div>
       </div>
 
-      {products === null ? (
+      {loadError ? (
+        <div role="alert" className="mt-6 space-y-3">
+          <p>No pudimos cargar tus favoritos. Tu lista sigue guardada.</p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setRetry((value) => value + 1)}
+          >
+            Volver a intentar
+          </Button>
+        </div>
+      ) : products === null ? (
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {Array.from({ length: slugs.length || 4 }).map((_, index) => (
             <ProductCardSkeleton key={index} />

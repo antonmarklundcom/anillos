@@ -6,6 +6,7 @@ import {
   emptySalesWorkspace,
   MAX_WORKSPACE_BYTES,
   type CustomerQuotation,
+  quotationTotal,
 } from "@/domain/sales-workspace";
 import {
   readSalesWorkspace,
@@ -61,6 +62,137 @@ async function actualQuote(): Promise<CustomerQuotation> {
 describe.skipIf(!hasTestDb)("canonical quotation normalization", () => {
   beforeEach(resetTables);
   afterAll(closeTestDb);
+  it("restores removed historical revisions without substituting the live quotation", async () => {
+    const quote = await actualQuote();
+    const first = await saveSalesWorkspace({
+      revision: 0,
+      workspace: { ...emptySalesWorkspace(), customerQuotations: [quote] },
+    });
+    if (!first.ok) throw new Error("Initial quote failed");
+    const second = await saveSalesWorkspace({
+      revision: 1,
+      workspace: {
+        ...first.snapshot.workspace,
+        customerQuotations: [
+          { ...quote, lines: [{ ...quote.lines[0]!, unitPricePyg: 120000 }] },
+        ],
+      },
+    });
+    if (!second.ok) throw new Error("Quote change failed");
+    const historical = second.snapshot.workspace.quoteRevisions[0];
+    if (!historical) throw new Error("Historical revision missing");
+    const third = await saveSalesWorkspace({
+      revision: 2,
+      workspace: { ...second.snapshot.workspace, quoteRevisions: [] },
+    });
+    if (!third.ok) throw new Error("Revision removal failed");
+    const [latest] = await readSalesWorkspaceAudit();
+    if (!latest) throw new Error("Removal audit missing");
+    const restored = await undoSalesWorkspace(
+      { revision: 3, auditId: latest.id },
+      1
+    );
+    if (!restored.ok) throw new Error("Undo failed");
+    expect(
+      restored.snapshot.workspace.quoteRevisions.find(
+        (r) => r.id === historical.id
+      )
+    ).toEqual(historical);
+  });
+  it("captures trusted draft services and keeps them fixed after service repricing and retirement", async () => {
+    const quote = {
+      ...(await actualQuote()),
+      status: "draft" as const,
+      serviceOptionIds: ["service"],
+    };
+    const service = {
+      id: "service",
+      name: "Embalaje",
+      kind: "packaging" as const,
+      terms: "Confirmado",
+      pricePyg: 20000,
+      confirmedOn: quote.createdOn,
+      enabled: true,
+    };
+    const first = await saveSalesWorkspace({
+      revision: 0,
+      workspace: {
+        ...emptySalesWorkspace(),
+        serviceOptions: [service],
+        customerQuotations: [quote],
+        quoteRevisions: [
+          {
+            id: "manual",
+            quotationId: quote.id,
+            revisionNumber: 1,
+            createdOn: quote.createdOn,
+            reason: "Conservar borrador",
+            status: "draft",
+            snapshot: {
+              ...quote,
+              servicesSnapshot: [
+                {
+                  id: service.id,
+                  name: service.name,
+                  terms: "Inventado",
+                  pricePyg: 999999,
+                  confirmedOn: service.confirmedOn,
+                },
+              ],
+            },
+            acceptedOn: null,
+            acceptanceEvidence: null,
+          },
+        ],
+      },
+    });
+    if (!first.ok) throw new Error("Initial draft failed");
+    expect(
+      first.snapshot.workspace.quoteRevisions[0]?.snapshot.servicesSnapshot[0]
+        ?.pricePyg
+    ).toBe(20000);
+    const second = await saveSalesWorkspace({
+      revision: 1,
+      workspace: {
+        ...first.snapshot.workspace,
+        serviceOptions: [{ ...service, pricePyg: 50000 }],
+        customerQuotations: [
+          { ...quote, deliveryConditions: "Retiro actualizado" },
+        ],
+      },
+    });
+    if (!second.ok) throw new Error("Draft repricing failed");
+    expect(
+      quotationTotal(
+        second.snapshot.workspace.customerQuotations[0]!,
+        second.snapshot.workspace.serviceOptions
+      )
+    ).toBe(150000);
+    for (const revision of second.snapshot.workspace.quoteRevisions)
+      expect(
+        quotationTotal(
+          revision.snapshot,
+          second.snapshot.workspace.serviceOptions,
+          true
+        )
+      ).toBe(120000);
+    const third = await saveSalesWorkspace({
+      revision: 2,
+      workspace: {
+        ...second.snapshot.workspace,
+        serviceOptions: [{ ...service, pricePyg: 50000, enabled: false }],
+        customerQuotations: [{ ...quote, serviceOptionIds: [] }],
+      },
+    });
+    if (!third.ok) throw new Error("Service retirement failed");
+    expect(
+      quotationTotal(
+        third.snapshot.workspace.quoteRevisions[0]!.snapshot,
+        third.snapshot.workspace.serviceOptions,
+        true
+      )
+    ).toBe(120000);
+  });
   it.each([true, false])(
     "restores historical ready services after generic removal with current enabled=%s",
     async (enabled) => {

@@ -14,6 +14,8 @@ import {
   workspaceChangeSummary,
   quoteRevisionDiff,
   hasFutureActualDates,
+  DemandRequestSchema,
+  quotationTotal,
   type CustomerQuotation,
 } from "@/domain/sales-workspace";
 
@@ -72,6 +74,137 @@ const supplier = {
 };
 
 describe("bounded operational evidence", () => {
+  it("rejects conflicting enquiry and quotation ownership before linked export or deletion", () => {
+    const sale = {
+      id: "sale",
+      enquiryId: "e2",
+      quotationId: "q1",
+      productId: null,
+      model: "Ref",
+      supplier: "Proveedor A",
+      fulfilledOn: "2026-10-07",
+      revenuePyg: 100000,
+      refundPyg: 0,
+      costs: emptyCosts(),
+      ownerReported: true,
+    };
+    const workspace = {
+      ...emptySalesWorkspace(),
+      enquiries: [enquiry, { ...enquiry, id: "e2", alias: "Consulta B" }],
+      customerQuotations: [quote],
+      fulfilledSales: [sale],
+    };
+    expect(SalesWorkspaceSchema.safeParse(workspace).success).toBe(false);
+    expect(
+      SalesWorkspaceSchema.safeParse({
+        ...workspace,
+        fulfilledSales: [{ ...sale, enquiryId: "e1" }],
+      }).success
+    ).toBe(true);
+    expect(
+      SalesWorkspaceSchema.safeParse({
+        ...workspace,
+        fulfilledSales: [{ ...sale, enquiryId: null }],
+      }).success
+    ).toBe(true);
+  });
+  it("treats malformed FAQ evidence as a validation error without throwing", () => {
+    const faq = {
+      id: "f",
+      productSlug: "modelo-real",
+      question: "Unidad",
+      answer: "Confirmada",
+      confirmedAt: "2026-10-07T00:00:00Z",
+      published: false,
+    };
+    for (const evidenceUrl of [
+      "",
+      "banana",
+      "http://example.test",
+      "https://[",
+    ]) {
+      expect(() =>
+        ProductFaqSchema.safeParse({ ...faq, evidenceUrl })
+      ).not.toThrow();
+      expect(ProductFaqSchema.safeParse({ ...faq, evidenceUrl }).success).toBe(
+        false
+      );
+    }
+  });
+  it("keeps historical draft totals on captured services while live drafts reprice", () => {
+    const service = {
+      id: "s",
+      name: "Embalaje",
+      kind: "packaging" as const,
+      terms: "Confirmado",
+      pricePyg: 20000,
+      confirmedOn: "2026-10-07",
+      enabled: true,
+    };
+    const draft = {
+      ...quote,
+      status: "draft" as const,
+      serviceOptionIds: ["s"],
+      servicesSnapshot: [
+        {
+          id: service.id,
+          name: service.name,
+          terms: service.terms,
+          pricePyg: service.pricePyg,
+          confirmedOn: service.confirmedOn,
+        },
+      ],
+    };
+    const current = [{ ...service, pricePyg: 50000 }];
+    expect(quotationTotal(draft, current)).toBe(150000);
+    expect(quotationTotal(draft, current, true)).toBe(120000);
+    expect(
+      quotationTotal({ ...draft, servicesSnapshot: [] }, current, true)
+    ).toBeNull();
+  });
+  it("validates millimetre demand without converting supplier-labelled sizes", () => {
+    const request = {
+      id: "d",
+      enquiryId: "e1",
+      modelSlug: "modelo-real",
+      sizeSystem: "diameter_mm",
+      requestedSize: "16.5",
+      quantity: 1,
+      unit: "single",
+      notedOn: "2026-10-07",
+      status: "requested",
+    };
+    for (const requestedSize of [
+      "banana",
+      "0",
+      "-1",
+      "1001",
+      "Infinity",
+      "1e2",
+      null,
+    ])
+      expect(
+        DemandRequestSchema.safeParse({ ...request, requestedSize }).success
+      ).toBe(false);
+    for (const requestedSize of ["16.5", "16,5", "1000"])
+      expect(
+        DemandRequestSchema.safeParse({ ...request, requestedSize }).success
+      ).toBe(true);
+    expect(
+      DemandRequestSchema.safeParse({
+        ...request,
+        sizeSystem: "supplier_size",
+        requestedSize: "US 7",
+      }).success
+    ).toBe(true);
+    expect(
+      DemandRequestSchema.safeParse({
+        ...request,
+        sizeSystem: "unknown",
+        requestedSize: null,
+      }).success
+    ).toBe(true);
+  });
   it("rejects acceptance after expiry while keeping historical accepted evidence valid", () => {
     const revision = {
       id: "r1",

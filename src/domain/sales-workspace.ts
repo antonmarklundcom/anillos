@@ -336,10 +336,17 @@ export const DemandRequestSchema = z
     status: z.enum(["requested", "quoted", "unavailable", "fulfilled"]),
   })
   .strict()
-  .refine(
-    (r) => r.sizeSystem === "unknown" || Boolean(r.requestedSize),
-    "Registrá la medida solicitada sin convertir escalas"
-  );
+  .refine((r) => {
+    if (r.sizeSystem === "unknown") return true;
+    if (!r.requestedSize) return false;
+    if (r.sizeSystem === "supplier_size") return true;
+    const value = r.requestedSize.replace(",", ".");
+    return (
+      /^\d+(?:\.\d+)?$/.test(value) &&
+      Number(value) > 0 &&
+      Number(value) <= 1000
+    );
+  }, "Registrá una medida numérica mayor que cero y hasta 1000 mm, o la talla textual del proveedor");
 export const PurchasingDraftSchema = z
   .object({
     id,
@@ -393,10 +400,13 @@ export const ProductFaqSchema = z
     evidenceUrl: z
       .url()
       .max(2000)
-      .refine(
-        (url) => new URL(url).protocol === "https:",
-        "La evidencia debe usar HTTPS"
-      ),
+      .refine((url) => {
+        try {
+          return new URL(url).protocol === "https:";
+        } catch {
+          return false;
+        }
+      }, "La evidencia debe usar HTTPS"),
     confirmedAt: z.iso
       .datetime({ offset: true })
       .refine(
@@ -603,15 +613,20 @@ export const SalesWorkspaceSchema = SalesWorkspaceBaseSchema.superRefine(
           message: "Servicio no confirmado o deshabilitado",
         });
     }
-    for (const sale of v.fulfilledSales)
+    for (const sale of v.fulfilledSales) {
+      const quote = v.customerQuotations.find((q) => q.id === sale.quotationId);
       if (
         !references(sale.enquiryId, v.enquiries) ||
-        !references(sale.quotationId, v.customerQuotations)
+        !references(sale.quotationId, v.customerQuotations) ||
+        (sale.enquiryId !== null &&
+          quote?.enquiryId != null &&
+          sale.enquiryId !== quote.enquiryId)
       )
         ctx.addIssue({
           code: "custom",
           message: "Referencia de venta inexistente",
         });
+    }
     for (const item of v.aftersalesCases)
       if (!references(item.saleId, v.fulfilledSales))
         ctx.addIssue({
@@ -738,11 +753,12 @@ export function saleContribution(sale: FulfilledSale): number | null {
 }
 export function quotationTotal(
   quote: CustomerQuotation,
-  services: SalesWorkspace["serviceOptions"]
+  services: SalesWorkspace["serviceOptions"],
+  historical = false
 ): number | null {
   if (quote.deliveryPyg === null) return null;
   const selected = quote.serviceOptionIds.map((key) =>
-    quote.status === "review_ready"
+    historical || quote.status === "review_ready"
       ? quote.servicesSnapshot.find((s) => s.id === key)
       : services.find((s) => s.id === key && s.enabled)
   );

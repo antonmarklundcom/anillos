@@ -41,6 +41,31 @@ function errorCode(error: unknown): string | undefined {
 export const workspaceMigrationMissing = (error: unknown): boolean =>
   errorCode(error) === "ER_NO_SUCH_TABLE";
 
+/** Freeze only server-resolved service terms when recording historical drafts. */
+function historicalQuotationSnapshot(
+  quote: SalesWorkspace["customerQuotations"][number],
+  services: SalesWorkspace["serviceOptions"]
+) {
+  const snapshot = structuredClone(quote);
+  if (snapshot.status === "draft") {
+    snapshot.servicesSnapshot = snapshot.serviceOptionIds.flatMap((key) => {
+      const service = services.find((s) => s.id === key && s.enabled);
+      return service
+        ? [
+            {
+              id: service.id,
+              name: service.name,
+              terms: service.terms,
+              pricePyg: service.pricePyg,
+              confirmedOn: service.confirmedOn,
+            },
+          ]
+        : [];
+    });
+  }
+  return snapshot;
+}
+
 export async function readSalesWorkspace(): Promise<SalesWorkspaceSnapshot> {
   try {
     const [row] = await db
@@ -207,13 +232,19 @@ export async function saveSalesWorkspace(
         reason:
           "Copia anterior conservada automáticamente al modificar la cotización",
         status: oldQuote.status === "review_ready" ? "review_ready" : "draft",
-        snapshot: structuredClone(oldQuote),
+        snapshot: historicalQuotationSnapshot(
+          oldQuote,
+          previous.workspace.serviceOptions
+        ),
         acceptedOn: null,
         acceptanceEvidence: null,
       });
     }
     for (const record of workspace.quoteRevisions) {
       if (autoRevisionIds.has(record.id)) continue;
+      // Undo comes exclusively from the trusted stored audit snapshot. Restored
+      // revisions must retain their old terms rather than copy the live quote.
+      if (options.kind === "undo") continue;
       const old = previous.workspace.quoteRevisions.find(
         (r) => r.id === record.id
       );
@@ -233,7 +264,11 @@ export async function saveSalesWorkspace(
         const quote = workspace.customerQuotations.find(
           (r) => r.id === record.quotationId
         );
-        if (quote) record.snapshot = structuredClone(quote);
+        if (quote)
+          record.snapshot = historicalQuotationSnapshot(
+            quote,
+            workspace.serviceOptions
+          );
       }
     }
     const validated = SalesWorkspaceSchema.safeParse(workspace);

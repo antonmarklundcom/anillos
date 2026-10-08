@@ -1,3 +1,5 @@
+> Historical implementation verification, followed by a later bug-fix batch. Read [current merge readiness](MERGE-READINESS-2026-10.md) for the latest checks and authorisation.
+
 # WhatsApp operations verification
 
 Verified locally on 7 October 2026, Asunción time. [Draft PR #18](https://github.com/antonmarklundcom/anillos/pull/18) is based on PR #17 (`6ef1f6d`), which depends on #16; #15 is already merged and is preserved. This report concerns code and disposable local fixtures, not production availability or real supplier agreements.
@@ -50,7 +52,7 @@ Manual checks still include contrast, screen-reader behavior, text enlargement, 
 
 **New database work is required: generated migration 0025. It has not been applied to production.** It adds three private sales tables and nullable image focal columns, with backup allowlist/cursor coverage. No seeds, order/payment migrations or inventory operations are introduced.
 
-Apply and verify 0025 **before releasing this new code**, during a separately authorised rollout with a verified private backup/recovery plan. Catalogue image queries require the new columns; an installation still on 0024 can fail catalogue/product reads with the new release. The additive migration allows the older release to remain active during schema preparation. Check the full health booleans and real catalogue afterwards; HTTP 200 alone does not prove readiness. Do not repeat migrations 0023/0024 or use push/seed recipes on production.
+**Updated for merge readiness:** the code now supports the 0024 catalogue/image schema. Ordinary image reads and CRUD continue; image focus updates and the shared workspace explicitly require 0025. Apply and verify 0025 **before enabling those new features**, during a separately authorised rollout with a verified private backup/recovery plan. The migration and canonical schema are unchanged. Check the full health booleans and real catalogue afterwards; HTTP 200 alone does not prove readiness. Do not repeat migrations 0023/0024 or use push/seed recipes on production.
 
 The private workspace is bounded to 750KB canonical JSON and thirty recent audit recovery points. Stale saves retain drafts; latest-only undo cannot erase accepted quote evidence. Undo preserves historical service prices even after a service is repriced or disabled. Deliberate linked deletion invalidates every old recovery payload, while exported files and backups require separate retention management.
 

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   products: vi.fn(),
+  facets: vi.fn(),
   notFound: vi.fn(),
   error: vi.fn(),
 }));
@@ -32,10 +33,22 @@ vi.mock("@/store/catalog", () => ({
   }),
   getStoreCategories: async () => [],
 }));
+vi.mock("@/domain/catalogue-facets", async () => ({
+  ...(await vi.importActual<typeof import("@/domain/catalogue-facets")>(
+    "@/domain/catalogue-facets"
+  )),
+  getCatalogueFacets: mocks.facets,
+}));
 import CategoryPage, { generateMetadata } from "@/app/categoria/[slug]/page";
 describe("category pagination canonicals", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.facets.mockResolvedValue({
+      material: [],
+      stone: [],
+      unit: [],
+      inStock: 0,
+    });
     mocks.products.mockResolvedValue({
       products: [],
       total: 25,
@@ -126,5 +139,22 @@ describe("category pagination canonicals", () => {
       sort: "relevancia",
       page: 2,
     });
+  });
+
+  it("applies selected shape and width to both results and dependent facets", async () => {
+    const props = {
+      params: Promise.resolve({ slug: "rings" }),
+      searchParams: Promise.resolve({ forma: "oval", ancho: "4" }),
+    };
+    await generateMetadata(props);
+    await CategoryPage(props);
+    expect(mocks.products).toHaveBeenCalledWith(
+      expect.objectContaining({ stoneShape: "oval", widthMm: "4" })
+    );
+    expect(mocks.facets).toHaveBeenCalledWith(
+      "rings",
+      undefined,
+      expect.objectContaining({ stoneShape: "oval", widthMm: "4" })
+    );
   });
 });

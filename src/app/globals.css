@@ -837,7 +837,8 @@ summary:focus-visible {
 @media print {
   /* This low-specificity rule applies only while a sales sheet is mounted.
      Its local print class reveals the allowlisted sheet and descendants. */
-  :where(body:has([data-sales-print-sheet])) * {
+  :where(body:has([data-sales-workspace]), body:has([data-sales-print-sheet]))
+    * {
     visibility: hidden !important;
   }
   .store-header,

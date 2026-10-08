@@ -58,6 +58,8 @@ const loadCategoryProducts = cache(
     page: number,
     material: string | undefined,
     stone: string | undefined,
+    stoneShape: string | undefined,
+    widthMm: string | undefined,
     unit: string | undefined,
     inStock: boolean | undefined,
     invalid: boolean | undefined
@@ -82,6 +84,8 @@ const loadCategoryProducts = cache(
         page,
         material,
         stone,
+        stoneShape,
+        widthMm,
         unit,
         inStock,
         invalid,
@@ -153,6 +157,8 @@ export async function generateMetadata({
     max,
     material,
     stone,
+    stoneShape,
+    widthMm,
     unit,
     inStock,
     invalid,
@@ -166,6 +172,8 @@ export async function generateMetadata({
     page,
     material,
     stone,
+    stoneShape,
+    widthMm,
     unit,
     inStock,
     invalid
@@ -229,6 +237,8 @@ export default async function CategoryPage({
     max,
     material,
     stone,
+    stoneShape,
+    widthMm,
     unit,
     inStock,
     invalid,
@@ -250,6 +260,8 @@ export default async function CategoryPage({
       page,
       material,
       stone,
+      stoneShape,
+      widthMm,
       unit,
       inStock,
       invalid
@@ -264,6 +276,8 @@ export default async function CategoryPage({
       ? getCatalogueFacets(slug, undefined, {
           material,
           stone,
+          stoneShape,
+          widthMm,
           unit,
           inStock,
         }).catch((error) => {

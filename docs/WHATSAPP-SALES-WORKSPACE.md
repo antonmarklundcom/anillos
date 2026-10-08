@@ -1,3 +1,5 @@
+> The merged code can run with migration 0024 for catalogue browsing and ordinary image management. Migration 0025 enables the shared sales workspace and image focus controls. See [merge readiness](MERGE-READINESS-2026-10.md).
+
 # Run sales through WhatsApp
 
 This review batch adds the twenty-nine authorised coding priorities in [the scope plan](WHATSAPP-OPERATIONS-PLAN-2026-10.md). Open `/admin/ventas` as the owner. It extends PR #17; the earlier browser-only ledger remains at `/admin/herramientas-ventas` so existing local records can be reviewed and exported. They are not silently imported into the shared workspace.
@@ -45,7 +47,7 @@ Bulk price previews also show cost-floor warnings from complete private cost pro
 
 This batch introduces **migration 0025**: `sales_workspace`, `sales_workspace_audit`, `sales_search_gaps`, and nullable focal-position fields on `product_images`. The tables participate in the existing backup/restore allowlist and cursor handling. No production migration was applied in this session. Existing production migrations 0023 and 0024 must not be repeated.
 
-Missing workspace tables have a safe empty public projection, and the owner screen disables saving when the migration is missing. However, catalogue image queries directly select the new focal columns: deploying this code against schema 0024 can break catalogue/product reads. **Migration 0025 must be applied and verified before this code is released**, as part of a separately authorised rollout with a recovery plan. The new nullable columns and tables are additive, so the older release can remain active during that migration. Confirm migration status, catalogue reads and the complete health booleans afterwards; an HTTP 200 alone is insufficient. Back up and verify recovery using [backup operations](BACKUP-RECOVERY.md). Do not run push or seed recipes on production.
+Missing workspace tables have a safe empty public projection, and the owner screen disables saving when the migration is missing. Catalogue image reads now retry the existing 0024 columns with default centred focus; ordinary image creation, editing and ordering remain available. **Migration 0025 must be applied and verified before enabling the shared workspace and image focus controls**, as part of a separately authorised rollout with a recovery plan. While it is pending, health correctly reports schema readiness as false. Confirm migration status, catalogue reads and the complete health booleans afterwards; an HTTP 200 alone is insufficient. Back up and verify recovery using [backup operations](BACKUP-RECOVERY.md). Do not run push or seed recipes on production.
 
 Search-gap collection is **off by default**. If enabled explicitly, it stores only day, one of ten known intent buckets and a capped count. It does not persist raw searches, visitor IPs or customer messages. Follow-up reminders are dashboard/manual drafts; occasion reminders require recorded consent and never send automatically.
 
@@ -54,7 +56,7 @@ Search-gap collection is **off by default**. If enabled explicitly, it stores on
 - Real supplier quotations, rights to product photographs, confirmed model/size/unit/material facts and actual sample evidence. Research documents identify prospects; they do not establish a supply agreement.
 - Customer prices, full variable costs, genuine service/delivery availability and conditions, returns/resizing/engraving decisions, and actual sale outcomes.
 - The retention decisions for private records, exports and backups; owner access and device security.
-- Review of this draft PR and the migration plan. Merge, production migration and release remain separate unauthorised actions here.
+- Review of this draft PR and the migration plan. Anton has authorised merging the stacked PRs. Production migration and hosting actions still need separate authorisation.
 - An existing destination inbox and ready Cloudflare account when email work is resumed. The non-email workflows remain usable meanwhile.
 
 Return to [the owner operating guide](OWNER-OPERATING-GUIDE.md) for supplier research, identity settings, website administration, security, cron jobs, data and all related documents.
