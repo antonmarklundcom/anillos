@@ -1,0 +1,17 @@
+# Repetir el control local de la tienda
+
+Este control usa Chromium y las dependencias existentes. Solo admite un origen HTTP loopback explícito; no navega a producción, panel, checkout ni APIs de escritura. No carga entorno privado, crea cuentas ni modifica la base. Bloquea recursos externos salvo imágenes de Cloudinary; registra sus orígenes, sin parámetros de consultas. No envía métricas a terceros.
+
+1. Usá una base local descartable y el servidor local ya preparado. Para medir tamaño y tiempos comparables, levantá el **build de producción local**; el modo desarrollo agrega trabajo y JavaScript que no representa el build publicado. No cambies `.env.local` para este control.
+2. Ejecutá `pnpm exec tsx scripts/local-storefront-audit.ts --base-url http://127.0.0.1:54644`. Reemplazá el puerto por el del servidor local que estás comprobando. Para incluir una ficha conocida, agregá `--product-slug modelo-real` (también puede comprobar una ilustración reservada sin comprarla).
+3. Revisá `test-results/local-storefront-audit/<fecha>/report.json` y las capturas. Esa carpeta ya está ignorada por Git. El proceso devuelve código 1 si encuentra puntos para revisar, y 0 si pasan los controles automatizados. El reporte se guarda después de cada página, antes de cerrar el navegador: comprobá `complete`, `expectedPages`, los fallos registrados y el código de salida juntos. Un control interrumpido no equivale a uno aprobado.
+
+Cada ruta (`/`, `/colecciones`, `/elegir`, `/guias/talles`, búsqueda conocida y ficha opcional) se abre en contextos nuevos a **1440×1000** y **390×844**. Usa movimiento reducido y red/CPU locales sin throttle. Es una comparación sintética repetible; no reproduce un teléfono real ni equivale a métricas de campo o a Lighthouse. No compares tiempos de desarrollo contra tiempos de un build local de producción.
+
+Los presupuestos iniciales son LCP ≤2500 ms, CLS ≤0,1, transferencia total ≤2 MB, JavaScript ≤400 KB e imagen individual ≤600 KB. Chromium mide los bytes transferidos con CDP, incluso para imágenes sin cabeceras Timing-Allow-Origin. Los avisos incluyen qué revisar. Las imágenes secundarias que todavía no entran en pantalla no se consideran rotas solo por su carga diferida.
+
+El control de accesibilidad comprueba idioma, un main/H1, nombres de enlaces y botones, etiquetas de campos, alt, imágenes iniciales cargadas, desborde horizontal y acceso inicial con Tab. Son **heurísticas DOM**, no una certificación WCAG. Completá la revisión manual de contraste, orden de lectura, foco visible, modales, zoom, menús, ampliación de texto y lector de pantalla. Las capturas permiten revisar recortes sin generar ni alterar geometría de las piezas.
+
+Si falta Chromium, usá la instalación local ya disponible con `CHROMIUM_PATH` o `PLAYWRIGHT_CHROMIUM_EXECUTABLE`, igual que el runner del repositorio. Por ejemplo, Chrome puede estar en `C:/Program Files/Google/Chrome/Application/chrome.exe`. El script no instala navegadores ni dependencias. Un servidor inaccesible o una ruta inesperada queda marcado como incompleto; no se da por aprobado.
+
+El navegador de prueba se lanza en un proceso propio, con su control ligado a loopback. El cierre tiene un límite de tiempo; si Windows no confirma su terminación, el comando guarda el reporte, muestra el aviso y sale con código 1. Nunca termina pestañas del usuario. Una medición completa no elimina un aviso de cierre ni certifica la revisión manual.

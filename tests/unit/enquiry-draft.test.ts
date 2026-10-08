@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   BUDGET_PREFERENCES,
+  GIFT_OCCASIONS,
+  GIFT_PACKAGING,
+  GIFT_SIZE_CONFIDENCE,
   cleanEnquiryDetails,
   EMPTY_ENQUIRY,
   enquiryMessage,
@@ -12,6 +15,34 @@ import {
 } from "@/store/enquiry-draft";
 
 describe("buyer enquiry draft", () => {
+  it("keeps gift preferences optional and describes packaging as a question", () => {
+    const details = cleanEnquiryDetails({
+      ...EMPTY_ENQUIRY,
+      giftOccasion: GIFT_OCCASIONS[0],
+      giftPackaging: GIFT_PACKAGING[1],
+      giftSizeConfidence: GIFT_SIZE_CONFIDENCE[1],
+    });
+    const message = enquiryMessage([], details);
+    expect(message).toContain("regalo");
+    expect(message).toContain("confirm");
+    expect(
+      cleanEnquiryDetails({
+        giftOccasion: "invented",
+        giftPackaging: "free",
+        giftSizeConfidence: "guaranteed",
+      })
+    ).toMatchObject({
+      giftOccasion: "",
+      giftPackaging: "",
+      giftSizeConfidence: "",
+    });
+    expect(cleanEnquiryDetails({ city: "Luque" })).toMatchObject({
+      city: "Luque",
+      giftOccasion: "",
+      giftPackaging: "",
+      giftSizeConfidence: "",
+    });
+  });
   it("encodes user punctuation as message text and only reuses a valid configured recipient", () => {
     const text = "Me gusta plata & oro? # diseño + 1";
     const href = enquiryWhatsappHref(

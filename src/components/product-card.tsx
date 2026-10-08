@@ -11,6 +11,7 @@ import { ProductImage } from "@/components/product-image";
 import { RatingStars, formatRating } from "@/components/rating-stars";
 import { StockBadge } from "@/components/stock-badge";
 import { WishlistButton } from "@/components/wishlist-button";
+import { ProductQuickView } from "@/components/product-quick-view";
 import type { CatalogProduct } from "@/db/queries";
 import { t, tPlural } from "@/i18n/client";
 import { TESTIDS } from "@/lib/testids";
@@ -140,6 +141,21 @@ export function ProductCard({
           </div>
         </div>
       </Link>
+      <ProductQuickView
+        product={{
+          slug: product.slug,
+          name: displayName,
+          categorySlug: product.categorySlug,
+          image: product.image,
+          concept,
+          unit:
+            product.verifiedSpecifications?.unit === "pair"
+              ? "Par de dos anillos"
+              : product.verifiedSpecifications?.unit === "individual"
+                ? "Un anillo"
+                : "Unidad por confirmar",
+        }}
+      />
       <WishlistButton
         slug={product.slug}
         name={displayName}

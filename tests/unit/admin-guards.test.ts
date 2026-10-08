@@ -148,6 +148,8 @@ const GUARD_ESPERADO: Readonly<Record<string, "Admin" | "Staff" | "Owner">> = {
   adjustVariantStock: "Staff",
   uploadProductImage: "Staff",
   saveProductImageDetails: "Staff",
+  saveProductImageFocalPoint: "Staff",
+  moveProductImage: "Staff",
   removeProductImage: "Staff",
   previewCatalogImport: "Staff",
   applyCatalogImport: "Staff",
@@ -196,6 +198,7 @@ const GUARD_ESPERADO: Readonly<Record<string, "Admin" | "Staff" | "Owner">> = {
   duplicateProductAction: "Staff",
   bulkAdjustProductPrices: "Owner",
   previewBulkPriceAdjustment: "Owner",
+  previewSalesPriceFloors: "Owner",
 
   crearCategoria: "Owner",
   editarCategoria: "Owner",

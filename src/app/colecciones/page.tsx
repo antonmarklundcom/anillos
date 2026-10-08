@@ -13,6 +13,7 @@ import { ringMetadata } from "@/store/seo";
 import { breadcrumbJsonLd, itemListJsonLd, jsonLdScript } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
 import { log } from "@/lib/log";
+import { publicCampaigns } from "@/store/campaigns";
 
 type PageProps = { searchParams: Promise<{ coleccion?: string }> };
 const pageSeo = {
@@ -39,6 +40,7 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   const available = new Set(categories.map((item) => item.slug));
   const collections = COLLECTIONS.filter((item) => available.has(item.slug));
   const selected = collections.find((item) => item.slug === coleccion);
+  const campaigns = await publicCampaigns();
   const products = await getCatalog({
     categorySlug: selected?.slug,
     limit: 48,
@@ -67,6 +69,22 @@ export default async function CollectionsPage({ searchParams }: PageProps) {
   ];
   return (
     <main className="catalogue-page">
+      {campaigns.length ? (
+        <nav
+          aria-label="Selecciones"
+          className="mx-auto flex max-w-7xl flex-wrap gap-3 px-5 pt-6"
+        >
+          {campaigns.slice(0, 6).map((campaign) => (
+            <Link
+              key={campaign.slug}
+              href={`/campanas/${campaign.slug}`}
+              className="border-border rounded-full border px-4 py-2 text-sm"
+            >
+              {campaign.title} ↗
+            </Link>
+          ))}
+        </nav>
+      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(structured) }}

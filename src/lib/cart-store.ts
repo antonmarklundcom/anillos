@@ -62,14 +62,22 @@ export type CartState = {
 export const CART_STORAGE_KEY = "tienda-py-cart";
 export const CART_STORAGE_VERSION = 1;
 export const MAX_QTY_PER_LINE = 99;
+let latestSync = 0;
 
 /**
  * Migración de carritos viejos. La v0 (pre-variantes) guardaba `productId` y
  * no se puede mapear a una variante sin ir a la DB: se descarta en vez de
  * inventar una. Un carrito vacío molesta menos que uno que cobra otra cosa.
  */
-export function migrateCart(persisted: unknown, version: number): { lines: CartLine[] } {
-  if (version >= CART_STORAGE_VERSION && persisted && typeof persisted === "object") {
+export function migrateCart(
+  persisted: unknown,
+  version: number
+): { lines: CartLine[] } {
+  if (
+    version >= CART_STORAGE_VERSION &&
+    persisted &&
+    typeof persisted === "object"
+  ) {
     const lines = (persisted as { lines?: unknown }).lines;
     if (Array.isArray(lines)) {
       return { lines: lines.filter(isCartLine) };
@@ -101,19 +109,28 @@ export const useCart = create<CartState>()(
 
       add: (line, qty = 1) =>
         set((state) => {
-          const existing = state.lines.find((item) => item.variantId === line.variantId);
+          const existing = state.lines.find(
+            (item) => item.variantId === line.variantId
+          );
           if (existing) {
             return {
               lines: state.lines.map((item) =>
                 item.variantId === line.variantId
-                  ? { ...item, ...line, qty: Math.min(MAX_QTY_PER_LINE, item.qty + qty) }
+                  ? {
+                      ...item,
+                      ...line,
+                      qty: Math.min(MAX_QTY_PER_LINE, item.qty + qty),
+                    }
                   : item
               ),
               isOpen: true,
             };
           }
           return {
-            lines: [...state.lines, { ...line, qty: Math.min(MAX_QTY_PER_LINE, qty) }],
+            lines: [
+              ...state.lines,
+              { ...line, qty: Math.min(MAX_QTY_PER_LINE, qty) },
+            ],
             isOpen: true,
           };
         }),
@@ -131,7 +148,9 @@ export const useCart = create<CartState>()(
         })),
 
       remove: (variantId) =>
-        set((state) => ({ lines: state.lines.filter((item) => item.variantId !== variantId) })),
+        set((state) => ({
+          lines: state.lines.filter((item) => item.variantId !== variantId),
+        })),
 
       clear: () => set({ lines: [], issues: [], freeShipping: null }),
 
@@ -143,39 +162,50 @@ export const useCart = create<CartState>()(
       close: () => set({ isOpen: false }),
 
       sync: async () => {
-        const { lines } = get();
-        if (lines.length === 0) {
-          set({ issues: [], freeShipping: null, isSyncing: false });
-          return;
-        }
-
+        const request = ++latestSync;
         set({ isSyncing: true });
         try {
-          const priced = await revalidateCart(
-            lines.map((line) => ({
-              variantId: line.variantId,
-              qty: line.qty,
-              unitPricePyg: line.unitPricePyg,
-            }))
-          );
-          set({
-            lines: priced.lines.map<CartLine>((line) => ({
-              variantId: line.variantId,
-              qty: line.qty,
-              productSlug: line.productSlug,
-              name: line.name,
-              variantLabel: line.variantLabel,
-              unitPricePyg: line.unitPricePyg,
-              sku: line.sku,
-            })),
-            issues: priced.issues,
-            freeShipping: priced.freeShipping,
-          });
+          // A response belongs to the exact immutable lines snapshot it priced.
+          // If the shopper edits while waiting, price their latest choices again.
+          for (
+            let attempt = 0;
+            attempt < 5 && request === latestSync;
+            attempt++
+          ) {
+            const { lines } = get();
+            if (lines.length === 0) {
+              set({ issues: [], freeShipping: null });
+              return;
+            }
+            const priced = await revalidateCart(
+              lines.map((line) => ({
+                variantId: line.variantId,
+                qty: line.qty,
+                unitPricePyg: line.unitPricePyg,
+              }))
+            );
+            if (request !== latestSync) return;
+            if (get().lines !== lines) continue;
+            set({
+              lines: priced.lines.map<CartLine>((line) => ({
+                variantId: line.variantId,
+                qty: line.qty,
+                productSlug: line.productSlug,
+                name: line.name,
+                variantLabel: line.variantLabel,
+                unitPricePyg: line.unitPricePyg,
+                sku: line.sku,
+              })),
+              issues: priced.issues,
+              freeShipping: priced.freeShipping,
+            });
+            return;
+          }
         } catch {
           // Sin red: seguimos con los snapshots del navegador. El checkout
           // vuelve a validar de todos modos, así que no se cobra de más.
         } finally {
-          set({ isSyncing: false });
+          if (request === latestSync) set({ isSyncing: false });
         }
       },
     }),

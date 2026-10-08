@@ -78,6 +78,7 @@ export function ProductForm({
             "material",
             "purity",
             "stone",
+            "stoneShape",
             "widthMm",
             "unit",
           ]);

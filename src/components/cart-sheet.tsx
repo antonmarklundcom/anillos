@@ -31,7 +31,7 @@ import { TESTIDS } from "@/lib/testids";
  * componente: el carrito puede haber pasado días en localStorage y lo que se
  * muestra al abrirlo tiene que ser lo que dice la DB.
  */
-export function CartSheet() {
+export function CartSheet({ enquiryMode = false }: { enquiryMode?: boolean }) {
   const pathname = usePathname();
   const inAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const {
@@ -55,8 +55,14 @@ export function CartSheet() {
     <Sheet open={isOpen} onOpenChange={(open) => (open ? undefined : close())}>
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>{t("carrito.titulo")}</SheetTitle>
-          <SheetDescription>{t("carrito.descripcion")}</SheetDescription>
+          <SheetTitle>
+            {enquiryMode ? "Modelos para consultar" : t("carrito.titulo")}
+          </SheetTitle>
+          <SheetDescription>
+            {enquiryMode
+              ? "Consultá modelo, medidas, precio y entrega antes de decidir. Esta selección no crea un pedido, reserva ni pago."
+              : t("carrito.descripcion")}
+          </SheetDescription>
         </SheetHeader>
 
         {issues.length > 0 ? (
@@ -73,9 +79,15 @@ export function CartSheet() {
           {lines.length === 0 ? (
             <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 text-center">
               <ShoppingBag className="size-8" />
-              <p className="text-sm">{t("carrito.vacio")}</p>
+              <p className="text-sm">
+                {enquiryMode
+                  ? "Todavía no hay modelos en esta selección."
+                  : t("carrito.vacio")}
+              </p>
               <Button variant="outline" onClick={close}>
-                {t("carrito.seguirComprando")}
+                {enquiryMode
+                  ? "Seguí explorando"
+                  : t("carrito.seguirComprando")}
               </Button>
             </div>
           ) : (
@@ -94,7 +106,9 @@ export function CartSheet() {
                       {line.variantLabel}
                     </p>
                     <p className="mt-1 text-sm font-medium tabular-nums">
-                      {formatGs(line.unitPricePyg * line.qty)}
+                      {enquiryMode
+                        ? "Precio por confirmar"
+                        : formatGs(line.unitPricePyg * line.qty)}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
@@ -121,20 +135,26 @@ export function CartSheet() {
 
         {lines.length > 0 ? (
           <SheetFooter className="gap-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                {t("carrito.subtotal")}
-                {isSyncing ? (
-                  <Loader2 className="ml-1 inline size-3 animate-spin" />
-                ) : null}
-              </span>
-              <span className="text-base font-semibold tabular-nums">
-                {formatGs(subtotal)}
-              </span>
-            </div>
-            <FreeShippingBar progress={freeShipping} subtotalPyg={subtotal} />
+            {!enquiryMode && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {t("carrito.subtotal")}
+                  {isSyncing ? (
+                    <Loader2 className="ml-1 inline size-3 animate-spin" />
+                  ) : null}
+                </span>
+                <span className="text-base font-semibold tabular-nums">
+                  {formatGs(subtotal)}
+                </span>
+              </div>
+            )}
+            {!enquiryMode && (
+              <FreeShippingBar progress={freeShipping} subtotalPyg={subtotal} />
+            )}
             <p className="text-muted-foreground text-xs">
-              {t("carrito.envioEnCheckout")}
+              {enquiryMode
+                ? "La disponibilidad, los importes y las condiciones de entrega requieren confirmación."
+                : t("carrito.envioEnCheckout")}
             </p>
             <Button asChild size="lg">
               <Link
@@ -142,13 +162,15 @@ export function CartSheet() {
                 onClick={close}
                 data-testid={TESTIDS.cartCheckoutLink}
               >
-                {t("carrito.irAlCheckout")}
+                {enquiryMode
+                  ? "Revisar cómo consultar"
+                  : t("carrito.irAlCheckout")}
               </Link>
             </Button>
             <Button variant="outline" onClick={close}>
-              {t("carrito.seguirComprando")}
+              {enquiryMode ? "Seguí explorando" : t("carrito.seguirComprando")}
             </Button>
-            <ConsultarPorWhatsApp lines={lines} />
+            {!enquiryMode && <ConsultarPorWhatsApp lines={lines} />}
           </SheetFooter>
         ) : null}
       </SheetContent>

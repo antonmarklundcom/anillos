@@ -11,6 +11,9 @@ vi.mock("@/app/actions/admin-products", () => ({
   previewBulkPriceAdjustment: vi.fn(),
   bulkAdjustProductPrices: vi.fn(),
 }));
+vi.mock("@/app/actions/admin-sales-price-floors", () => ({
+  previewSalesPriceFloors: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -40,7 +43,9 @@ describe("BulkActionsBar", () => {
       />
     );
 
-    expect(screen.queryByTestId(TESTIDS.adminBulkPriceOpen)).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(TESTIDS.adminBulkPriceOpen)
+    ).not.toBeInTheDocument();
     // el resto de la barra, que no depende del rol, sigue ahí:
     expect(screen.getByTestId(TESTIDS.adminBulkActivate)).toBeInTheDocument();
     expect(screen.getByTestId(TESTIDS.adminBulkDeactivate)).toBeInTheDocument();

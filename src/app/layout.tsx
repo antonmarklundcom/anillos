@@ -10,6 +10,7 @@ import { SiteHeader } from "@/components/site-header";
 import { WhatsAppFab } from "@/components/whatsapp-fab";
 import { Toaster } from "@/components/ui/sonner";
 import { getStoreSettings } from "@/domain/store-settings";
+import { readyPaymentMethods } from "@/domain/payment-readiness";
 import { linkSeguro } from "@/domain/store-settings-schema";
 import { idiomaActivo } from "@/i18n";
 import { siteOrigin } from "@/lib/site-url";
@@ -58,10 +59,13 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // La foto de integraciones (GA4/Pixel, WhatsApp, Cloudinary) fresca para
   // este render: src/lib/integraciones.ts. Nunca tira.
-  const [{ anuncio }, marca] = await Promise.all([
+  const [{ anuncio }, marca, , enquiryMode] = await Promise.all([
     getStoreSettings(),
     storeIdentity(),
     cargarIntegraciones(),
+    readyPaymentMethods()
+      .then((methods) => methods.length === 0)
+      .catch(() => true),
   ]);
 
   // El idioma **efectivo** y no el que dice el config: si `TIENDA.lang` apunta
@@ -94,7 +98,7 @@ export default async function RootLayout({
           {children}
         </div>
         <SiteFooter />
-        <CartSheet />
+        <CartSheet enquiryMode={enquiryMode} />
         <WhatsAppFab />
         <Toaster />
         {/* Nada de terceros salvo que esta tienda configure medidores —

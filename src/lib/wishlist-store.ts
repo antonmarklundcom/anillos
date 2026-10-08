@@ -32,7 +32,15 @@ type WishlistState = {
 };
 
 function isSlug(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
+  return (
+    typeof value === "string" &&
+    value.length <= 160 &&
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)
+  );
+}
+
+export function normalizeWishlistSlugs(values: readonly unknown[]): string[] {
+  return [...new Set(values.filter(isSlug))].slice(0, MAX_WISHLIST_ITEMS);
 }
 
 /**
@@ -40,11 +48,18 @@ function isSlug(value: unknown): value is string {
  * vacío se descarta en vez de intentar arreglarla — una lista más corta
  * molesta menos que un `undefined` colándose en el grid de `/favoritos`.
  */
-export function migrateWishlist(persisted: unknown, version: number): { slugs: string[] } {
-  if (version >= WISHLIST_STORAGE_VERSION && persisted && typeof persisted === "object") {
+export function migrateWishlist(
+  persisted: unknown,
+  version: number
+): { slugs: string[] } {
+  if (
+    version >= WISHLIST_STORAGE_VERSION &&
+    persisted &&
+    typeof persisted === "object"
+  ) {
     const slugs = (persisted as { slugs?: unknown }).slugs;
     if (Array.isArray(slugs)) {
-      return { slugs: slugs.filter(isSlug).slice(0, MAX_WISHLIST_ITEMS) };
+      return { slugs: normalizeWishlistSlugs(slugs) };
     }
   }
   return { slugs: [] };
@@ -56,23 +71,29 @@ export const useWishlist = create<WishlistState>()(
       slugs: [],
 
       toggle: (slug) => {
+        if (!isSlug(slug)) return false;
         const alreadyThere = get().slugs.includes(slug);
         if (alreadyThere) {
-          set((state) => ({ slugs: state.slugs.filter((item) => item !== slug) }));
+          set((state) => ({
+            slugs: state.slugs.filter((item) => item !== slug),
+          }));
           return false;
         }
         // Más nuevo primero, tope de MAX_WISHLIST_ITEMS: mismo criterio que
         // "vistos recientemente" — es una lista de la compradora, no un
         // archivo, y no hace falta guardar más de lo que se va a mostrar.
-        set((state) => ({ slugs: [slug, ...state.slugs].slice(0, MAX_WISHLIST_ITEMS) }));
+        set((state) => ({
+          slugs: normalizeWishlistSlugs([slug, ...state.slugs]),
+        }));
         return true;
       },
 
       addMany: (slugs) =>
         set((state) => {
-          const nuevos = slugs.filter((slug) => !state.slugs.includes(slug));
-          if (nuevos.length === 0) return state;
-          return { slugs: [...nuevos, ...state.slugs].slice(0, MAX_WISHLIST_ITEMS) };
+          const nuevos = normalizeWishlistSlugs(slugs).filter(
+            (slug) => !state.slugs.includes(slug)
+          );
+          return { slugs: normalizeWishlistSlugs([...nuevos, ...state.slugs]) };
         }),
     }),
     {
@@ -100,7 +121,8 @@ export function wishlistToggle(slug: string): boolean {
 }
 
 /** `subscribe()`: para `useSyncExternalStore`, igual que `useCart.subscribe`. */
-export const wishlistSubscribe = (listener: () => void) => useWishlist.subscribe(listener);
+export const wishlistSubscribe = (listener: () => void) =>
+  useWishlist.subscribe(listener);
 
 export function wishlistCount(slugs: string[]): number {
   return slugs.length;

@@ -15,6 +15,7 @@ import {
 } from "drizzle-orm";
 
 import { getDb } from "@/db";
+import { readProductImages } from "@/db/product-image-compat";
 import type {
   ProductSpecifications,
   VariantAttributes,
@@ -29,8 +30,8 @@ import {
   categories,
   orderItems,
   orders,
-  productImages,
   products,
+  stockReservations,
   variants,
 } from "@/db/schema";
 
@@ -58,6 +59,8 @@ export type CatalogVariant = {
 };
 
 export type CatalogImage = {
+  focalPointX?: number | null;
+  focalPointY?: number | null;
   provenance?: import("@/lib/product-image-provenance").ImageProvenance | null;
   verifiedAt?: Date | null;
   cloudinaryId: string;
@@ -129,8 +132,10 @@ export function isCatalogSort(value: string | undefined): value is CatalogSort {
   return value !== undefined && (CATALOG_SORTS as string[]).includes(value);
 }
 
-/** Precio mínimo por producto — es el número por el que la gente ordena y filtra. */
-const minPriceSql = sql<number>`MIN(CASE WHEN ${products.showPrice} AND ${variants.pricePyg} > 0 AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`} THEN ${variants.pricePyg} ELSE NULL END)`;
+/** Match ProductCard: available positive prices first, otherwise all positive prices. */
+const visiblePrice = sql`${products.showPrice} AND ${variants.pricePyg} > 0 AND LOWER(${products.slug}) NOT LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`;
+const liveAvailable = sql`CAST(${variants.onHand} AS SIGNED) - CAST(COALESCE((SELECT SUM(${stockReservations.qty}) FROM ${stockReservations} WHERE ${stockReservations.variantId} = ${variants.id} AND ${stockReservations.state} = 'held' AND ${stockReservations.expiresAt} > NOW()), 0) AS SIGNED) > 0`;
+const minPriceSql = sql<number>`COALESCE(MIN(CASE WHEN ${visiblePrice} AND ${products.saleMode} = 'stock' AND ${liveAvailable} THEN ${variants.pricePyg} ELSE NULL END), MIN(CASE WHEN ${visiblePrice} THEN ${variants.pricePyg} ELSE NULL END))`;
 
 type ProductRow = {
   specifications?: unknown;
@@ -178,19 +183,7 @@ async function hydrate(
     )
     .orderBy(asc(variants.productId), asc(variants.position));
 
-  const imageRows = await tx
-    .select({
-      productId: productImages.productId,
-      cloudinaryId: productImages.cloudinaryId,
-      provenance: productImages.provenance,
-      verifiedAt: productImages.verifiedAt,
-      blurDataUrl: productImages.blurDataUrl,
-      alt: productImages.alt,
-      position: productImages.position,
-    })
-    .from(productImages)
-    .where(inArray(productImages.productId, productIds))
-    .orderBy(asc(productImages.productId), asc(productImages.position));
+  const imageRows = await readProductImages(tx, productIds);
 
   const held = await heldQtyMap(
     variantRows.map((row) => row.id),
@@ -208,7 +201,10 @@ async function hydrate(
       label: row.label,
       pricePyg: row.pricePyg,
       compareAtPyg: row.compareAtPyg,
-      available: Number.isSafeInteger(row.pricePyg) && row.pricePyg > 0 ? Math.max(0, row.onHand - (held.get(row.id) ?? 0)) : 0,
+      available:
+        Number.isSafeInteger(row.pricePyg) && row.pricePyg > 0
+          ? Math.max(0, row.onHand - (held.get(row.id) ?? 0))
+          : 0,
       attributes: publicVariantAttributes(row.attributes, true),
       identifiers: publicIdentifiers(row.identifiers, ""),
     });
@@ -224,6 +220,8 @@ async function hydrate(
       verifiedAt: row.verifiedAt,
       blurDataUrl: row.blurDataUrl,
       alt: row.alt,
+      focalPointX: row.focalPointX,
+      focalPointY: row.focalPointY,
     });
     imagesByProduct.set(row.productId, list);
   }
@@ -253,7 +251,9 @@ async function hydrate(
             available: 0,
           }
         : row.showPrice
-          ? row.saleMode === "stock" ? variant : { ...variant, available: 0 }
+          ? row.saleMode === "stock"
+            ? variant
+            : { ...variant, available: 0 }
           : { ...variant, pricePyg: 0, compareAtPyg: null, available: 0 };
     }),
     ...(ratings.has(row.id) ? { rating: ratings.get(row.id) } : {}),
@@ -301,7 +301,13 @@ export async function getCatalog(
     .orderBy(
       ...(options.featured
         ? [desc(products.publishedAt)]
-        : [asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`), asc(categories.position), asc(products.name)])
+        : [
+            asc(
+              sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`
+            ),
+            asc(categories.position),
+            asc(products.name),
+          ])
     )
     .limit(options.limit ?? 100);
 
@@ -407,7 +413,13 @@ export async function getCategoryProducts(
 
   const rows = await (having ? grouped.having(having) : grouped)
     .orderBy(
-      ...(!query.sort || query.sort === "relevancia" ? [asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`)] : []),
+      ...(!query.sort || query.sort === "relevancia"
+        ? [
+            asc(
+              sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`
+            ),
+          ]
+        : []),
       ...(query.sort?.startsWith("precio-")
         ? [sql`${minPriceSql} IS NULL`]
         : []),
@@ -455,17 +467,25 @@ export async function getProductBySlug(
   const [hydrated] = await hydrate(tx, [row]);
   if (!hydrated) return null;
 
-  const images = await tx
-    .select({
-      cloudinaryId: productImages.cloudinaryId,
-      provenance: productImages.provenance,
-      verifiedAt: productImages.verifiedAt,
-      blurDataUrl: productImages.blurDataUrl,
-      alt: productImages.alt,
+  const images = (await readProductImages(tx, [row.id])).map(
+    ({
+      cloudinaryId,
+      focalPointX,
+      focalPointY,
+      provenance,
+      verifiedAt,
+      blurDataUrl,
+      alt,
+    }) => ({
+      cloudinaryId,
+      focalPointX,
+      focalPointY,
+      provenance,
+      verifiedAt,
+      blurDataUrl,
+      alt,
     })
-    .from(productImages)
-    .where(eq(productImages.productId, row.id))
-    .orderBy(asc(productImages.position));
+  );
 
   return { ...hydrated, description: row.description, images };
 }
@@ -483,6 +503,7 @@ export async function searchProducts(
   options: { limit?: number } = {},
   executor?: Executor
 ): Promise<CatalogProduct[]> {
+  if (term.length > 160) return [];
   const tx = executor ?? getDb();
   const cleaned = term
     .trim()
@@ -491,7 +512,7 @@ export async function searchProducts(
     .trim();
   if (cleaned.length < 2) return [];
 
-  const limit = options.limit ?? 40;
+  const limit = Math.min(40, Math.max(1, options.limit ?? 40));
   const booleanTerm = cleaned
     .split(" ")
     .map((word) => `${word}*`)
@@ -553,6 +574,8 @@ export async function suggestProducts(
   limit = 6,
   executor?: Executor
 ): Promise<SearchSuggestion[]> {
+  if (term.length > 160) return [];
+  limit = Math.min(10, Math.max(1, limit));
   const tx = executor ?? getDb();
   const cleaned = term
     .trim()
@@ -916,17 +939,34 @@ export async function getProductsBySlugs(
 
   const hydrated = await hydrate(tx, rows);
   const bySlug = new Map(hydrated.map((product) => [product.slug, product]));
-  return slugs
+  return [...new Set(slugs)]
     .map((slug) => bySlug.get(slug))
     .filter((product): product is CatalogProduct => product !== undefined);
 }
 
 /** Comparison picker needs neither stock holds nor image/rating hydration. */
-export async function getComparisonCandidates(excluded: string[] = [], executor?: Executor): Promise<{ slug: string; name: string }[]> {
+export async function getComparisonCandidates(
+  excluded: string[] = [],
+  executor?: Executor
+): Promise<{ slug: string; name: string }[]> {
   const tx = executor ?? getDb();
-  return tx.select({ slug: products.slug, name: products.name }).from(products).innerJoin(categories, eq(products.categoryId, categories.id))
-    .where(and(PUBLISHED(), excluded.length ? notInArray(products.slug, excluded.slice(0, 3)) : undefined))
-    .orderBy(asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`), asc(products.name)).limit(40);
+  return tx
+    .select({ slug: products.slug, name: products.name })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        PUBLISHED(),
+        excluded.length
+          ? notInArray(products.slug, excluded.slice(0, 3))
+          : undefined
+      )
+    )
+    .orderBy(
+      asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`),
+      asc(products.name)
+    )
+    .limit(40);
 }
 
 /**
@@ -985,26 +1025,31 @@ export async function getFeedProducts(
   if (rows.length === 0) return [];
 
   const hydrated = await hydrate(tx, rows);
-  const imageRows = await tx
-    .select({
-      productId: productImages.productId,
-      cloudinaryId: productImages.cloudinaryId,
-      provenance: productImages.provenance,
-      verifiedAt: productImages.verifiedAt,
-      blurDataUrl: productImages.blurDataUrl,
-      alt: productImages.alt,
-    })
-    .from(productImages)
-    .where(
-      inArray(
-        productImages.productId,
-        rows.map((row) => row.id)
-      )
-    )
-    .orderBy(asc(productImages.productId), asc(productImages.position));
+  const imageRows = await readProductImages(
+    tx,
+    rows.map((row) => row.id)
+  );
 
   const imagesByProduct = new Map<number, CatalogImage[]>();
-  for (const { productId, ...image } of imageRows) {
+  for (const {
+    productId,
+    cloudinaryId,
+    focalPointX,
+    focalPointY,
+    provenance,
+    verifiedAt,
+    blurDataUrl,
+    alt,
+  } of imageRows) {
+    const image = {
+      cloudinaryId,
+      focalPointX,
+      focalPointY,
+      provenance,
+      verifiedAt,
+      blurDataUrl,
+      alt,
+    };
     const list = imagesByProduct.get(productId) ?? [];
     list.push(image);
     imagesByProduct.set(productId, list);

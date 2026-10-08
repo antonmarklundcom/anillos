@@ -5,6 +5,10 @@ import { validationFailure } from "@/lib/admin-validation";
 import { assertGs } from "@/lib/money";
 import { getDb } from "@/db";
 import {
+  readProductImages,
+  insertProductImageCompatible,
+} from "@/db/product-image-compat";
+import {
   categories,
   productImages,
   products,
@@ -272,11 +276,7 @@ export async function getAdminProduct(productId: number, executor?: Executor) {
     .where(eq(variants.productId, productId))
     .orderBy(asc(variants.position), asc(variants.id));
 
-  const images = await tx
-    .select()
-    .from(productImages)
-    .where(eq(productImages.productId, productId))
-    .orderBy(asc(productImages.position));
+  const images = await readProductImages(tx, [productId]);
 
   // La disponibilidad real es on_hand menos lo reservado: el dueño necesita
   // ver las dos cifras, porque "hay 3" y "puedo vender 1" son distintas.
@@ -807,7 +807,7 @@ export async function addProductImage(
     .from(productImages)
     .where(eq(productImages.productId, input.productId));
 
-  await tx.insert(productImages).values({
+  await insertProductImageCompatible(tx, {
     productId: input.productId,
     cloudinaryId: input.cloudinaryId,
     alt: input.alt,
@@ -834,7 +834,11 @@ export async function updateProductImageDetails(input: {
       eq(productImages.productId, input.productId)
     );
     const [current] = await tx
-      .select()
+      .select({
+        id: productImages.id,
+        provenance: productImages.provenance,
+        verifiedAt: productImages.verifiedAt,
+      })
       .from(productImages)
       .where(condition)
       .for("update");

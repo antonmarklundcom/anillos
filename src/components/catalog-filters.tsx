@@ -74,6 +74,16 @@ export function CatalogFilters({
       options: facets?.material ?? [],
     },
     { key: "piedra", label: "Piedra verificada", options: facets?.stone ?? [] },
+    {
+      key: "forma",
+      label: "Forma de piedra verificada",
+      options: facets?.stoneShape ?? [],
+    },
+    {
+      key: "ancho",
+      label: "Ancho verificado (mm)",
+      options: facets?.widthMm ?? [],
+    },
     { key: "unidad", label: "Unidad incluida", options: facets?.unit ?? [] },
   ];
   const facetLabel = (key: string, value: string) =>

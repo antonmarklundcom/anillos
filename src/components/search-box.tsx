@@ -27,10 +27,24 @@ const DEBOUNCE_MS = 250;
  * con el `action`.
  */
 export function SearchBox({ className }: { className?: string }) {
-  const router = useRouter();
   const params = useSearchParams();
-  const [term, setTerm] = useState(params.get("q") ?? "");
-  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const query = params.get("q") ?? "";
+  return <SearchInput key={query} initialTerm={query} className={className} />;
+}
+
+function SearchInput({
+  initialTerm,
+  className,
+}: {
+  initialTerm: string;
+  className?: string;
+}) {
+  const router = useRouter();
+  const [term, setTerm] = useState(initialTerm);
+  const [response, setResponse] = useState<{
+    term: string;
+    rows: SearchSuggestion[];
+  }>({ term: "", rows: [] });
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
   const listId = useId();
@@ -38,6 +52,7 @@ export function SearchBox({ className }: { className?: string }) {
 
   const cleaned = term.trim();
   const buscable = cleaned.length >= 2;
+  const suggestions = response.term === cleaned ? response.rows : [];
 
   useEffect(() => {
     /*
@@ -54,9 +69,11 @@ export function SearchBox({ className }: { className?: string }) {
     */
     let cancelado = false;
     const timer = setTimeout(async () => {
-      const rows = buscable ? await sugerirProductos(cleaned) : [];
+      const rows = buscable
+        ? await sugerirProductos(cleaned).catch(() => [])
+        : [];
       if (cancelado) return;
-      setSuggestions(rows);
+      setResponse({ term: cleaned, rows });
       setHighlighted(-1);
     }, DEBOUNCE_MS);
 
@@ -104,7 +121,7 @@ export function SearchBox({ className }: { className?: string }) {
           event.preventDefault();
           // Con una sugerencia marcada con las flechas, Enter va a esa ficha:
           // es lo que la persona está mirando.
-          if (highlighted >= 0 && suggestions[highlighted]) {
+          if (visibles && highlighted >= 0 && suggestions[highlighted]) {
             irA(suggestions[highlighted]!.slug);
             return;
           }
@@ -119,6 +136,7 @@ export function SearchBox({ className }: { className?: string }) {
             value={term}
             onChange={(event) => {
               setTerm(event.target.value);
+              setHighlighted(-1);
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
@@ -144,7 +162,9 @@ export function SearchBox({ className }: { className?: string }) {
             aria-controls={listId}
             aria-autocomplete="list"
             aria-activedescendant={
-              highlighted >= 0 ? `${listId}-${highlighted}` : undefined
+              visibles && highlighted >= 0
+                ? `${listId}-${highlighted}`
+                : undefined
             }
             autoComplete="off"
             className="pl-9"
@@ -164,12 +184,9 @@ export function SearchBox({ className }: { className?: string }) {
                     id={`${listId}-${index}`}
                     role="option"
                     aria-selected={index === highlighted}
-                    // `onMouseDown` y no `onClick`: el blur del input dispara
-                    // antes que el click y cerraría la lista debajo del dedo.
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      irA(item.slug);
-                    }}
+                    // Keep input focus on pointer-down; native click also supports keyboards.
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => irA(item.slug)}
                     onMouseEnter={() => setHighlighted(index)}
                     className={`hover:bg-muted flex w-full flex-col items-start px-3 py-2 text-left text-sm ${
                       index === highlighted ? "bg-muted" : ""
@@ -187,10 +204,8 @@ export function SearchBox({ className }: { className?: string }) {
               <li className="border-border border-t">
                 <button
                   type="button"
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    buscar(term);
-                  }}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => buscar(term)}
                   className="hover:bg-muted text-muted-foreground w-full px-3 py-2 text-left text-xs"
                 >
                   {t("header.buscar.verTodos", { termino: cleaned })}

@@ -30,6 +30,8 @@ describe.skipIf(!hasTestDb)("verified catalogue facets", () => {
       specifications: {
         material?: string;
         stone?: string;
+        stoneShape?: string;
+        widthMm?: number;
         unit?: "individual" | "pair";
         verifiedAt?: string;
       },
@@ -51,15 +53,25 @@ describe.skipIf(!hasTestDb)("verified catalogue facets", () => {
     const verified = await fixture({
       material: "Plata 925",
       stone: "Circonia",
+      stoneShape: "Oval",
+      widthMm: 2.5,
       unit: "pair",
       verifiedAt: timestamp,
     });
     verifiedId = verified.id;
-    await fixture({ material: "Plata 925", stone: "Circonia", unit: "pair" });
+    await fixture({
+      material: "Plata 925",
+      stone: "Circonia",
+      stoneShape: "Oval",
+      widthMm: 2.5,
+      unit: "pair",
+    });
     await fixture(
       {
         material: "Plata 925",
         stone: "Circonia",
+        stoneShape: "Oval",
+        widthMm: 2.5,
         unit: "pair",
         verifiedAt: timestamp,
       },
@@ -171,12 +183,25 @@ describe.skipIf(!hasTestDb)("verified catalogue facets", () => {
       { value: "Plata 925", total: 1 },
     ]);
     expect(facets.stone).toEqual([{ value: "Circonia", total: 1 }]);
+    expect(facets.stoneShape).toEqual([{ value: "Oval", total: 1 }]);
+    expect(facets.widthMm).toEqual([{ value: "2.5", total: 1 }]);
     expect(facets.unit).toEqual([
       { value: "individual", total: 2 },
       { value: "pair", total: 1 },
     ]);
   });
   it("combines verified filters, keeps counts/pagination consistent, and safely returns no unknown values", async () => {
+    const dimensions = await getCategoryProducts({
+      categorySlug,
+      stoneShape: "oval",
+      widthMm: "2.50",
+    });
+    expect(dimensions.products.map((product) => product.id)).toEqual([
+      verifiedId,
+    ]);
+    expect(
+      (await getCategoryProducts({ categorySlug, stoneShape: "unknown" })).total
+    ).toBe(0);
     const result = await getCategoryProducts({
       categorySlug,
       material: "Plata 925",

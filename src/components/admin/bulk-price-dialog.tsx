@@ -22,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { formatGs } from "@/lib/money";
 import { TESTIDS } from "@/lib/testids";
 import { t, tPlural } from "@/i18n";
+import { previewSalesPriceFloors } from "@/app/actions/admin-sales-price-floors";
+import type { PriceFloorPreview } from "@/domain/sales-price-floors";
 
 type Preview = {
   cambiadas: number;
@@ -55,12 +57,16 @@ export function BulkPriceDialog({
   const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [floors, setFloors] = useState<PriceFloorPreview | null>(null);
+  const [floorError, setFloorError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const reset = (): void => {
     setStep("form");
     setPreview(null);
     setError(null);
+    setFloors(null);
+    setFloorError(null);
     setReason("");
   };
 
@@ -82,6 +88,18 @@ export function BulkPriceDialog({
         return;
       }
       setPreview(result);
+      const floorResult = await previewSalesPriceFloors({
+        productIds,
+        percent: percentNum,
+        roundTo: Number(roundTo),
+      });
+      if (floorResult.ok) {
+        setFloors(floorResult.result);
+        setFloorError(null);
+      } else {
+        setFloors(null);
+        setFloorError(floorResult.error);
+      }
       setStep("confirmar");
     });
   };
@@ -100,9 +118,12 @@ export function BulkPriceDialog({
         return;
       }
       toast.success(
-        `${tPlural("panel.masivo.precios.aplicado", result.cambiadas)} ${t("panel.masivo.precios.diferencia", {
-          monto: formatGs(result.diferenciaPyg),
-        })}`,
+        `${tPlural("panel.masivo.precios.aplicado", result.cambiadas)} ${t(
+          "panel.masivo.precios.diferencia",
+          {
+            monto: formatGs(result.diferenciaPyg),
+          }
+        )}`
       );
       setOpen(false);
       reset();
@@ -119,18 +140,28 @@ export function BulkPriceDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button type="button" size="sm" variant="outline" data-testid={TESTIDS.adminBulkPriceOpen}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          data-testid={TESTIDS.adminBulkPriceOpen}
+        >
           {t("panel.masivo.ajustarPrecios")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("panel.masivo.precios.titulo")}</DialogTitle>
-          <DialogDescription>{t("panel.masivo.precios.bajada")}</DialogDescription>
+          <DialogDescription>
+            {t("panel.masivo.precios.bajada")}
+          </DialogDescription>
         </DialogHeader>
 
         {error ? (
-          <p role="alert" className="border-destructive/40 text-destructive rounded-lg border p-2 text-sm">
+          <p
+            role="alert"
+            className="border-destructive/40 text-destructive rounded-lg border p-2 text-sm"
+          >
             {error}
           </p>
         ) : null}
@@ -138,7 +169,9 @@ export function BulkPriceDialog({
         {step === "form" ? (
           <div className="grid gap-3">
             <div className="grid gap-1.5">
-              <Label htmlFor="bulk-percent">{t("panel.masivo.precios.porcentaje")}</Label>
+              <Label htmlFor="bulk-percent">
+                {t("panel.masivo.precios.porcentaje")}
+              </Label>
               <Input
                 id="bulk-percent"
                 type="number"
@@ -149,20 +182,30 @@ export function BulkPriceDialog({
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="bulk-round">{t("panel.masivo.precios.redondeo")}</Label>
+              <Label htmlFor="bulk-round">
+                {t("panel.masivo.precios.redondeo")}
+              </Label>
               <select
                 id="bulk-round"
                 data-testid={TESTIDS.adminBulkPriceRound}
                 value={roundTo}
-                onChange={(event) => setRoundTo(event.target.value as "100" | "1000")}
+                onChange={(event) =>
+                  setRoundTo(event.target.value as "100" | "1000")
+                }
                 className="border-input bg-background h-9 rounded-md border px-3 text-sm"
               >
-                <option value="100">{t("panel.masivo.precios.redondeo100")}</option>
-                <option value="1000">{t("panel.masivo.precios.redondeo1000")}</option>
+                <option value="100">
+                  {t("panel.masivo.precios.redondeo100")}
+                </option>
+                <option value="1000">
+                  {t("panel.masivo.precios.redondeo1000")}
+                </option>
               </select>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="bulk-reason">{t("panel.masivo.precios.motivo")}</Label>
+              <Label htmlFor="bulk-reason">
+                {t("panel.masivo.precios.motivo")}
+              </Label>
               <Input
                 id="bulk-reason"
                 data-testid={TESTIDS.adminBulkPriceReason}
@@ -180,12 +223,56 @@ export function BulkPriceDialog({
                 disabled={isPending || reason.trim().length < 5}
                 onClick={runPreview}
               >
-                {isPending ? t("panel.masivo.precios.calculando") : t("panel.masivo.precios.verVistaPrevia")}
+                {isPending
+                  ? t("panel.masivo.precios.calculando")
+                  : t("panel.masivo.precios.verVistaPrevia")}
               </Button>
             </DialogFooter>
           </div>
         ) : preview ? (
           <div className="grid gap-3">
+            {floorError ? (
+              <p role="status" className="text-muted-foreground text-sm">
+                {floorError} Revisá los costos antes de aplicar.
+              </p>
+            ) : null}
+            {floors ? (
+              <aside className="border-border rounded-lg border p-3 text-sm">
+                <p className="font-medium">
+                  Piso de costos y contribución objetivo
+                </p>
+                <p>
+                  {floors.evaluated} variantes evaluadas; {floors.unknown} sin
+                  costos o unidad confirmados.
+                </p>
+                {floors.below.length ? (
+                  <>
+                    <p role="alert" className="text-destructive mt-2">
+                      {floors.below.length} variantes quedarían bajo el piso
+                      registrado.
+                    </p>
+                    <ul className="mt-2 grid gap-1 text-xs">
+                      {floors.below.slice(0, 8).map((row) => (
+                        <li key={row.variantId}>
+                          {row.name} · #{row.variantId}:{" "}
+                          {formatGs(row.proposedPyg)} frente a piso{" "}
+                          {formatGs(row.floorPyg)}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground mt-2">
+                    No se detectaron valores bajo el piso entre las variantes
+                    evaluadas.
+                  </p>
+                )}
+                <p className="text-muted-foreground mt-2 text-xs">
+                  Control orientativo de costos cargados por el propietario. No
+                  calcula beneficio neto ni confirma precios con el proveedor.
+                </p>
+              </aside>
+            ) : null}
             <p className="text-sm font-medium">
               {t("panel.masivo.precios.vistaPrevia", {
                 miradas: preview.miradas,
@@ -193,7 +280,9 @@ export function BulkPriceDialog({
               })}
             </p>
             {preview.ejemplos.length === 0 ? (
-              <p className="text-muted-foreground text-sm">{t("panel.masivo.precios.sinCambios")}</p>
+              <p className="text-muted-foreground text-sm">
+                {t("panel.masivo.precios.sinCambios")}
+              </p>
             ) : (
               <ul className="text-muted-foreground grid gap-1 text-xs tabular-nums">
                 {preview.ejemplos.map((ejemplo) => (
@@ -210,12 +299,17 @@ export function BulkPriceDialog({
 
             {preview.cambiadas > 0 ? (
               <div className="border-border bg-muted/40 grid gap-2 rounded-lg border p-3 text-sm">
-                <p className="font-medium">{t("panel.masivo.precios.confirmarTitulo")}</p>
+                <p className="font-medium">
+                  {t("panel.masivo.precios.confirmarTitulo")}
+                </p>
                 <p className="text-muted-foreground text-xs">
                   {t("panel.masivo.precios.confirmarBajada", {
                     cambiadas: preview.cambiadas,
                     porcentaje: percent,
-                    redondeo: roundTo === "100" ? t("panel.masivo.precios.redondeo100") : t("panel.masivo.precios.redondeo1000"),
+                    redondeo:
+                      roundTo === "100"
+                        ? t("panel.masivo.precios.redondeo100")
+                        : t("panel.masivo.precios.redondeo1000"),
                     motivo: reason,
                   })}
                 </p>
@@ -223,7 +317,12 @@ export function BulkPriceDialog({
             ) : null}
 
             <DialogFooter>
-              <Button type="button" variant="outline" disabled={isPending} onClick={() => setStep("form")}>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+                onClick={() => setStep("form")}
+              >
                 {t("panel.acciones.volver")}
               </Button>
               {preview.cambiadas > 0 ? (
@@ -234,7 +333,9 @@ export function BulkPriceDialog({
                   disabled={isPending}
                   onClick={confirmar}
                 >
-                  {isPending ? t("panel.acciones.guardando") : t("panel.masivo.precios.confirmarBoton")}
+                  {isPending
+                    ? t("panel.acciones.guardando")
+                    : t("panel.masivo.precios.confirmarBoton")}
                 </Button>
               ) : null}
             </DialogFooter>

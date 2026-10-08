@@ -7,7 +7,6 @@
  * caerse porque el comercio todavía no cargó las credenciales.
  */
 
-
 /** Lo registra `src/lib/integraciones.ts` al cargarse (ver `cloudName`). */
 const LECTOR_CLOUD_NAME = Symbol.for("ecom.integraciones.cloudName");
 
@@ -24,7 +23,9 @@ const LECTOR_CLOUD_NAME = Symbol.for("ecom.integraciones.cloudName");
  * ni entorno y da `null`, como siempre.
  */
 function cloudName(): string | null {
-  const lector = (globalThis as { [LECTOR_CLOUD_NAME]?: () => string | null })[LECTOR_CLOUD_NAME];
+  const lector = (globalThis as { [LECTOR_CLOUD_NAME]?: () => string | null })[
+    LECTOR_CLOUD_NAME
+  ];
   if (lector) return lector();
   if (typeof process === "undefined") return null;
   return (process.env.CLOUDINARY_CLOUD_NAME ?? "").trim() || null;
@@ -33,7 +34,16 @@ function cloudName(): string | null {
 /** Transformaciones por defecto: formato y calidad los decide Cloudinary. */
 const DEFAULT_TRANSFORMS = "f_auto,q_auto";
 
-export type ImageSize = "thumb" | "card" | "detail" | "og" | "hero" | "qr" | "logo" | "favicon";
+export type ImageSize =
+  | "thumb"
+  | "card"
+  | "card-fit"
+  | "detail"
+  | "og"
+  | "hero"
+  | "qr"
+  | "logo"
+  | "favicon";
 
 /**
  * 1200×630 es la caja que esperan WhatsApp, Instagram y Facebook. `c_fill` y
@@ -46,6 +56,7 @@ export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 const SIZE_TRANSFORMS: Record<ImageSize, string> = {
   thumb: "c_fill,w_160,h_160",
   card: "c_fill,w_600,h_600",
+  "card-fit": "c_fit,w_600,h_600",
   detail: "c_fit,w_1200,h_1200",
   og: `c_fill,w_${OG_IMAGE_SIZE.width},h_${OG_IMAGE_SIZE.height}`,
   /**
@@ -105,7 +116,9 @@ const CATEGORY_PLACEHOLDERS = new Set([
 
 /** `categoryPlaceholderSrc("moda")` → `/placeholders/moda.svg`. */
 export function categoryPlaceholderSrc(categorySlug: string): string {
-  const slug = CATEGORY_PLACEHOLDERS.has(categorySlug) ? categorySlug : "generico";
+  const slug = CATEGORY_PLACEHOLDERS.has(categorySlug)
+    ? categorySlug
+    : "generico";
   return `/placeholders/${slug}.svg`;
 }
 
@@ -116,6 +129,8 @@ export function categoryPlaceholderSrc(categorySlug: string): string {
  * función propia para que quien la lee no tenga que acordarse de pasar el
  * tamaño correcto, que en un QR no es cosmético (ver arriba).
  */
-export function bankQrUrl(cloudinaryId: string | null | undefined): string | null {
+export function bankQrUrl(
+  cloudinaryId: string | null | undefined
+): string | null {
   return productImageUrl(cloudinaryId, "qr");
 }

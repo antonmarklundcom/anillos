@@ -2,7 +2,7 @@
 
 Code review/merge and commercial launch are separate decisions. The owner authorized a conflict-free PR and merge for the site fixes. Selling real products still requires the business, supplier and operational checks below.
 
-As of 7 October 2026, Anton confirms PR #14 is merged/live and migrations `0023`/`0024` are applied. The current request authorizes an unmerged code PR only. Demand-test actions, evidence and private cron/rotation steps are in [DEMAND-TEST-REVIEW-2026-10.md](DEMAND-TEST-REVIEW-2026-10.md). Do not repeat production setup, migrations or seeds. Pause payment methods explicitly in admin; code defaults do not override saved settings.
+As of 7 October 2026, Anton confirms PR #14 is merged/live and migrations `0023`/`0024` are applied. Anton later authorised preparing and merging PRs #16–#18; see [merge readiness](MERGE-READINESS-2026-10.md). Production database and hosting actions remain separate. Demand-test actions, evidence and private cron/rotation steps are in [DEMAND-TEST-REVIEW-2026-10.md](DEMAND-TEST-REVIEW-2026-10.md). Do not repeat production setup, migrations or seeds. Pause payment methods explicitly in admin; code defaults do not override saved settings.
 
 - Confirm the operator's legal/business identity, business WhatsApp/email, address and hours that will actually be published. Leave absent details unset.
 - Agree supplier specifications, wholesale costs, material verification, photographs, manufacturing/dispatch responsibility, permitted sizes and truthful fulfilment conditions. Do not publish concept fixtures as real goods.

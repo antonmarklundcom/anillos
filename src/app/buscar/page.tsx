@@ -8,7 +8,12 @@ import { CatalogUnavailable } from "@/components/catalog-unavailable";
 import { log } from "@/lib/log";
 import { getStoreSettings } from "@/domain/store-settings";
 import { t, tPlural } from "@/i18n";
-import { matchingRingInformation, searchStoreProducts } from "@/store/search";
+import {
+  matchingRingInformation,
+  searchStoreProducts,
+  ringSearchSuggestions,
+} from "@/store/search";
+import { SearchGapCounter } from "@/components/search-gap-counter";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +36,11 @@ export default async function SearchPage({
   let unavailable = false;
   const results =
     term.length >= 2
-      ? await searchStoreProducts(term).catch((error) => {
-          log.error("store.search.unavailable", { error });
+      ? await searchStoreProducts(term).catch(() => {
+          // Database errors can carry bound search text; keep this event anonymous.
+          log.error("store.search.unavailable", {
+            reason: "catalogue-read-failed",
+          });
           unavailable = true;
           return [];
         })
@@ -40,6 +48,30 @@ export default async function SearchPage({
   const categories = results.length === 0 ? await getStoreCategories() : [];
   const information = matchingRingInformation(term, categories);
   const { vidriera } = await getStoreSettings();
+  const suggestions = ringSearchSuggestions(term);
+  const normalized = term
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  const intent = /\bacero\b/.test(normalized)
+    ? "steel"
+    : /\bplata\b/.test(normalized)
+      ? "silver"
+      : /\boro\b/.test(normalized)
+        ? "gold"
+        : /\b(alianzas?|bodas?|casamiento)\b/.test(normalized)
+          ? "wedding"
+          : /\bcompromiso\b/.test(normalized)
+            ? "engagement"
+            : /\bpromesa\b/.test(normalized)
+              ? "promise"
+              : /\bsolitario\b/.test(normalized)
+                ? "solitaire"
+                : /\bhombres?\b/.test(normalized)
+                  ? "men"
+                  : /\b(talles?|tallas?|medidas?)\b/.test(normalized)
+                    ? "sizing"
+                    : "other";
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8">
@@ -101,11 +133,21 @@ export default async function SearchPage({
         </div>
       ) : term.length >= 2 ? (
         <div className="border-border mt-8 rounded-xl border border-dashed p-10 text-center">
+          {term.length <= 160 ? (
+            <SearchGapCounter key={intent} intent={intent} />
+          ) : null}
           <p className="font-medium">{t("buscar.nada", { termino: term })}</p>
           <p className="text-muted-foreground mt-1 text-sm">
             {t("buscar.nada.ayuda")}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {suggestions.map((suggestion) => (
+              <Button key={suggestion} asChild variant="outline" size="sm">
+                <Link href={`/buscar?q=${encodeURIComponent(suggestion)}`}>
+                  Probar “{suggestion}”
+                </Link>
+              </Button>
+            ))}
             {categories.map((category) => (
               <Button key={category.slug} asChild variant="outline" size="sm">
                 <Link href={`/categoria/${category.slug}`}>
