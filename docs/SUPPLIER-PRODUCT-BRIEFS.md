@@ -4,6 +4,8 @@ Investigación pública revisada el **6 de octubre de 2026**. Son candidatos de 
 
 ## Programas y límites
 
+Actualización del 7 de octubre: [SUPPLIER-CATALOGUE-BATCH-2026-10.md](SUPPLIER-CATALOGUE-BATCH-2026-10.md) prepara las doce referencias y registra los huecos por intención KWP. GA5025P devolvió 404 directamente; GA6220 tiene descripciones indexadas de circón y moissanita que requieren resolver identidad. El nuevo [piloto](SUPPLIER-IMAGE-PILOT-2026-10.md) usa AJ440, con AJ19 en espera por imagen incompleta, a 2K/nivel medio y con cotización propia. La propuesta 4K/máxima de abajo es histórica: no autoriza gasto ni sustituye la cotización nueva. No se generaron imágenes específicas.
+
 - **Asunción Joyas:** declara taller propio para alianzas y solitarios de oro 18K. Su programa de reventa de plata y acero comienza en G. 300.000; anuncia descuentos según franjas de precios minoristas. Esto no acredita precio mayorista de oro, permiso de imágenes ni acuerdo de fabricación para Anillos. [Programa y taller](https://asuncionjoyas.com.py/sobre-nosotros/).
 - **Majestic:** la categoría pública mostraba 140 anillos. El programa incluye una opción de inversión de G. 500.000 y descuentos de hasta 30%, sujetos a cuenta y condiciones; no asumir un descuento uniforme o mínimo universal. [Categoría](https://majestic.com.py/categorias/joyas/anillos/), [Mayoristas](https://majestic.com.py/se-mayorista/).
 - **G&A, Luque:** referencias de fabricación y venta minorista; no se verificó programa de reventa. Solicitar primero viabilidad comercial, factura, precio para revendedor y permiso de fotos. Sus servicios y políticas no se transfieren a nuestra tienda.

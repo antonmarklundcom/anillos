@@ -16,6 +16,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "nueva-tienda": "tsx scripts/nueva-tienda.ts",
     "importar:productos": "tsx scripts/importar-productos.ts",
+    "catalogue:prepare": "tsx scripts/prepare-supplier-catalogue.ts",
     "demo": "tsx scripts/demo.ts",
     "db:studio": "drizzle-kit studio",
     "db:check": "tsx scripts/db-check.ts",

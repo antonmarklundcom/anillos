@@ -6,6 +6,8 @@ Current status (7 October): PRs #13 and #14 are merged; Anton confirms `0023` an
 
 ## What the store gains
 
+The separate [supplier catalogue batch](SUPPLIER-CATALOGUE-BATCH-2026-10.md) depends on PR #15, expands the prepared CSV to twelve unpublished research rows, maps their exact references to KWP destinations, and prepares an image pilot. It adds no schema or production data change. Product-specific AI imagery remains pending; local concepts are not real inventory.
+
 - Public WhatsApp fallback: **+595 992 279599**, confirmed by the owner. Saved public contact/integration configuration retains precedence. Internal order-alert recipients still require their own private integration configuration.
 - Anillos starts with **bank transfer only**. Explicit owner payment settings override deployment policy and the store profile. Missing or unreadable bank prerequisites prevent transfer checkout; no ueno recipient, account or identity was invented. Enter the actual details in `/admin/banco` and review `/admin/ajustes#checkout`.
 - Product and category SEO title/description editors; validated optional CSV columns; private supplier reference/source/image provenance fields; separately verified material, purity, stone, unit and size facts.

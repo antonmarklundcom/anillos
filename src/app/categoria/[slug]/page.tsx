@@ -18,6 +18,7 @@ import { Suspense, cache } from "react";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { CatalogUnavailable } from "@/components/catalog-unavailable";
 import { ProductCard } from "@/components/product-card";
+import { CatalogueChoices } from "@/components/catalogue-choices";
 import { EditorialImage } from "@/components/editorial-image";
 import { ProductDescription } from "@/components/product-description";
 import { Button } from "@/components/ui/button";
@@ -433,6 +434,7 @@ export default async function CategoryPage({
         </div>
       ) : null}
 
+      <CatalogueChoices slug={slug} />
       <section
         id="modelos"
         className="category-models"

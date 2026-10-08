@@ -1,0 +1,150 @@
+.catalogue-choices {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 42px;
+  border-top: 1px solid var(--border);
+  padding: 42px 0 52px;
+  margin-top: 28px;
+}
+.catalogue-choices-heading h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(28px, 2.7vw, 38px);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  margin: 14px 0;
+}
+.catalogue-choices-heading > p:last-child,
+.catalogue-choice p {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.75;
+}
+.catalogue-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.catalogue-choice {
+  background: color-mix(in srgb, var(--muted) 55%, var(--background));
+  border: 1px solid var(--border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.catalogue-choice-number {
+  font-family: Georgia, serif;
+  font-size: 27px;
+  color: var(--muted-foreground);
+}
+.catalogue-choice h3 {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 18px 0 10px;
+  line-height: 1.4;
+}
+.catalogue-choice-check {
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+  padding-top: 16px;
+}
+.catalogue-choice-check span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.catalogue-choice a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: auto;
+  text-underline-offset: 4px;
+}
+.catalogue-choice a:hover {
+  text-decoration: underline;
+}
+.product-enquiry-brief {
+  margin: 52px 0;
+  padding: 32px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--muted) 55%, var(--background));
+}
+.product-enquiry-brief h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(28px, 3vw, 36px);
+  letter-spacing: -0.03em;
+  margin: 12px 0 26px;
+}
+.product-enquiry-brief ol {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+.product-enquiry-brief li {
+  display: flex;
+  gap: 14px;
+}
+.product-enquiry-brief li > span {
+  color: var(--muted-foreground);
+  font-family: Georgia, serif;
+  font-size: 21px;
+}
+.product-enquiry-brief strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.product-enquiry-brief li p,
+.product-enquiry-note {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.8;
+  margin-top: 6px;
+}
+.product-enquiry-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  padding: 13px 18px;
+  margin-top: 26px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 12px;
+  min-height: 44px;
+}
+.product-enquiry-link:hover {
+  opacity: 0.85;
+}
+@media (max-width: 950px) {
+  .catalogue-choices {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .catalogue-choices-heading {
+    max-width: 560px;
+  }
+}
+@media (max-width: 600px) {
+  .catalogue-choice-grid {
+    grid-template-columns: 1fr;
+  }
+  .catalogue-choice {
+    padding: 22px;
+  }
+  .catalogue-choices {
+    padding: 30px 0;
+  }
+  .product-enquiry-brief {
+    padding: 24px 20px;
+    margin: 32px 0;
+  }
+  .product-enquiry-brief ol {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
