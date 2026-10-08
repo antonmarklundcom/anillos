@@ -1,6 +1,6 @@
 # WhatsApp operations verification
 
-Verified locally on 7 October 2026, Asunción time. The batch is based on PR #17 (`6ef1f6d`), which depends on #16; #15 is already merged and is preserved. This report concerns code and disposable local fixtures, not production availability or real supplier agreements.
+Verified locally on 7 October 2026, Asunción time. [Draft PR #18](https://github.com/antonmarklundcom/anillos/pull/18) is based on PR #17 (`6ef1f6d`), which depends on #16; #15 is already merged and is preserved. This report concerns code and disposable local fixtures, not production availability or real supplier agreements.
 
 ## Completed scope
 
