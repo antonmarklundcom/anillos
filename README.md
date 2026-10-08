@@ -32,6 +32,7 @@ La capa de presentación vive en `src/config/ring-store.ts`, `src/content/guides
 
 ## Documentación
 
+- [Guía del dueño: negocio, proveedores, ventas, administración y datos](docs/OWNER-OPERATING-GUIDE.md)
 - [Implementación y separación de datos](docs/STORE-IMPLEMENTATION.md)
 - [Verificación, skips y preview](docs/VERIFICATION.md)
 - [Animación del anillo, categorías y diagnóstico](docs/RING-SCROLL-AUDIT.md)

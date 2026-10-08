@@ -14,6 +14,31 @@ afterEach(() => {
   localStorage.clear();
 });
 
+it("drops a reserved concept from priced legacy history and never records it again", async () => {
+  const key = `${CART_STORAGE_KEY}-vistos`;
+  const item = {
+    slug: "concepto-antiguo",
+    name: "Diseño antiguo · concepto",
+    pricePyg: 120000,
+    imageCloudinaryId: null,
+    imageAlt: null,
+  };
+  localStorage.setItem(
+    key,
+    JSON.stringify([
+      item,
+      { ...item, slug: "modelo-real", name: "Modelo real" },
+    ])
+  );
+  render(<RecentlyViewed current={{ ...item, slug: "concepto-actual" }} />);
+  await waitFor(() =>
+    expect(screen.getByText("Modelo real")).toBeInTheDocument()
+  );
+  expect(screen.queryByText("Diseño antiguo · concepto")).toBeNull();
+  expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(1);
+  expect(JSON.parse(localStorage.getItem(key)!)[0].slug).toBe("modelo-real");
+});
+
 it("keeps image-specific history disclosures and persists the current photo evidence", async () => {
   const key = `${CART_STORAGE_KEY}-vistos`;
   const base = {

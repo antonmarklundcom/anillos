@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: string[] = [
     ...(await paginasActivas()).map((pagina) => pagina.slug),
     "colecciones",
+    "elegir",
     "guias",
     "contacto",
     "como-funciona",

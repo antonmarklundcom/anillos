@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { EnquiryComposer } from "@/components/enquiry-composer";
+import type { EnquiryProduct } from "@/store/enquiry-draft";
 
 export function ProductEnquiryBrief({
   categorySlug,
   href,
+  product,
 }: {
   categorySlug: string;
   href: string | null;
+  product?: EnquiryProduct;
 }) {
   const pair = ["alianzas", "alianzas-plata", "alianzas-oro"].includes(
     categorySlug
@@ -17,7 +21,7 @@ export function ProductEnquiryBrief({
       data-testid="product-enquiry-brief"
     >
       <p className="eyebrow">De la idea a una pieza real</p>
-      <h2 id="enquiry-brief-heading">Tu consulta, en tres datos</h2>
+      <h2 id="enquiry-brief-heading">Prepará tu consulta</h2>
       <ol>
         <li>
           <span>01</span>
@@ -53,7 +57,13 @@ export function ProductEnquiryBrief({
           </div>
         </li>
       </ol>
-      {href ? (
+      {product ? (
+        <EnquiryComposer
+          products={[product]}
+          whatsappHref={href}
+          draftKey={product.slug}
+        />
+      ) : href ? (
         <a
           href={href}
           target="_blank"

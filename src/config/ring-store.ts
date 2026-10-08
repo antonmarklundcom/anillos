@@ -105,7 +105,7 @@ export const COLLECTIONS = [
 export const CONCEPTS = [
   {
     slug: "concepto-banda-acero",
-    name: "Banda satinada · concepto",
+    name: "Banda satinada",
     category: "acero",
     image: "steel",
     description:
@@ -113,7 +113,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-onda-plata",
-    name: "Onda de plata · concepto",
+    name: "Onda de plata",
     category: "plata-925",
     image: "silver",
     description:
@@ -121,7 +121,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-par-plata",
-    name: "Par de alianzas lisas · concepto",
+    name: "Par de alianzas lisas",
     category: "alianzas-plata",
     image: "pair",
     description:
@@ -129,7 +129,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-par-oro",
-    name: "Par de alianzas doradas · concepto",
+    name: "Par de alianzas doradas",
     category: "alianzas-oro",
     image: "gold-pair",
     description:
@@ -137,7 +137,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-solitario",
-    name: "Solitario delicado · concepto",
+    name: "Solitario delicado",
     category: "compromiso",
     image: "engagement",
     description:
@@ -145,7 +145,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-banda-lisa",
-    name: "Banda lisa · concepto",
+    name: "Banda lisa",
     category: "acero",
     image: "steel",
     description:
@@ -153,7 +153,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-banda-oscura",
-    name: "Banda de acabado oscuro · concepto",
+    name: "Banda de acabado oscuro",
     category: "acero",
     image: "steel",
     description:
@@ -161,7 +161,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-linea-minimal",
-    name: "Línea minimal · concepto",
+    name: "Línea minimal",
     category: "plata-925",
     image: "silver",
     description:
@@ -169,7 +169,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-anillo-entrelazado",
-    name: "Líneas entrelazadas · concepto",
+    name: "Líneas entrelazadas",
     category: "plata-925",
     image: "silver",
     description:
@@ -177,7 +177,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-alianzas-planas",
-    name: "Par de alianzas de perfil plano · concepto",
+    name: "Par de alianzas de perfil plano",
     category: "alianzas-plata",
     image: "pair",
     description:
@@ -185,7 +185,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-alianzas-redondeadas",
-    name: "Par de alianzas redondeadas · concepto",
+    name: "Par de alianzas redondeadas",
     category: "alianzas-oro",
     image: "gold-pair",
     description:
@@ -193,7 +193,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-solitario-perfil-bajo",
-    name: "Solitario de perfil bajo · concepto",
+    name: "Solitario de perfil bajo",
     category: "compromiso",
     image: "engagement",
     description:
@@ -201,7 +201,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-engaste-circular",
-    name: "Piedra central con contorno · concepto",
+    name: "Piedra central con contorno",
     category: "compromiso",
     image: "engagement",
     description:
@@ -209,7 +209,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-promesa-lisa",
-    name: "Banda de promesa · concepto",
+    name: "Banda de promesa",
     category: "promesa",
     image: "silver",
     description:
@@ -217,7 +217,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-promesa-infinito",
-    name: "Motivo infinito · concepto",
+    name: "Motivo infinito",
     category: "promesa",
     image: "silver",
     description:
@@ -225,7 +225,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-promesa-corazon",
-    name: "Motivo corazón · concepto",
+    name: "Motivo corazón",
     category: "promesa",
     image: "silver",
     description:
@@ -233,7 +233,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-solitario-clasico",
-    name: "Solitario clásico · concepto",
+    name: "Solitario clásico",
     category: "solitarios",
     image: "engagement",
     description:
@@ -241,7 +241,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-solitario-oval",
-    name: "Solitario oval · concepto",
+    name: "Solitario oval",
     category: "solitarios",
     image: "engagement",
     description:
@@ -249,7 +249,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-alianzas-clasicas",
-    name: "Par de alianzas clásicas · concepto",
+    name: "Par de alianzas clásicas",
     category: "alianzas",
     image: "pair",
     description:
@@ -257,7 +257,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-alianzas-contraste",
-    name: "Par de alianzas con contraste · concepto",
+    name: "Par de alianzas con contraste",
     category: "alianzas",
     image: "gold-pair",
     description:
@@ -265,7 +265,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-banda-dorada",
-    name: "Banda de apariencia dorada · concepto",
+    name: "Banda de apariencia dorada",
     category: "oro",
     image: "gold-pair",
     description:
@@ -273,7 +273,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-anillo-trenzado",
-    name: "Líneas trenzadas · concepto",
+    name: "Líneas trenzadas",
     category: "oro",
     image: "gold-pair",
     description:
@@ -281,7 +281,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-carreton-liso",
-    name: "Carretón de líneas simples · concepto",
+    name: "Carretón de líneas simples",
     category: "hombre",
     image: "steel",
     description:
@@ -289,7 +289,7 @@ export const CONCEPTS = [
   },
   {
     slug: "concepto-anillo-sello",
-    name: "Anillo de sello · concepto",
+    name: "Anillo de sello",
     category: "hombre",
     image: "steel",
     description:
@@ -305,4 +305,4 @@ export function collectionFor(slug: string) {
 }
 export { priceUnit } from "./ring-display";
 export const CONCEPT_NOTICE =
-  "Diseño ilustrativo / a pedido sujeto a confirmación. Imagen generada con IA: no es una foto de un producto real. Consultamos tu interés, sin confirmar proveedor, material, precio ni entrega. No se puede comprar ni reservar este concepto.";
+  "Imagen ilustrativa; material, disponibilidad, precio y entrega requieren confirmación, sin compra ni reserva.";

@@ -1,5 +1,6 @@
 import { productInquiryLinks } from "@/domain/product-inquiries";
 import { priceUnit, CONCEPT_NOTICE } from "@/config/ring-store";
+import { displayProductName } from "@/config/ring-display";
 import { isConceptProduct } from "@/lib/concept-products";
 import { ProductGallery } from "@/components/product-gallery";
 import { PRODUCT_PLACEHOLDERS } from "@/config/product-placeholders";
@@ -58,7 +59,18 @@ type Params = Promise<{ slug: string }>;
 const BLOQUE_COMPRA_ID = "comprar";
 
 /** `cache()` memoiza por request: metadata y página comparten una consulta. */
-const loadProduct = cache(async (slug: string) => getProductBySlug(slug));
+const loadProduct = cache(async (slug: string) => {
+  const product = await getProductBySlug(slug);
+  return product
+    ? {
+        ...product,
+        name: displayProductName(product.name, product.slug),
+        seoTitle: product.seoTitle
+          ? displayProductName(product.seoTitle, product.slug)
+          : null,
+      }
+    : null;
+});
 
 export async function generateMetadata({
   params,
@@ -506,6 +518,18 @@ export default async function ProductPage({
         <ProductEnquiryBrief
           categorySlug={product.categorySlug}
           href={briefHref}
+          product={
+            product.saleMode === "showcase"
+              ? undefined
+              : {
+                  slug: product.slug,
+                  name: product.name,
+                  categorySlug: product.categorySlug,
+                  concept: isConceptProduct(product.slug),
+                  url: productUrl,
+                  unit: specifications?.unit ?? null,
+                }
+          }
         />
       ) : null}
       <section

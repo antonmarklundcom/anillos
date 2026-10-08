@@ -17,6 +17,10 @@ describe("admin menu authorization and stored ordering", () => {
     expect(staff).toContain("productos");
     expect(staff).not.toContain("usuarios");
     expect(staff).not.toContain("guia");
+    expect(staff).not.toContain("ventas");
+    expect(getAdminNavigationItems("owner").map((item) => item.id)).toContain(
+      "ventas"
+    );
     expect(getAdminNavigationItems("owner").map((item) => item.id)).toContain(
       "guia"
     );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getComparisonCandidates, getProductsBySlugs } from "@/db/queries";
 import { ProductComparison } from "@/components/product-comparison";
+import { displayProductName } from "@/config/ring-display";
 import {
   comparisonSlugs,
   comparisonUrl,
@@ -88,7 +89,7 @@ export default async function ComparePage({
                     className="block rounded border p-4 hover:underline"
                     href={comparisonUrl([...selectedSlugs, product.slug])}
                   >
-                    {product.name}
+                    {displayProductName(product.name, product.slug)}
                   </Link>
                 </li>
               ))}

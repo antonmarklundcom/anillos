@@ -98,6 +98,87 @@ export function RingMeasurement() {
         Esto no determina un talle comercial. Confirmá el ajuste con un anillero
         y la tabla del proveedor. Para un par, medí cada dedo por separado.
       </p>
+      <details className="ring-measurement-print mt-6">
+        <summary className="cursor-pointer">
+          Guía para imprimir y medir un anillo
+        </summary>
+        <p className="mt-3">
+          Imprimí en tamaño real (100 %), sin ajustar a página. Verificá la
+          línea de 50 mm con una regla física antes de usar los círculos.
+        </p>
+        <button
+          type="button"
+          className="my-3 rounded border px-4 py-2"
+          onClick={() => window.print()}
+        >
+          Imprimir solo la guía
+        </button>
+        <section
+          className="ring-print-guide"
+          aria-label="Guía imprimible de medidas"
+        >
+          <h3>Medición orientativa de un anillo</h3>
+          <p>
+            Imprimí al 100 %, sin ajustar a página. Esta guía en pantalla no
+            tiene escala física.
+          </p>
+          <h4>1. Comprobá la escala</h4>
+          <div
+            className="ring-print-calibration"
+            aria-label="Línea de calibración de 50 milímetros"
+          />
+          <p>
+            La distancia entre las dos marcas debe medir exactamente 50 mm con
+            una regla física. Si no coincide, corregí la impresión y repetí; no
+            uses esta hoja.
+          </p>
+          <h4>2. Compará un anillo que ya te quede bien</h4>
+          <p>
+            Apoyalo sobre un círculo: el contorno debe coincidir con el borde
+            interior, sin incluir el metal. Si queda entre dos, anotá ambas
+            medidas y verificá el diámetro con una regla; no elijas un talle
+            redondeando.
+          </p>
+          <div className="ring-print-circles">
+            {Array.from({ length: 21 }, (_, index) => 13 + index * 0.5).map(
+              (diameter) => (
+                <div className="ring-print-circle-cell" key={diameter}>
+                  <svg
+                    width={`${diameter}mm`}
+                    height={`${diameter}mm`}
+                    viewBox={`0 0 ${diameter} ${diameter}`}
+                    aria-label={`Diámetro interior ${diameter} mm`}
+                  >
+                    <circle
+                      cx={diameter / 2}
+                      cy={diameter / 2}
+                      r={diameter / 2 - 0.1}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="0.2"
+                    />
+                  </svg>
+                  <span>{diameter.toLocaleString("es-PY")} mm</span>
+                </div>
+              )
+            )}
+          </div>
+          <h4>3. Anotá cada medida por separado</h4>
+          <p>
+            Persona / dedo 1: __________________ Diámetro interior: ______ mm
+          </p>
+          <p>
+            Persona / dedo 2 (para un par): ______________ Diámetro interior:
+            ______ mm
+          </p>
+          <p>
+            Repetí cada medición. Es una referencia geométrica: no determina un
+            talle comercial ni garantiza el ajuste. El ancho del anillo y las
+            variaciones del dedo influyen; confirmá con un anillero y la tabla
+            del proveedor antes de elegir.
+          </p>
+        </section>
+      </details>
     </section>
   );
 }

@@ -8,10 +8,13 @@ import { toast } from "sonner";
 import { getWishlistProducts } from "@/app/actions/wishlist";
 import { ProductCard, ProductCardSkeleton } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
+import { EnquiryComposer } from "@/components/enquiry-composer";
+import { displayProductName } from "@/config/ring-display";
+import { isConceptProduct } from "@/lib/concept-products";
+import { MAX_ENQUIRY_PRODUCTS } from "@/store/enquiry-draft";
 import type { CatalogProduct } from "@/db/queries";
 import { t } from "@/i18n/client";
 import { waShareLink } from "@/lib/py";
-import { siteOrigin } from "@/lib/site-url";
 import { TESTIDS } from "@/lib/testids";
 import { useWishlist } from "@/lib/wishlist-store";
 
@@ -39,7 +42,13 @@ function parseSharedSlugs(raw: string | null): string[] {
  * Siempre server-resuelto: lo que se ve —precio, disponibilidad, si sigue
  * publicado— es lo que dice hoy la DB, nunca lo que había cuando se guardó.
  */
-export function WishlistView() {
+export function WishlistView({
+  whatsappHref = null,
+  origin = null,
+}: {
+  whatsappHref?: string | null;
+  origin?: string | null;
+}) {
   const searchParams = useSearchParams();
   const sharedSlugs = useMemo(
     () => parseSharedSlugs(searchParams.get("p")),
@@ -54,6 +63,7 @@ export function WishlistView() {
 
   const [products, setProducts] = useState<CatalogProduct[] | null>(null);
   const [saved, setSaved] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
 
   useEffect(() => {
     // El `setState` va adentro del `setTimeout`, no suelto en el cuerpo del
@@ -83,13 +93,31 @@ export function WishlistView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slugsKey]);
 
-  const origin = siteOrigin();
   const shareUrl = origin
     ? new URL(`/favoritos?p=${slugsKey}`, origin).toString()
     : null;
   const waShareHref = shareUrl
     ? waShareLink(`${t("favoritos.compartirWhatsApp.texto")} ${shareUrl}`)
     : null;
+  const enquiryProducts = (products ?? [])
+    .filter(
+      (product) =>
+        product.saleMode === "enquiry" && selected.includes(product.slug)
+    )
+    .slice(0, MAX_ENQUIRY_PRODUCTS)
+    .map((product) => ({
+      slug: product.slug,
+      name: displayProductName(product.name, product.slug),
+      categorySlug: product.categorySlug,
+      concept: isConceptProduct(product.slug),
+      unit: product.verifiedSpecifications?.unit ?? null,
+      url: origin
+        ? new URL(
+            `/producto/${encodeURIComponent(product.slug)}`,
+            origin
+          ).toString()
+        : null,
+    }));
 
   function handleGuardarTodos() {
     addMany(sharedSlugs);
@@ -155,10 +183,76 @@ export function WishlistView() {
           data-testid={TESTIDS.wishlistGrid}
         >
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <div key={product.id}>
+              <ProductCard product={product} />
+              {product.saleMode === "enquiry" && (
+                <label className="mt-3 flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4"
+                    checked={selected.includes(product.slug)}
+                    disabled={
+                      !selected.includes(product.slug) &&
+                      enquiryProducts.length >= MAX_ENQUIRY_PRODUCTS
+                    }
+                    onChange={(event) =>
+                      setSelected((current) =>
+                        event.target.checked
+                          ? [
+                              ...current.filter(
+                                (slug) => slug !== product.slug
+                              ),
+                              product.slug,
+                            ]
+                          : current.filter((slug) => slug !== product.slug)
+                      )
+                    }
+                  />
+                  <span>
+                    Consultar por{" "}
+                    {displayProductName(product.name, product.slug)}
+                  </span>
+                </label>
+              )}
+            </div>
           ))}
         </div>
       )}
+      {products &&
+        products.some((product) => product.saleMode === "enquiry") && (
+          <section
+            className="border-border mt-10 rounded-xl border p-5 sm:p-7"
+            aria-labelledby="wishlist-enquiry-heading"
+            data-testid="wishlist-enquiry"
+          >
+            <p className="eyebrow">Compará antes de decidir</p>
+            <h2 id="wishlist-enquiry-heading" className="text-xl font-semibold">
+              Consultá por tus diseños favoritos
+            </h2>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Marcá hasta {MAX_ENQUIRY_PRODUCTS} diseños para incluirlos en una
+              sola consulta. Precio, disponibilidad y entrega quedan por
+              confirmar.
+            </p>
+            {enquiryProducts.length > 0 ? (
+              <EnquiryComposer
+                products={enquiryProducts}
+                whatsappHref={whatsappHref}
+                draftKey={`favoritos:${enquiryProducts
+                  .map((product) => product.slug)
+                  .sort()
+                  .join(",")}`}
+              />
+            ) : (
+              <p className="mt-4 text-sm">
+                Elegí al menos un diseño de la lista.
+              </p>
+            )}
+            <p className="product-enquiry-note">
+              La consulta no crea un pedido, reserva ni pago.
+            </p>
+          </section>
+        )}
     </div>
   );
 }

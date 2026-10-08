@@ -3,6 +3,7 @@ import { ProductImage } from "@/components/product-image";
 import type { CatalogProduct } from "@/db/queries";
 import type { ProductSpecifications } from "@/lib/product-attributes";
 import { isConceptProduct } from "@/lib/concept-products";
+import { displayProductName } from "@/config/ring-display";
 import {
   comparisonAvailability,
   comparisonPrice,
@@ -85,7 +86,7 @@ export function ProductComparison({
                 <th key={product.slug} scope="col">
                   <ProductImage
                     image={product.image}
-                    alt={product.name}
+                    alt={displayProductName(product.name, product.slug)}
                     categorySlug={product.categorySlug}
                     concept={isConceptProduct(product.slug)}
                     className="mb-3 w-full"
@@ -95,7 +96,7 @@ export function ProductComparison({
                     href={`/producto/${product.slug}`}
                     className="underline underline-offset-4"
                   >
-                    {product.name}
+                    {displayProductName(product.name, product.slug)}
                   </Link>
                   <Link
                     href={comparisonUrl(

@@ -1,0 +1,163 @@
+.workbench {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.card {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  min-width: 0;
+}
+.card h2 {
+  font-size: 1.15rem;
+  font-weight: 650;
+  margin-bottom: 0.65rem;
+}
+.card h3 {
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+.card p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0.5rem 0;
+}
+.notice {
+  padding: 0.75rem 1rem;
+  background: var(--muted);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  margin: 1rem 0;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+.card button {
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: var(--background);
+  min-height: 2.75rem;
+}
+.card button:hover {
+  background: var(--muted);
+}
+.card button:focus-visible,
+.card input:focus-visible,
+.card select:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.6rem;
+  margin: 1.5rem 0;
+}
+.metrics div {
+  display: grid;
+  align-content: start;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+.metrics strong {
+  font-size: 1.4rem;
+}
+.metrics span {
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.fields label {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+}
+.fields input,
+.fields select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  padding: 0.6rem;
+  background: var(--background);
+  min-height: 2.75rem;
+}
+.form {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.entries {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+.entries li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border-top: 1px solid var(--border);
+  padding: 1rem 0;
+}
+.results {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+.results dl {
+  display: grid;
+  gap: 0.7rem;
+}
+.results dl div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+.results dt {
+  font-size: 0.875rem;
+}
+.results dd {
+  font-weight: 650;
+}
+.error {
+  color: var(--destructive);
+}
+.draftPreview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.importLabel {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin: 1rem 0;
+}
+.importLabel input {
+  max-width: 100%;
+  min-width: 0;
+}

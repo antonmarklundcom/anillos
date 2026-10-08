@@ -44,9 +44,7 @@ it("hides price and stock for a reserved concept even with mistaken selling fiel
   );
   expect(screen.queryByText(formatGs(120000))).toBeNull();
   expect(screen.queryByText("Sin stock")).toBeNull();
-  expect(
-    screen.getByText(/Diseño ilustrativo \/ a pedido sujeto a confirmación/)
-  ).toBeInTheDocument();
+  expect(screen.getByText("Solo consulta")).toBeInTheDocument();
   expect(
     screen.getByRole("button", { name: "Guardar favorito" })
   ).not.toHaveAttribute("data-price");

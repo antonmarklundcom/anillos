@@ -83,6 +83,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <Link href="/colecciones" className="text-link">
             Todas las colecciones ↗
           </Link>
+          <Link href="/elegir" className="text-link">
+            Ayudame a elegir ↗
+          </Link>
         </div>
         <p className="section-intro">
           Compará anillos de acero, plata y oro, o empezá por el momento:
