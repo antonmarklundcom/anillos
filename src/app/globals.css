@@ -313,6 +313,10 @@ body:has(.cinematic-track) .store-header {
 .header-toolbar {
   position: relative;
 }
+.header-search-placeholder {
+  width: 100%;
+  height: 42px;
+}
 .collection-navigation {
   display: flex;
   max-width: 1240px;
@@ -326,6 +330,7 @@ body:has(.cinematic-track) .store-header {
   flex-shrink: 0;
 }
 .collection-menu {
+  display: none;
   flex-shrink: 0;
   font-size: 12px;
 }
@@ -401,17 +406,10 @@ summary:focus-visible {
     min-width: 0;
   }
   .collection-navigation {
-    padding: 0;
-    font-size: 12px;
+    display: none;
   }
-  .header-toolbar:has(.collection-navigation) {
-    flex-wrap: wrap;
-  }
-  .header-toolbar:has(.collection-navigation) .collection-navigation {
-    width: 100%;
-  }
-  .header-toolbar:has(.collection-navigation) .mobile-search {
-    flex-basis: 100%;
+  .collection-menu {
+    display: block;
   }
 }
 :is(a, button, input, select, textarea):focus-visible {
@@ -837,6 +835,11 @@ summary:focus-visible {
 
 /* Print only document content; retain the remito's own heading and details. */
 @media print {
+  /* This low-specificity rule applies only while a sales sheet is mounted.
+     Its local print class reveals the allowlisted sheet and descendants. */
+  :where(body:has([data-sales-print-sheet])) * {
+    visibility: hidden !important;
+  }
   .store-header,
   .store-footer,
   [data-whatsapp-fab],

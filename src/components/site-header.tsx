@@ -38,7 +38,14 @@ export async function SiteHeader() {
             marca.nombre
           )}
         </Link>
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={
+            <div
+              aria-hidden="true"
+              className="header-search-placeholder ml-auto hidden max-w-xs sm:block"
+            />
+          }
+        >
           <SearchBox className="ml-auto hidden max-w-xs sm:block" />
         </Suspense>
         <div className="header-actions ml-auto flex items-center gap-3 sm:ml-0">
@@ -51,7 +58,14 @@ export async function SiteHeader() {
       </div>
       <div className="header-toolbar border-border border-t">
         <CollectionNavigation categories={categories} />
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={
+            <div
+              aria-hidden="true"
+              className="header-search-placeholder mobile-search sm:hidden"
+            />
+          }
+        >
           <SearchBox className="mobile-search sm:hidden" />
         </Suspense>
       </div>

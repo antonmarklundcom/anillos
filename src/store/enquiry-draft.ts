@@ -15,6 +15,9 @@ export type EnquiryDetails = {
   desiredDate: string;
   budget: string;
   notes: string;
+  giftOccasion: string;
+  giftPackaging: string;
+  giftSizeConfidence: string;
 };
 
 export const EMPTY_ENQUIRY: EnquiryDetails = {
@@ -25,6 +28,9 @@ export const EMPTY_ENQUIRY: EnquiryDetails = {
   desiredDate: "",
   budget: "",
   notes: "",
+  giftOccasion: "",
+  giftPackaging: "",
+  giftSizeConfidence: "",
 };
 export const BUDGET_PREFERENCES = [
   "Priorizar opciones económicas",
@@ -32,6 +38,20 @@ export const BUDGET_PREFERENCES = [
   "Priorizar el diseño",
 ];
 export const MAX_ENQUIRY_PRODUCTS = 5;
+export const GIFT_OCCASIONS = [
+  "Cumpleaños",
+  "Aniversario",
+  "Compromiso",
+  "Otra ocasión",
+];
+export const GIFT_PACKAGING = [
+  "Consultar opciones de presentación",
+  "Consultar presentación discreta",
+];
+export const GIFT_SIZE_CONFIDENCE = [
+  "Conozco una medida orientativa",
+  "No conozco la medida",
+];
 const LIMITS: Record<keyof EnquiryDetails, number> = {
   quantity: 2,
   diameter: 5,
@@ -40,6 +60,9 @@ const LIMITS: Record<keyof EnquiryDetails, number> = {
   desiredDate: 10,
   budget: 40,
   notes: 300,
+  giftOccasion: 40,
+  giftPackaging: 60,
+  giftSizeConfidence: 40,
 };
 
 export function cleanEnquiryDetails(value: unknown): EnquiryDetails {
@@ -87,6 +110,10 @@ export function cleanEnquiryDetails(value: unknown): EnquiryDetails {
       result.desiredDate = "";
   }
   if (!BUDGET_PREFERENCES.includes(result.budget)) result.budget = "";
+  if (!GIFT_OCCASIONS.includes(result.giftOccasion)) result.giftOccasion = "";
+  if (!GIFT_PACKAGING.includes(result.giftPackaging)) result.giftPackaging = "";
+  if (!GIFT_SIZE_CONFIDENCE.includes(result.giftSizeConfidence))
+    result.giftSizeConfidence = "";
   return result;
 }
 
@@ -141,6 +168,11 @@ export function enquiryMessage(
     details.budget &&
       `Preferencia de presupuesto: ${details.budget} (no es un precio).`,
     details.notes && `Detalles que me gustan: ${details.notes}.`,
+    details.giftOccasion && `Ocasión del regalo: ${details.giftOccasion}.`,
+    details.giftPackaging &&
+      `Preferencia para consultar: ${details.giftPackaging} (opciones y costo por confirmar).`,
+    details.giftSizeConfidence &&
+      `Sobre la medida del regalo: ${details.giftSizeConfidence}.`,
     "Solicito fotos reales y confirmación de modelo, material, piedra si corresponde, medidas, precio y condiciones de entrega.",
     "Es una consulta: no confirma disponibilidad ni crea pedido, reserva o pago.",
   ]

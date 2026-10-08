@@ -51,6 +51,26 @@ trampa — si alguien la apuntaba a la base real, el runner de tests la borra.
 TEST_DATABASE_URL="mysql://ecom:ecom@localhost:3306/ecom_test"
 ```
 
+## Chromium para comprobaciones locales
+
+Estas rutas de ejecutable son **solo del proceso local de comprobación**. No
+son configuración de la tienda, no son públicas y no se agregan al hPanel ni
+a `.env.example`. Usalas únicamente cuando el navegador instalado por
+Playwright no esté disponible.
+
+```dotenv
+# Ejecutable Chromium/Chrome para scripts/local-storefront-audit.ts.
+# Si las dos están presentes, este script prioriza CHROMIUM_PATH.
+CHROMIUM_PATH=""
+# Ejecutable alternativo; también lo admite el runner Playwright existente.
+PLAYWRIGHT_CHROMIUM_EXECUTABLE=""
+```
+
+Pasá la ruta existente en el entorno de esa ejecución local. El script de
+auditoría no carga `.env.local`, no instala navegadores y solo admite un
+servidor HTTP loopback explícito. Ausentes, Playwright busca su Chromium
+local habitual. Ver [control local de la tienda](LOCAL-STOREFRONT-AUDIT.md).
+
 ## Sesión de cliente (iron-session)
 
 ```dotenv
@@ -419,6 +439,7 @@ STORE_ADMIN_E2E=""
 `STORE_ADMIN_E2E=1` enables the guarded fixture script and browser admin tests. Use it only locally with matching `DATABASE_URL` and `TEST_DATABASE_URL` pointing to loopback database `anillos_admin_workspace_test`, and `STORE_BASE_URL` pointing to its separately started local server. The fixture refuses a nonempty database, leaves providers unconfigured and writes synthetic IDs into ignored `playwright/.cache/admin-workspace-fixture.json`. Do not add this flag to production; see `docs/ADMIN-WORKSPACE.md`.
 
 `STORE_CHROME_E2E=1` optionally adds an installed Google Chrome project to `playwright.store.config.ts`. It is a local browser-test option, not a store launch setting; ordinary runs keep the two bundled Chromium projects.
+
 # Política de pago por tienda
 
 Anillos inicia sólo con transferencia. No hace falta agregar variables para ese perfil: `src/config/checkout.ts` define el valor inicial y **Ajustes → Checkout** permite modificarlo. Habilitar un medio no reemplaza su configuración: transferencia requiere los cinco datos completos de Banco; tarjeta requiere Pagopar configurado y probado. Sin datos bancarios no se ofrece transferencia, y sin medios listos no se aceptan pedidos.

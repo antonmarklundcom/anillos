@@ -13,6 +13,9 @@ import {
   productJsonLd,
   type MerchantPoliciesLd,
 } from "../../src/lib/seo";
+vi.mock("@/store/campaigns", () => ({
+  publicCampaigns: vi.fn(async () => []),
+}));
 
 describe("actual editorial dates only", () => {
   it("rejects missing, impossible and future dates", () => {
@@ -122,6 +125,8 @@ describe("robots.txt", () => {
     // tienda, sin datos de nadie, y justamente lo que Google tiene que leer.
     const publicas = new Set([
       "colecciones",
+      // Editorial campaigns project only explicitly published public fields.
+      "campanas",
       "elegir",
       // Public comparison uses only catalogue facts and declares noindex itself.
       "comparar",

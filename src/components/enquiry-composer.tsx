@@ -5,6 +5,9 @@ import Link from "next/link";
 import {
   BUDGET_PREFERENCES,
   EMPTY_ENQUIRY,
+  GIFT_OCCASIONS,
+  GIFT_PACKAGING,
+  GIFT_SIZE_CONFIDENCE,
   enquiryMessage,
   enquiryWhatsappHref,
   enquiryValidationErrors,
@@ -213,6 +216,48 @@ export function EnquiryComposer({
           onChange={(e) => update("notes", e.target.value)}
         />
       </label>
+      <details className="border-border rounded-md border p-4">
+        <summary className="cursor-pointer text-sm font-medium">
+          ¿Es para un regalo?
+        </summary>
+        <p className="text-muted-foreground mt-3 text-sm">
+          Podés indicar tus preferencias. Presentación, ajuste y fecha de
+          entrega requieren confirmación; no pedimos datos de la persona que lo
+          recibe.
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          {(
+            [
+              ["giftOccasion", "Ocasión del regalo", GIFT_OCCASIONS],
+              [
+                "giftPackaging",
+                "Presentación que querés consultar",
+                GIFT_PACKAGING,
+              ],
+              [
+                "giftSizeConfidence",
+                "¿Conocés su medida?",
+                GIFT_SIZE_CONFIDENCE,
+              ],
+            ] as const
+          ).map(([field, label, options]) => (
+            <label key={field} htmlFor={`${id}-${field}`} className="text-sm">
+              {label}
+              <select
+                id={`${id}-${field}`}
+                className={inputClass}
+                value={details[field]}
+                onChange={(event) => update(field, event.target.value)}
+              >
+                <option value="">Sin preferencia indicada</option>
+                {options.map((option) => (
+                  <option key={option}>{option}</option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+      </details>
       <div className="flex flex-wrap gap-3 text-sm">
         <button
           type="button"

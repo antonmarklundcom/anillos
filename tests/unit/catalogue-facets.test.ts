@@ -34,7 +34,8 @@ it("counts positive visible category prices independently of stock and paginatio
   const facets = await getCatalogueFacets("plata-925", {
     select,
   } as unknown as Executor);
-  expect(select).toHaveBeenCalledTimes(4);
+  // Five verified attribute facets plus the shared stock/price aggregate.
+  expect(select).toHaveBeenCalledTimes(6);
   expect(facets).toMatchObject({ inStock: 0, hasPrices: true });
 });
 it("groups equivalent case and spacing without inventing material synonyms", () => {

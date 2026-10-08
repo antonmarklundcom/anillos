@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { galleryPanBounds } from "@/lib/gallery-zoom";
 import {
   Dialog,
   DialogClose,
@@ -17,6 +18,8 @@ export type GalleryImage = {
   illustrative?: boolean;
   evidencePending?: boolean;
   thumbnailSrc?: string;
+  focalPointX?: number | null;
+  focalPointY?: number | null;
 };
 
 export function ProductGallery({
@@ -25,19 +28,65 @@ export function ProductGallery({
   images: readonly GalleryImage[];
 }) {
   const [selectedSrc, setSelectedSrc] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const currentPanBounds = useCallback(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return { x: 0, y: 0 };
+    const box = viewport.getBoundingClientRect();
+    const image = viewport.querySelector("img");
+    return galleryPanBounds({ width: box.width, height: box.height }, zoom, {
+      width: image?.naturalWidth ?? 0,
+      height: image?.naturalHeight ?? 0,
+    });
+  }, [zoom]);
+  const resetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    setDrag(null);
+  };
+  const shiftPan = (x: number, y: number) => {
+    const bounds = currentPanBounds();
+    setPan((value) => ({
+      x: Math.max(-bounds.x, Math.min(bounds.x, value.x + x)),
+      y: Math.max(-bounds.y, Math.min(bounds.y, value.y + y)),
+    }));
+  };
   const selected = Math.max(
     0,
     images.findIndex((item) => item.src === selectedSrc)
   );
   const current = images[selected];
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      const bounds = currentPanBounds();
+      setPan((value) => ({
+        x: Math.max(-bounds.x, Math.min(bounds.x, value.x)),
+        y: Math.max(-bounds.y, Math.min(bounds.y, value.y)),
+      }));
+    });
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [currentPanBounds, current?.src, open]);
   if (!current) return null;
   function move(delta: number) {
+    resetZoom();
     const next = images[(selected + delta + images.length) % images.length];
     if (next) setSelectedSrc(next.src);
   }
   return (
     <figure className="product-gallery" aria-label="Galería del producto">
-      <Dialog>
+      <Dialog
+        onOpenChange={(value) => {
+          setOpen(value);
+          resetZoom();
+        }}
+      >
         <DialogTrigger asChild>
           <button
             type="button"
@@ -58,6 +107,9 @@ export function ProductGallery({
                 unoptimized={current.src.startsWith("https://")}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 720px"
                 className="product-gallery-image"
+                style={{
+                  objectPosition: `${current.focalPointX ?? 50}% ${current.focalPointY ?? 50}%`,
+                }}
               />
               <span className="product-gallery-zoom-label">Ampliar imagen</span>
             </div>
@@ -67,6 +119,38 @@ export function ProductGallery({
           showCloseButton={false}
           className="product-gallery-zoom motion-reduce:animate-none motion-reduce:duration-0"
           onKeyDown={(event) => {
+            if (event.key === "+" || event.key === "=") {
+              event.preventDefault();
+              setZoom((value) => Math.min(3, value + 0.5));
+              return;
+            }
+            if (event.key === "-") {
+              event.preventDefault();
+              setZoom((value) => Math.max(1, value - 0.5));
+              setPan({ x: 0, y: 0 });
+              return;
+            }
+            if (event.key === "0") {
+              event.preventDefault();
+              resetZoom();
+              return;
+            }
+            if (zoom > 1 && event.key.startsWith("Arrow")) {
+              event.preventDefault();
+              shiftPan(
+                event.key === "ArrowLeft"
+                  ? -30
+                  : event.key === "ArrowRight"
+                    ? 30
+                    : 0,
+                event.key === "ArrowUp"
+                  ? -30
+                  : event.key === "ArrowDown"
+                    ? 30
+                    : 0
+              );
+              return;
+            }
             if (images.length < 2) return;
             if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
               event.preventDefault();
@@ -89,7 +173,59 @@ export function ProductGallery({
                 ? "Imagen ilustrativa; las características de una pieza real requieren confirmación."
                 : current.alt}
           </DialogDescription>
-          <div className="product-gallery-zoom-image">
+          <div
+            className="flex flex-wrap items-center gap-2"
+            aria-label="Controles de ampliación"
+          >
+            <button
+              type="button"
+              className="rounded border px-3 py-2"
+              disabled={zoom === 3}
+              onClick={() => setZoom((value) => Math.min(3, value + 0.5))}
+            >
+              Acercar +
+            </button>
+            <button
+              type="button"
+              className="rounded border px-3 py-2"
+              disabled={zoom === 1}
+              onClick={() => {
+                setZoom((value) => Math.max(1, value - 0.5));
+                setPan({ x: 0, y: 0 });
+              }}
+            >
+              Alejar −
+            </button>
+            <button
+              type="button"
+              className="rounded border px-3 py-2"
+              onClick={resetZoom}
+            >
+              Restablecer
+            </button>
+            <span role="status">{Math.round(zoom * 100)}%</span>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Usá +, − y 0. Al ampliar, arrastrá la imagen o usá las flechas para
+            desplazarla.
+          </p>
+          <div
+            ref={viewportRef}
+            className="product-gallery-zoom-image overflow-hidden"
+            style={{ touchAction: zoom > 1 ? "none" : "auto" }}
+            onPointerDown={(event) => {
+              if (zoom <= 1) return;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setDrag({ x: event.clientX, y: event.clientY });
+            }}
+            onPointerMove={(event) => {
+              if (!drag || zoom <= 1) return;
+              shiftPan(event.clientX - drag.x, event.clientY - drag.y);
+              setDrag({ x: event.clientX, y: event.clientY });
+            }}
+            onPointerUp={() => setDrag(null)}
+            onPointerCancel={() => setDrag(null)}
+          >
             <Image
               src={current.src}
               alt={current.alt}
@@ -97,6 +233,10 @@ export function ProductGallery({
               sizes="95vw"
               unoptimized={current.src.startsWith("https://")}
               className="object-contain"
+              draggable={false}
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              }}
             />
           </div>
           {images.length > 1 ? (
@@ -125,7 +265,10 @@ export function ProductGallery({
             <button
               type="button"
               key={item.src}
-              onClick={() => setSelectedSrc(item.src)}
+              onClick={() => {
+                resetZoom();
+                setSelectedSrc(item.src);
+              }}
               aria-pressed={selected === index}
               aria-label={`Ver imagen ${index + 1}: ${item.alt}`}
               className="product-gallery-thumbnail"

@@ -31,7 +31,7 @@ The temporary illustrations help explain styles. Their titles no longer repeat `
 | [PR #16](https://github.com/antonmarklundcom/anillos/pull/16) | Open draft, targets `main` | Supplier catalogue preparation and improved category/product enquiries; not released here. |
 | [PR #17](https://github.com/antonmarklundcom/anillos/pull/17) | Open draft, based on #16 | Finder, better enquiry forms, sizing printout and owner sales tools; includes this guide. Review after #16. |
 
-The actual local preview is [the ring finder](http://127.0.0.1:54643/elegir). Its synthetic catalogue and accounts are not production data; the URL works only while that local server is running. #16 and #17 need **no new database migration**. Applying catalogue drafts to a real database or releasing code would be separate actions. A future shared CRM would need its own data design.
+The actual local preview is [the ring finder](http://127.0.0.1:54644/elegir). Its synthetic catalogue and accounts are not production data; the URL works only while that local server is running. #16 and #17 need **no new database migration**. Applying catalogue drafts to a real database or releasing code would be separate actions. The new WhatsApp operations batch adds twenty-nine authorised improvements and shared private records. It requires **migration 0025 before releasing the new code**, including catalogue image columns. That migration was rehearsed locally and has not been applied to production. Read the [workspace manual](WHATSAPP-SALES-WORKSPACE.md), [scope and email plan](WHATSAPP-OPERATIONS-PLAN-2026-10.md) and [fresh verification](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md).
 
 Older documents sometimes describe transfer-first launch, new-store setup or already completed migration work. Use the current demand-test scope above and the dated status notices before following a historical recipe. No agent is authorised here to merge, deploy, change production/hosting/secrets, spend on images or contact suppliers.
 
@@ -39,7 +39,7 @@ Older documents sometimes describe transfer-first launch, new-store setup or alr
 
 1. **Make contact work.** Verify the public name and WhatsApp on a real phone. Set actual email, address and hours only where you have them. In `/admin/ajustes#checkout`, explicitly save no enabled payment methods; saved settings can override code defaults. Check the live checkout yourself. See [demand-test owner steps](DEMAND-TEST-REVIEW-2026-10.md#what-code-can-do-and-what-anton-must-do).
 2. **Bring people to a useful destination.** Use the existing collections, choosing guide and sizing guide in your own posts. Read messages for occasion, design, quantity, measurements, city, desired date and budget preference. These are buyer wishes, not your offer. Preview tools in #17 produce copy for you to review and publish manually.
-3. **Record genuine enquiries.** Once #17 is released, use and regularly export the owner ledger. Use anonymous aliases and a follow-up date. Count messages actually received, not WhatsApp clicks, as enquiries. Keep the correspondence in your business messaging account; the ledger does not import it. For now, practise with synthetic examples in the local preview.
+3. **Record genuine enquiries.** The operations batch adds the shared owner workspace at `/admin/ventas`. Once released, use and privately export it; older browser-only records in #17 remain separately exportable. Use anonymous aliases and a follow-up date. Count messages actually received, not WhatsApp clicks, as enquiries. Keep the correspondence in your business messaging account; the ledger does not import it. For now, practise with synthetic examples in the local preview.
 4. **Choose a small real assortment from demonstrated interest.** Start with two or three exact references worth checking, rather than filling every category. When traffic justifies sourcing, Anton can seek written trade terms and samples himself. The shortlist is a starting point; it proves neither wholesale access nor that a supplier can reproduce every illustration.
 5. **Prepare a supported quote.** Confirm the exact model, one-ring versus two-ring unit, composition, stone, dimensions, sizes, cost, photo rights, availability and fulfilment. Resolve contradictory source facts before using them. Calculate contribution with the same unit and actual costs. During the current trial, continue enquiries without taking deposits or payments.
 6. **Decide separately when to start commercial sales.** Establish the actual fulfilment, returns, resizing/engraving and payment process first, with appropriate business/tax facts confirmed by Anton. Then provide a supported customer quote and handle a genuine sale under those conditions. The current code batch does not make that business decision or enable payment acceptance.
@@ -87,7 +87,8 @@ Production owner access starts at [admin login](https://anillos.com.py/admin/log
 | [Products](https://anillos.com.py/admin/productos) | Product drafts, modes, variants, images and private supplier references | Keep unknowns unknown. Supplier availability is not your physical stock. Reserve concept slugs. |
 | [Categories](https://anillos.com.py/admin/categorias) | Existing category names/content and activation | Make useful category pages; avoid thin duplicate keyword pages or unsupported assortments. |
 | [SEO and catalogue](https://anillos.com.py/admin/seo) | Existing catalogue/keyword coverage view | Keyword search volume is not visits, sales or guaranteed rankings. Concepts stay noindex. |
-| [Sales tools preview](http://127.0.0.1:54643/admin/herramientas-ventas) | Anonymous enquiry ledger, contribution scenarios and marketing copy | **New in #17**, future public route `/admin/herramientas-ventas`, owner-only, local browser storage. No shared CRM or automatic sending. |
+| [Shared operations preview](http://127.0.0.1:54644/admin/ventas) | Enquiries, quotes/revisions, sourcing evidence, demand, purchasing drafts, costs/contribution, reminders, campaigns and private history | New batch based on #17; owner only, explicit database saves. Requires migration 0025 before release. See the [workspace manual](WHATSAPP-SALES-WORKSPACE.md). |
+| [Sales tools preview](http://127.0.0.1:54644/admin/herramientas-ventas) | Anonymous enquiry ledger, contribution scenarios and marketing copy | **New in #17**, future public route `/admin/herramientas-ventas`, owner-only, local browser storage. No shared CRM or automatic sending. |
 | [Users](https://anillos.com.py/admin/usuarios) | Individual users, roles and owner-managed password changes | Owner has all capabilities. Staff has operational access; vendedor has restricted order operations without monetary values. Do not share an owner account. |
 | [Integrations](https://anillos.com.py/admin/integraciones) | Actual storage, WhatsApp and optional integration settings | Public WhatsApp links and automated WhatsApp Cloud messages are different features. Optional Meta/Google setup is deferred. |
 | [Bank](https://anillos.com.py/admin/banco) | Bank, holder, RUC, account number/type and optional QR | Future payment configuration. Real bank fields do not authorise accepting payments during the trial. |
@@ -118,12 +119,12 @@ Bank-transfer receipt upload uses Cloudinary when configured. The order page off
 | Qualified enquiries | Conversations with enough design, quantity, size/city and timing information to pursue; classify manually. |
 | Quote rate | Supported quotes issued divided by qualified enquiries for a defined period |
 | Quote conversion | Genuine sales divided by quotes, with the period and treatment of still-open quotes stated |
-| Loss reasons | Price, unavailable model/size, timing, fit uncertainty or no response; aggregate manually until a structured feature exists |
+| Loss reasons | The operations workspace records structured reasons for real lost enquiries; review availability, price, timing and follow-up gaps |
 | Contribution per sale | Supported sale revenue minus landed product cost and all applicable variable costs on a consistent tax basis |
 | Marketing cost per new buyer | Actual campaign spend divided by genuinely acquired buyers, when those links are known; no guess from clicks |
 | Net result | Contribution minus fixed/other costs; the current contribution calculator does not compute it |
 
-Use integer PYG and a consistent **one-ring or two-ring pair** unit. In the calculator, blank means unknown; enter zero only for a confirmed zero cost. Recalculate price-dependent commissions/taxes when trying a new price. Costs stay in memory and are not saved/exported by the tool.
+Use integer PYG and a consistent **one-ring or two-ring pair** unit. In the calculator, blank means unknown; enter zero only for a confirmed zero cost. Recalculate price-dependent commissions/taxes when trying a new price. The older calculator keeps costs in memory. The new operations workspace stores reviewed private cost profiles and actual sale outcomes; incomplete costs produce unknown contribution.
 
 No new Meta/Google product setup or advertising attribution is included. Manual enquiry/source notes and controlled comparisons of your own posts are enough to start learning; the site does not currently give you a complete traffic-to-profit dashboard. The Keyword Planner export is keyword research, not Anillos visitor analytics or a sales forecast.
 
@@ -135,6 +136,7 @@ No new Meta/Google product setup or advertising attribution is included. Manual 
 | Product/brand media and private receipts | Cloudinary when configured; some initial media is in `public/media` | Retain authorised originals/rights and provider recovery access. A database dump is not a separate backup of every media asset. |
 | Automatic database backups | Private authenticated raw Cloudinary assets when enabled | Need actual uploaded success, authenticated retrieval and restore proof; not a public URL |
 | Enquiry ledger in #17 | Owner-scoped localStorage in that browser and origin | Starts empty until explicitly opened; explicit save/export/import. Max 200 entries. No cross-device sync or automatic database backup. |
+| Shared operations workspace, audit and search-gap counts | New private database tables in migration 0025 | Owner only; explicit save with revision conflicts, safe undo and linked deletion. Counts are optional and anonymous. Export/backup copies have separate retention. |
 | Buyer enquiry drafts and favourites | Buyer's browser | Local preferences, not incoming leads or a shared customer database. Buyer controls draft saving/removal. |
 | Contribution inputs and marketing draft | Current sales-tool screen memory | Not persisted; record your real costs privately elsewhere if needed |
 | Supplier research and KWP dispositions | Linked JSON/CSV and documents | Versioned research snapshots, not live supplier inventory. Keep negotiated costs and personal data separate. |
@@ -165,13 +167,15 @@ There is no fourth outbox job to schedule. These URLs **write operational state*
 
 Use `/api/health` to inspect `db`, `catalog`, `schema`, `cron` and enabled-backup freshness. HTTP 200/`ok:true` alone is insufficient. `cron:false` means expiry has no recent successful run within two hours. Enabled backups need a successful run within 26 hours; `backup:true` with backups disabled does not prove a recoverable copy exists.
 
-`pnpm preflight` checks payment readiness, including effective database settings. Paused payments intentionally prevent payment readiness; do not fabricate settings to make it green. Existing #17 code validation passed frozen install, typecheck, lint, unit/UI, both isolated database suites, build and desktop/mobile preview checks, with documented skips. Read [the precise evidence](SALES-ENQUIRY-TOOLS-2026-10.md#validación). This documentation addition does not claim fresh production checks or rerun those suites.
+`pnpm preflight` checks payment readiness, including effective database settings. Paused payments intentionally prevent payment readiness; do not fabricate settings to make it green. Existing #17 code validation passed frozen install, typecheck, lint, unit/UI, both isolated database suites, build and desktop/mobile preview checks, with documented skips. Read [the precise evidence](SALES-ENQUIRY-TOOLS-2026-10.md#validación). Fresh local checks for the operations batch are in [operations verification](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md); neither report claims production readiness.
 
 Never run `db:push`, `db:seed`, `demo`, reset helpers or `seed-store --with-concepts` against anything except a disposable loopback test database. Do not repeat production migrations 0023/0024. Generic new-store/template recipes in older documents are not operating instructions for this existing live shop.
 
 ## Further coding priorities
 
-These are **twenty proposals beyond the completed #17 batch**, not implemented features or an instruction to build all twenty. Focus the next small batch on enquiries and quotes. Buyer-facing commercial options must use confirmed facts; payment acceptance remains off. Meta/Google product setup, ad attribution, new publication-check tooling and temporary-illustration detection are excluded.
+Anton authorised nineteen of the original twenty priorities and all ten additional ideas: **twenty-nine tools without email; #7 is deferred**. Their implementation is in the new operations batch based on #17. Read the [scope and Cloudflare email sequence](WHATSAPP-OPERATIONS-PLAN-2026-10.md), [workspace manual](WHATSAPP-SALES-WORKSPACE.md) and [verification](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md). The following table explains the original twenty.
+
+The original list is implemented except the deferred two-ring builder, alongside the ten additions in the scope plan. Buyer-facing commercial options must use confirmed facts; payment acceptance remains off. Meta/Google product setup, ad attribution, new publication-check tooling and temporary-illustration detection are excluded.
 
 | Rank | Coding idea | Useful result and dependency |
 | --- | --- | --- |
@@ -185,7 +189,7 @@ These are **twenty proposals beyond the completed #17 batch**, not implemented f
 | 8 | Supplier confirmation freshness | Track dates for model/size/availability confirmations and flag stale private records. Never convert supplier stock into Anillos stock. |
 | 9 | Price floor warnings in admin | Connect supported variable costs to bulk-price previews and flag prices below contribution targets. Requires stored costs; owner reviews any price change. |
 | 10 | Better search intent and typo handling | Match common ring terms and spelling mistakes to relevant existing designs/categories while preserving verified-fact filters. Improve the existing search rather than duplicating it. |
-| 11 | Search gaps dashboard | Aggregate safe, redacted zero-result searches and unmet style/size requests to guide sourcing/content. Requires minimal first-party data design; no Meta/Google integration. |
+| 11 | Search gaps dashboard | Count known empty-result intent buckets by day, only after owner opt-in. No raw query/IP/contact is persisted; no Meta/Google integration. |
 | 12 | Real-model shape and width filters | Add useful stone-shape/band-width filters where those attributes are actually verified. Extend the current catalogue filters without guessing from images. |
 | 13 | Fast product preview drawer | Show a larger authorised image, confirmed essentials and enquiry action within a collection, without losing the buyer's browsing position. No new database necessarily required. |
 | 14 | Campaign landing page editor | Assemble reusable occasion/style pages from existing categories, guides and approved real models. No fake stock, promises or automatically published campaigns. |
@@ -196,9 +200,11 @@ These are **twenty proposals beyond the completed #17 batch**, not implemented f
 | 19 | After-sales case tracking | Manage actual fit/defect/engraving issues with evidence, responsible person and resolution, building on existing inventory returns. Requires private records and agreed policies. |
 | 20 | Opt-in occasion reminders | Store customer-approved gift/anniversary reminders and prepare manual follow-up drafts. Requires consent/deletion controls and customer-data design; no automatic sending. |
 
-Build #1–3 first if enquiry volume justifies shared storage. Their quote/cost records enable #4–6 and #9. Prefer #13 or focused search/gallery improvements if there is not yet enough enquiry volume to justify a CRM. Confirm the schema impact when designing a selected batch; this list itself requires no database work.
+The operations implementation covers every original item except #7 and the ten additions listed in the scope document. Use actual demand and evidence to populate it. The generated migration adds private records and image focal columns; #16 and #17 themselves still need no new migration. Email, the two-ring builder, Meta/Google products and attribution remain deferred. No production release is included.
 
 ## Complete document index
+
+Operations: [authorised scope and email later](WHATSAPP-OPERATIONS-PLAN-2026-10.md), [sales workspace manual](WHATSAPP-SALES-WORKSPACE.md), [local storefront checks](LOCAL-STOREFRONT-AUDIT.md), [fresh validation and release dependency](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md).
 
 This index covers every tracked root/documentation Markdown file at the time of writing, plus the catalogue data. Technical/audit records are useful evidence, but their old counts, PR states and rollout steps must be read with the current status above. Ignored environment files, private runtime data and dependency documentation are intentionally outside the index.
 
@@ -223,6 +229,10 @@ This index covers every tracked root/documentation Markdown file at the time of 
 | Document | What it is for |
 | --- | --- |
 | [SALES-ENQUIRY-TOOLS-2026-10](SALES-ENQUIRY-TOOLS-2026-10.md) | #17 buyer tools, local ledger, contribution/copy tools and complete validation |
+| [WHATSAPP-OPERATIONS-PLAN-2026-10](WHATSAPP-OPERATIONS-PLAN-2026-10.md) | Twenty-nine authorised improvements; email and two-ring builder deferrals |
+| [WHATSAPP-SALES-WORKSPACE](WHATSAPP-SALES-WORKSPACE.md) | Owner workflows, data/privacy limits, migration ordering and business inputs |
+| [WHATSAPP-OPERATIONS-VERIFICATION-2026-10](WHATSAPP-OPERATIONS-VERIFICATION-2026-10.md) | Actual checks, preview, skips and unapplied migration |
+| [LOCAL-STOREFRONT-AUDIT](LOCAL-STOREFRONT-AUDIT.md) | Repeatable local performance/accessibility checks and manual limits |
 | [ADMIN-SETUP](ADMIN-SETUP.md) | Login, initial setup closure and manual recovery |
 | [ADMIN-WORKSPACE](ADMIN-WORKSPACE.md) | Page/role inventory, menu settings and operating boundaries |
 | [LAUNCH-CHECKLIST](LAUNCH-CHECKLIST.md) | Business/operational prerequisites before real sales; new-store steps are historical for this shop |

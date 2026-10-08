@@ -19,6 +19,7 @@ export function CollectionNavigation({
 }: {
   categories: { slug: string; name: string }[];
 }) {
+  // Only test selectors track hydration; CSS owns the visible geometry.
   const mobile = useSyncExternalStore(
     subscribe,
     mobileSnapshot,
@@ -29,18 +30,20 @@ export function CollectionNavigation({
   useEffect(() => {
     if (details.current) details.current.open = false;
   }, [pathname]);
-  const links = (
+  const links = (mobileVariant: boolean) => (
     <>
       {categories.map((category) => (
         <Link
           key={category.slug}
           href={`/categoria/${category.slug}`}
           prefetch={false}
-          data-testid={TESTIDS.headerCategoryLink}
+          data-testid={
+            mobile === mobileVariant ? TESTIDS.headerCategoryLink : undefined
+          }
           data-slug={category.slug}
           aria-label={category.name}
         >
-          {mobile
+          {mobileVariant
             ? category.name
             : (COLLECTION_NAV_LABELS[category.slug] ?? category.name)}
         </Link>
@@ -53,16 +56,18 @@ export function CollectionNavigation({
       </Link>
     </>
   );
-  return mobile ? (
-    <details ref={details} className="collection-menu">
-      <summary>
-        Colecciones <span aria-hidden="true">⌄</span>
-      </summary>
-      <nav aria-label="Colecciones y guías">{links}</nav>
-    </details>
-  ) : (
-    <nav aria-label="Colecciones y guías" className="collection-navigation">
-      {links}
-    </nav>
+  // CSS selects the same layout before and after hydration, including without JS.
+  return (
+    <>
+      <details ref={details} className="collection-menu">
+        <summary>
+          Colecciones <span aria-hidden="true">⌄</span>
+        </summary>
+        <nav aria-label="Colecciones y guías">{links(true)}</nav>
+      </details>
+      <nav aria-label="Colecciones y guías" className="collection-navigation">
+        {links(false)}
+      </nav>
+    </>
   );
 }

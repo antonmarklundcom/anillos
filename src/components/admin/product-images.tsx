@@ -15,8 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { productImageUrl } from "@/lib/images";
 import { t } from "@/i18n";
+import { ImageFocalControls } from "@/components/admin/image-focal-controls";
+import { moveProductImage } from "@/app/actions/admin-image-focal";
 
 type ImageCard = {
+  focalPointX?: number | null;
+  focalPointY?: number | null;
   id: number;
   cloudinaryId: string;
   alt: string | null;
@@ -100,7 +104,7 @@ export function ProductImages({
 
       {images.length > 0 ? (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {images.map((image) => {
+          {images.map((image, index) => {
             const url = productImageUrl(image.cloudinaryId, "card");
             return (
               <li
@@ -118,6 +122,36 @@ export function ProductImages({
                       className="object-cover"
                     />
                   ) : null}
+                </div>
+                <div className="flex gap-2 p-3" aria-label="Orden de la imagen">
+                  {(["previous", "next"] as const).map((direction) => (
+                    <button
+                      key={direction}
+                      type="button"
+                      className="rounded border px-2 py-2 text-xs"
+                      disabled={
+                        isPending ||
+                        (direction === "previous"
+                          ? index === 0
+                          : index === images.length - 1)
+                      }
+                      onClick={() =>
+                        startTransition(async () => {
+                          const result = await moveProductImage({
+                            productId,
+                            imageId: image.id,
+                            direction,
+                          });
+                          if (!result.ok) setError(result.error);
+                          else router.refresh();
+                        })
+                      }
+                    >
+                      {direction === "previous"
+                        ? "Mover antes"
+                        : "Mover después"}
+                    </button>
+                  ))}
                 </div>
                 <form
                   className="grid gap-3 p-3"
@@ -178,6 +212,13 @@ export function ProductImages({
                     Guardar imagen
                   </Button>
                 </form>
+                <ImageFocalControls
+                  productId={productId}
+                  imageId={image.id}
+                  src={productImageUrl(image.cloudinaryId, "detail")}
+                  x={image.focalPointX}
+                  y={image.focalPointY}
+                />
                 <Button
                   type="button"
                   variant="ghost"

@@ -176,6 +176,13 @@
       "when": 1791352031320,
       "tag": "0024_silent_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1791416347657,
+      "tag": "0025_dizzy_sentry",
+      "breakpoints": true
     }
   ]
 }

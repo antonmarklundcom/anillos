@@ -108,6 +108,7 @@ export function ProductAttributeFields({
             "material",
             "purity",
             "stone",
+            "stoneShape",
             "widthMm",
             "unit",
           ]);
@@ -148,6 +149,12 @@ export function ProductAttributeFields({
             label="Ancho en milímetros"
             value={specifications?.widthMm}
             numeric
+          />
+          <Field
+            name="stoneShape"
+            label="Forma de piedra confirmada"
+            value={specifications?.stoneShape}
+            maxLength={80}
           />
           <div className="grid gap-1.5">
             <Label htmlFor="unit">Unidad de venta confirmada</Label>

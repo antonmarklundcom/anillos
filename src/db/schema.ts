@@ -254,9 +254,15 @@ export const productImages = mysqlTable(
       }),
     cloudinaryId: varchar("cloudinary_id", { length: 255 }).notNull(),
     /** Unknown legacy images remain unverified until explicitly reviewed. */
-    provenance: mysqlEnum("provenance", ["supplier-authorized", "owned-photo", "illustrative"]),
+    provenance: mysqlEnum("provenance", [
+      "supplier-authorized",
+      "owned-photo",
+      "illustrative",
+    ]),
     verifiedAt: timestamp("verified_at", { mode: "date", fsp: 3 }),
     blurDataUrl: text("blur_data_url"),
+    focalPointX: int("focal_point_x"),
+    focalPointY: int("focal_point_y"),
     alt: varchar("alt", { length: 255 }),
     position: int("position").notNull().default(0),
   },
@@ -1550,6 +1556,9 @@ export const BACKUP_TABLES = [
   // Cuelgan de las de arriba.
   "bank_details",
   "store_settings",
+  "sales_workspace",
+  "sales_workspace_audit",
+  "sales_search_gaps",
   // Los secretos viajan cifrados: la clave sale de SESSION_SECRET, que no
   // está en la base ni en el backup.
   "integration_settings",
@@ -1578,3 +1587,63 @@ export const BACKUP_TABLES = [
 ] as const;
 
 export type BackupTable = (typeof BACKUP_TABLES)[number];
+
+/** Owner-only anonymous operational records; never changes orders or stock. */
+export const salesWorkspace = mysqlTable("sales_workspace", {
+  id: int("id").primaryKey(),
+  revision: int("revision", { unsigned: true }).notNull(),
+  payload: json("payload")
+    .$type<import("@/domain/sales-workspace").SalesWorkspace>()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date", fsp: 3 })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Aggregate intent counts only. No query, contact, cookie, or IP columns. */
+export const salesSearchGaps = mysqlTable(
+  "sales_search_gaps",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    day: varchar("day", { length: 10 }).notNull(),
+    intent: mysqlEnum("intent", [
+      "steel",
+      "silver",
+      "gold",
+      "wedding",
+      "engagement",
+      "promise",
+      "solitaire",
+      "men",
+      "sizing",
+      "other",
+    ]).notNull(),
+    count: int("count", { unsigned: true }).notNull().default(1),
+  },
+  (t) => [unique("sales_search_gaps_day_intent_unique").on(t.day, t.intent)]
+);
+
+export const salesWorkspaceAudit = mysqlTable(
+  "sales_workspace_audit",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    revision: int("revision", { unsigned: true }).notNull(),
+    actorUserId: int("actor_user_id"),
+    kind: mysqlEnum("kind", ["save", "undo", "delete"]).notNull(),
+    changes: json("changes")
+      .$type<import("@/domain/sales-workspace").WorkspaceChange[]>()
+      .notNull(),
+    beforePayload:
+      json("before_payload").$type<
+        import("@/domain/sales-workspace").SalesWorkspace
+      >(),
+    afterPayload:
+      json("after_payload").$type<
+        import("@/domain/sales-workspace").SalesWorkspace
+      >(),
+    createdAt: timestamp("created_at", { mode: "date", fsp: 3 })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("sales_workspace_audit_revision_unique").on(t.revision)]
+);

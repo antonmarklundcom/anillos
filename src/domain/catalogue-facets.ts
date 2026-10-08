@@ -7,6 +7,8 @@ import { CONCEPT_PRODUCT_PREFIX } from "@/lib/concept-products";
 export type CatalogueAttributeFilters = {
   material?: string;
   stone?: string;
+  stoneShape?: string;
+  widthMm?: string;
   unit?: string;
   inStock?: boolean;
   invalid?: boolean;
@@ -16,6 +18,8 @@ export type CatalogueFacets = {
   hasPrices?: boolean;
   material: CatalogueFacet[];
   stone: CatalogueFacet[];
+  stoneShape?: CatalogueFacet[];
+  widthMm?: CatalogueFacet[];
   unit: CatalogueFacet[];
   inStock: number;
 };
@@ -34,6 +38,8 @@ export function parseCatalogueFilters(
   for (const [param, field] of [
     ["material", "material"],
     ["piedra", "stone"],
+    ["forma", "stoneShape"],
+    ["ancho", "widthMm"],
     ["unidad", "unit"],
   ] as const) {
     const value = query[param];
@@ -52,17 +58,28 @@ export function parseCatalogueFilters(
   }
   if (result.unit && !["individual", "pair"].includes(result.unit))
     result.invalid = true;
+  if (
+    result.widthMm &&
+    (!/^\d+(?:\.\d+)?$/.test(result.widthMm) ||
+      Number(result.widthMm) <= 0 ||
+      Number(result.widthMm) > 1000)
+  )
+    result.invalid = true;
   return result;
 }
 
-function attribute(field: "material" | "stone" | "unit") {
+function attribute(
+  field: "material" | "stone" | "stoneShape" | "widthMm" | "unit"
+) {
   return sql<string>`JSON_UNQUOTE(JSON_EXTRACT(${products.specifications}, ${`$.${field}`}))`;
 }
 /** Equivalent spelling only: no inferred alloy, gemstone or purity mapping. */
 export function normalizeFacetLabel(value: string): string {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("es-PY");
 }
-function normalizedAttribute(field: "material" | "stone" | "unit") {
+function normalizedAttribute(
+  field: "material" | "stone" | "stoneShape" | "widthMm" | "unit"
+) {
   return sql<string>`LOWER(REGEXP_REPLACE(TRIM(${attribute(field)}), '[[:space:]]+', ' '))`;
 }
 const verified = () => {
@@ -102,12 +119,26 @@ export function catalogueAttributePredicate(
 ): SQL | undefined {
   if (filters.invalid) return sql`FALSE`;
   const parts: (SQL | undefined)[] = [];
-  for (const field of ["material", "stone", "unit"] as const) {
+  for (const field of [
+    "material",
+    "stone",
+    "stoneShape",
+    "widthMm",
+    "unit",
+  ] as const) {
     if (filters[field] !== undefined)
       parts.push(
         and(
           verified(),
-          eq(normalizedAttribute(field), normalizeFacetLabel(filters[field]!))
+          field === "widthMm"
+            ? sql`JSON_TYPE(JSON_EXTRACT(${products.specifications}, ${"$.widthMm"})) IN ('INTEGER', 'DOUBLE') AND CAST(${attribute(field)} AS DECIMAL(20,10)) = ${Number(filters[field])}`
+            : and(
+                sql`JSON_TYPE(JSON_EXTRACT(${products.specifications}, ${`$.${field}`})) = 'STRING'`,
+                eq(
+                  normalizedAttribute(field),
+                  normalizeFacetLabel(filters[field]!)
+                )
+              )
         )
       );
   }
@@ -130,7 +161,7 @@ export async function getCatalogueFacets(
     sql`EXISTS (SELECT 1 FROM ${variants} WHERE ${variants.productId} = ${products.id} AND ${variants.isActive} = TRUE)`
   );
   async function facet(
-    field: "material" | "stone" | "unit"
+    field: "material" | "stone" | "stoneShape" | "widthMm" | "unit"
   ): Promise<CatalogueFacet[]> {
     const value = sql<string>`MIN(REGEXP_REPLACE(TRIM(${attribute(field)}), '[[:space:]]+', ' '))`;
     const rows = await tx
@@ -142,7 +173,9 @@ export async function getCatalogueFacets(
           base,
           verified(),
           catalogueAttributePredicate({ ...filters, [field]: undefined }),
-          sql`JSON_TYPE(JSON_EXTRACT(${products.specifications}, ${`$.${field}`})) = 'STRING'`,
+          field === "widthMm"
+            ? sql`JSON_TYPE(JSON_EXTRACT(${products.specifications}, ${"$.widthMm"})) IN ('INTEGER', 'DOUBLE') AND CAST(${attribute(field)} AS DECIMAL(20,10)) > 0 AND CAST(${attribute(field)} AS DECIMAL(20,10)) <= 1000`
+            : sql`JSON_TYPE(JSON_EXTRACT(${products.specifications}, ${`$.${field}`})) = 'STRING'`,
           sql`${attribute(field)} <> ''`,
           field === "unit"
             ? sql`${attribute(field)} IN ('individual', 'pair')`
@@ -154,22 +187,28 @@ export async function getCatalogueFacets(
       .limit(100);
     return rows.map((row) => ({ value: row.value, total: Number(row.total) }));
   }
-  const [material, stone, unit, stock] = await Promise.all([
-    facet("material"),
-    facet("stone"),
-    facet("unit"),
-    tx
-      .select({
-        total: sql<number>`COALESCE(SUM(CASE WHEN ${catalogueStockPredicate()} AND ${catalogueAttributePredicate({ ...filters, inStock: undefined }) ?? sql`TRUE`} THEN 1 ELSE 0 END), 0)`,
-        hasPrices: sql<number>`COALESCE(MAX(CASE WHEN ${cataloguePricePredicate()} THEN 1 ELSE 0 END), 0)`,
-      })
-      .from(products)
-      .innerJoin(categories, eq(products.categoryId, categories.id))
-      .where(base),
-  ]);
+  const [material, stone, stoneShape, widthMm, unit, stock] = await Promise.all(
+    [
+      facet("material"),
+      facet("stone"),
+      facet("stoneShape"),
+      facet("widthMm"),
+      facet("unit"),
+      tx
+        .select({
+          total: sql<number>`COALESCE(SUM(CASE WHEN ${catalogueStockPredicate()} AND ${catalogueAttributePredicate({ ...filters, inStock: undefined }) ?? sql`TRUE`} THEN 1 ELSE 0 END), 0)`,
+          hasPrices: sql<number>`COALESCE(MAX(CASE WHEN ${cataloguePricePredicate()} THEN 1 ELSE 0 END), 0)`,
+        })
+        .from(products)
+        .innerJoin(categories, eq(products.categoryId, categories.id))
+        .where(base),
+    ]
+  );
   return {
     material,
     stone,
+    stoneShape,
+    widthMm,
     unit,
     inStock: Number(stock[0]?.total ?? 0),
     hasPrices: Number(stock[0]?.hasPrices ?? 0) > 0,

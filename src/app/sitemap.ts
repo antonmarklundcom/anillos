@@ -8,6 +8,7 @@ import { getStoreCategories } from "@/store/catalog";
 import { paginasActivas } from "@/lib/paginas";
 import { buildSitemap } from "@/lib/seo";
 import { siteOrigin } from "@/lib/site-url";
+import { publicCampaigns } from "@/store/campaigns";
 
 /**
  * `/sitemap.xml` — la home, las categorías activas, los productos publicados
@@ -44,6 +45,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pageDates = Object.fromEntries(
     GUIDES.map((guide) => [`guias/${guide.slug}`, guide.reviewedAt])
   );
+  const campaigns = await publicCampaigns();
+  if (campaigns.length)
+    pages.push(
+      "campanas",
+      ...campaigns.map((campaign) => `campanas/${campaign.slug}`)
+    );
 
   try {
     const entries = await getSitemapEntries();

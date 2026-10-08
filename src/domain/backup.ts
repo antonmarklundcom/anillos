@@ -185,7 +185,10 @@ export function dumpDatabase(executor?: Executor): {
         );
         const digest = rowDigest();
         let filas = 0;
-        for await (const { table, row } of dumpRows(tx, manifest.tables as readonly BackupTable[])) {
+        for await (const { table, row } of dumpRows(
+          tx,
+          manifest.tables as readonly BackupTable[]
+        )) {
           tablas.add(table);
           filas += 1;
           counts[table]! += 1;
@@ -395,6 +398,9 @@ export const PRIMARY_KEY: Record<BackupTable, string | null> = {
   job_runs: null,
   bank_details: null,
   store_settings: null,
+  sales_workspace: "id",
+  sales_workspace_audit: "id",
+  sales_search_gaps: "id",
   integration_settings: null,
   users: "id",
   customers: "id",

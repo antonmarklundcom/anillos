@@ -66,7 +66,11 @@ export function ProductImage({
   sizes?: string;
   concept?: boolean;
 }) {
-  const url = productImageUrl(image?.cloudinaryId, size);
+  // Fit delivery preserves original pixels before the browser applies the chosen crop.
+  const url = productImageUrl(
+    image?.cloudinaryId,
+    size === "card" ? "card-fit" : size
+  );
   const illustrative = concept || image?.provenance === "illustrative";
   const wrapper = cn(
     "bg-muted relative aspect-square overflow-hidden rounded-lg",
@@ -150,13 +154,16 @@ export function ProductImage({
         alt={
           illustrative
             ? `Imagen ilustrativa para ${alt}; no es una fotografía del producto`
-            : image?.alt ?? alt
+            : (image?.alt ?? alt)
         }
         fill
         unoptimized
         priority={priority}
         sizes={sizes ?? "(max-width: 640px) 50vw, 300px"}
         className="object-cover"
+        style={{
+          objectPosition: `${image?.focalPointX ?? 50}% ${image?.focalPointY ?? 50}%`,
+        }}
         placeholder={image?.blurDataUrl ? "blur" : "empty"}
         blurDataURL={image?.blurDataUrl ?? undefined}
       />

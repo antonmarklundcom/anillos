@@ -58,6 +58,8 @@ export type CatalogVariant = {
 };
 
 export type CatalogImage = {
+  focalPointX?: number | null;
+  focalPointY?: number | null;
   provenance?: import("@/lib/product-image-provenance").ImageProvenance | null;
   verifiedAt?: Date | null;
   cloudinaryId: string;
@@ -182,6 +184,8 @@ async function hydrate(
     .select({
       productId: productImages.productId,
       cloudinaryId: productImages.cloudinaryId,
+      focalPointX: productImages.focalPointX,
+      focalPointY: productImages.focalPointY,
       provenance: productImages.provenance,
       verifiedAt: productImages.verifiedAt,
       blurDataUrl: productImages.blurDataUrl,
@@ -208,7 +212,10 @@ async function hydrate(
       label: row.label,
       pricePyg: row.pricePyg,
       compareAtPyg: row.compareAtPyg,
-      available: Number.isSafeInteger(row.pricePyg) && row.pricePyg > 0 ? Math.max(0, row.onHand - (held.get(row.id) ?? 0)) : 0,
+      available:
+        Number.isSafeInteger(row.pricePyg) && row.pricePyg > 0
+          ? Math.max(0, row.onHand - (held.get(row.id) ?? 0))
+          : 0,
       attributes: publicVariantAttributes(row.attributes, true),
       identifiers: publicIdentifiers(row.identifiers, ""),
     });
@@ -224,6 +231,8 @@ async function hydrate(
       verifiedAt: row.verifiedAt,
       blurDataUrl: row.blurDataUrl,
       alt: row.alt,
+      focalPointX: row.focalPointX,
+      focalPointY: row.focalPointY,
     });
     imagesByProduct.set(row.productId, list);
   }
@@ -253,7 +262,9 @@ async function hydrate(
             available: 0,
           }
         : row.showPrice
-          ? row.saleMode === "stock" ? variant : { ...variant, available: 0 }
+          ? row.saleMode === "stock"
+            ? variant
+            : { ...variant, available: 0 }
           : { ...variant, pricePyg: 0, compareAtPyg: null, available: 0 };
     }),
     ...(ratings.has(row.id) ? { rating: ratings.get(row.id) } : {}),
@@ -301,7 +312,13 @@ export async function getCatalog(
     .orderBy(
       ...(options.featured
         ? [desc(products.publishedAt)]
-        : [asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`), asc(categories.position), asc(products.name)])
+        : [
+            asc(
+              sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`
+            ),
+            asc(categories.position),
+            asc(products.name),
+          ])
     )
     .limit(options.limit ?? 100);
 
@@ -407,7 +424,13 @@ export async function getCategoryProducts(
 
   const rows = await (having ? grouped.having(having) : grouped)
     .orderBy(
-      ...(!query.sort || query.sort === "relevancia" ? [asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`)] : []),
+      ...(!query.sort || query.sort === "relevancia"
+        ? [
+            asc(
+              sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`
+            ),
+          ]
+        : []),
       ...(query.sort?.startsWith("precio-")
         ? [sql`${minPriceSql} IS NULL`]
         : []),
@@ -458,6 +481,8 @@ export async function getProductBySlug(
   const images = await tx
     .select({
       cloudinaryId: productImages.cloudinaryId,
+      focalPointX: productImages.focalPointX,
+      focalPointY: productImages.focalPointY,
       provenance: productImages.provenance,
       verifiedAt: productImages.verifiedAt,
       blurDataUrl: productImages.blurDataUrl,
@@ -483,6 +508,7 @@ export async function searchProducts(
   options: { limit?: number } = {},
   executor?: Executor
 ): Promise<CatalogProduct[]> {
+  if (term.length > 160) return [];
   const tx = executor ?? getDb();
   const cleaned = term
     .trim()
@@ -491,7 +517,7 @@ export async function searchProducts(
     .trim();
   if (cleaned.length < 2) return [];
 
-  const limit = options.limit ?? 40;
+  const limit = Math.min(40, Math.max(1, options.limit ?? 40));
   const booleanTerm = cleaned
     .split(" ")
     .map((word) => `${word}*`)
@@ -553,6 +579,8 @@ export async function suggestProducts(
   limit = 6,
   executor?: Executor
 ): Promise<SearchSuggestion[]> {
+  if (term.length > 160) return [];
+  limit = Math.min(10, Math.max(1, limit));
   const tx = executor ?? getDb();
   const cleaned = term
     .trim()
@@ -922,11 +950,28 @@ export async function getProductsBySlugs(
 }
 
 /** Comparison picker needs neither stock holds nor image/rating hydration. */
-export async function getComparisonCandidates(excluded: string[] = [], executor?: Executor): Promise<{ slug: string; name: string }[]> {
+export async function getComparisonCandidates(
+  excluded: string[] = [],
+  executor?: Executor
+): Promise<{ slug: string; name: string }[]> {
   const tx = executor ?? getDb();
-  return tx.select({ slug: products.slug, name: products.name }).from(products).innerJoin(categories, eq(products.categoryId, categories.id))
-    .where(and(PUBLISHED(), excluded.length ? notInArray(products.slug, excluded.slice(0, 3)) : undefined))
-    .orderBy(asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`), asc(products.name)).limit(40);
+  return tx
+    .select({ slug: products.slug, name: products.name })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        PUBLISHED(),
+        excluded.length
+          ? notInArray(products.slug, excluded.slice(0, 3))
+          : undefined
+      )
+    )
+    .orderBy(
+      asc(sql`LOWER(${products.slug}) LIKE ${`${CONCEPT_PRODUCT_PREFIX}%`}`),
+      asc(products.name)
+    )
+    .limit(40);
 }
 
 /**
@@ -989,6 +1034,8 @@ export async function getFeedProducts(
     .select({
       productId: productImages.productId,
       cloudinaryId: productImages.cloudinaryId,
+      focalPointX: productImages.focalPointX,
+      focalPointY: productImages.focalPointY,
       provenance: productImages.provenance,
       verifiedAt: productImages.verifiedAt,
       blurDataUrl: productImages.blurDataUrl,

@@ -3,6 +3,8 @@ import { priceUnit, CONCEPT_NOTICE } from "@/config/ring-store";
 import { displayProductName } from "@/config/ring-display";
 import { isConceptProduct } from "@/lib/concept-products";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductFaqs } from "@/components/product-faqs";
+import { readPublicProductFaqs } from "@/domain/sales-workspace-store";
 import { PRODUCT_PLACEHOLDERS } from "@/config/product-placeholders";
 import { ringMetadata } from "@/store/seo";
 import { productMetaDescription } from "@/store/product-metadata";
@@ -315,6 +317,8 @@ export default async function ProductPage({
       ? [
           {
             src,
+            focalPointX: image.focalPointX,
+            focalPointY: image.focalPointY,
             thumbnailSrc: productImageUrl(image.cloudinaryId, "thumb") ?? src,
             alt:
               isConceptProduct(product.slug) ||
@@ -591,6 +595,12 @@ export default async function ProductPage({
                 <dd>{specifications.widthMm.toLocaleString("es-PY")} mm</dd>
               </div>
             ) : null}
+            {specifications?.stoneShape ? (
+              <div>
+                <dt>Forma de piedra confirmada</dt>
+                <dd>{specifications.stoneShape}</dd>
+              </div>
+            ) : null}
             {product.variants
               .filter(
                 (variant) =>
@@ -696,6 +706,12 @@ export default async function ProductPage({
             ))}
           </ul>
         </section>
+      ) : null}
+
+      {!isConceptProduct(product.slug) ? (
+        <ProductFaqs
+          faqs={await readPublicProductFaqs(product.slug).catch(() => [])}
+        />
       ) : null}
 
       {related.length > 0 ? (

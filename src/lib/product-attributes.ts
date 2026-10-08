@@ -29,6 +29,7 @@ export const ProductSpecificationsSchema = z
     material: optionalText(120),
     purity: optionalText(80),
     stone: optionalText(160),
+    stoneShape: optionalText(80),
     widthMm: millimetres,
     unit: z.enum(["individual", "pair"]).optional(),
   })

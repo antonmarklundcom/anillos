@@ -28,6 +28,9 @@ export async function closeTestDb(): Promise<void> {
 }
 
 const TABLES = [
+  "sales_workspace",
+  "sales_workspace_audit",
+  "sales_search_gaps",
   "notification_outbox",
   "operation_keys",
   // O5: las cinco tablas nuevas de plan-operacion §2. Van primero las que
