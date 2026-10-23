@@ -93,8 +93,5 @@
   "packageManager": "pnpm@11.22.0",
   "engines": {
     "node": ">=22.13 <25"
-  },
-  "overrides": {
-    "sharp": "^0.35.5"
   }
 }
